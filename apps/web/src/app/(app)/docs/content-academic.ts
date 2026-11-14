@@ -4568,4 +4568,154 @@ export const ACADEMIC_DOCS: DocArticle[] = [
       },
     },
   },
+  {
+    slug: 'vocational-structure',
+    icon: 'briefcase',
+    tone: 'sky',
+    group: 'academic',
+    module: 'internship',
+    text: {
+      id: {
+        title: 'SMK: bidang, program, konsentrasi keahlian dan rapor berkelompok',
+        summary:
+          'Cara menyusun hierarki Bidang, Program, dan Konsentrasi Keahlian sekolah, menautkan jurusan (unit kelas) ke konsentrasi, serta menyalakan rapor yang mengelompokkan mapel Umum/Kejuruan dengan identitas keahlian di kop.',
+        forWho: 'Admin dan kurikulum SMK/MAK yang menyiapkan struktur keahlian dan rapor.',
+        sections: [
+          {
+            heading: 'Menyusun bidang, program, dan konsentrasi keahlian',
+            body: 'Di halaman Kelas, tombol Keahlian (hanya jenjang kejuruan dengan modul PKL aktif) membuka hierarki keahlian. Daftarnya tidak diisi otomatis: spektrum keahlian resmi berbeda antarsumber dan lampiran 244/M/2024 belum diverifikasi, jadi sekolah mengisi bidang, program, dan konsentrasi yang ia layani sesuai SK Dinas atau Dapodik. Kode Dapodik dan rujukan sumber bersifat opsional. Kode harus unik per sekolah; bidang, program, atau konsentrasi yang masih punya isi di bawahnya tidak bisa dihapus, nonaktifkan saja.',
+            steps: [
+              'Buka Kelas, lalu klik Keahlian.',
+              'Tambah bidang keahlian, lalu tambah program keahlian di bawahnya.',
+              'Tambah konsentrasi keahlian di bawah program.',
+              'Isi kode Dapodik bila ada (opsional).',
+            ],
+            href: '/classes/expertise',
+          },
+          {
+            heading: 'Menautkan jurusan ke konsentrasi',
+            body: 'Jurusan di Kelas (misalnya RPL 3 tahun dan RPL 4 tahun) tetap menjadi unit operasional kelas, jam pelajaran, dan KKTP. Tautan ke konsentrasi hanya menambahkan identitas keahlian: satu konsentrasi boleh dipakai dua jurusan (3 dan 4 tahun). Tautkan dari kartu konsentrasi atau dari dialog Jurusan di halaman Kelas. Menautkan tidak mengubah kelas, nilai, atau rapor yang sudah ada.',
+            href: '/classes',
+          },
+          {
+            heading: 'Rapor berkelompok dan identitas keahlian',
+            body: 'Di Pengaturan rapor ada sakelar Kelompokkan mapel (Umum/Kejuruan) dan tampilkan identitas keahlian. Bila menyala, rapor memuat subjudul menurut kelompok mapel (dari kelompok yang diatur di tiap mapel, misalnya Kelompok Mata Pelajaran Umum atau Kelompok Kejuruan), mapel diurutkan per kelompok, dan kop memuat Bidang, Program, dan Konsentrasi Keahlian bila jurusan rombel sudah ditautkan. Mapel yang belum diberi kelompok ditampilkan di akhir. Sakelar mati bawaan: sekolah yang tidak menyalakannya, dan semua sekolah non-SMK, mendapat rapor persis seperti sebelumnya.',
+            steps: [
+              'Pastikan mapel SMK sudah diberi kelompok di Mata pelajaran.',
+              'Buka Pengaturan rapor, bagian Rapor SMK.',
+              'Centang Kelompokkan mapel dan tampilkan identitas keahlian.',
+              'Buka rapor siswa untuk memeriksa pratinjau dan PDF.',
+            ],
+            href: '/report-cards/settings',
+            warning:
+              'Rapor yang sudah final tidak berubah. Buka kembali rapor lalu finalkan ulang agar memakai pengaturan baru.',
+          },
+        ],
+        faq: [
+          {
+            q: 'Tombol Keahlian tidak muncul.',
+            a: 'Tombol hanya tampil untuk jenjang kejuruan (SMK/MAK) dengan modul Praktik Kerja Lapangan aktif, dan perlu izin mengelola kelas untuk mengubah.',
+          },
+          {
+            q: 'Mengapa kop rapor tidak memuat bidang keahlian?',
+            a: 'Kop hanya memuat identitas keahlian bila sakelar rapor kejuruan menyala dan jurusan rombel ditautkan ke konsentrasi.',
+          },
+        ],
+      },
+      en: {
+        title: 'Vocational: fields, programs, skill concentrations and the grouped report card',
+        summary:
+          'How to build the school’s Field, Program, and Skill Concentration hierarchy, link programs (class units) to a concentration, and turn on a report card that groups General/Vocational subjects with the skills identity in the header.',
+        forWho: 'SMK/MAK admins and curriculum staff preparing the skills structure and report cards.',
+        sections: [
+          {
+            heading: 'Building fields, programs, and skill concentrations',
+            body: 'On the Classes page, the Skills button (vocational levels with the internship module active only) opens the skills hierarchy. The list is not filled automatically: the official skills spectrum differs between sources and annex 244/M/2024 is not yet verified, so the school enters the fields, programs, and concentrations it offers according to its Dinas decree or Dapodik. The Dapodik code and source reference are optional. Codes must be unique per school; a field, program, or concentration that still has items under it cannot be deleted, deactivate it instead.',
+            steps: [
+              'Open Classes, then click Skills.',
+              'Add a field of expertise, then add a program of expertise under it.',
+              'Add a skill concentration under the program.',
+              'Enter the Dapodik code if you have one (optional).',
+            ],
+            href: '/classes/expertise',
+          },
+          {
+            heading: 'Linking programs to a concentration',
+            body: 'The programs under Classes (for example RPL 3 years and RPL 4 years) remain the operational unit for classes, lesson periods, and KKTP. Linking to a concentration only adds the skills identity: one concentration can be used by two programs (3 and 4 years). Link from the concentration card or from the Programs dialog on the Classes page. Linking does not change existing classes, grades, or report cards.',
+            href: '/classes',
+          },
+          {
+            heading: 'Grouped report card and skills identity',
+            body: 'Report card settings has a switch, Group subjects (General/Vocational) and show the skills identity. When on, the report card shows headings per subject group (from the group set on each subject, for example General Subjects Group or Vocational Group), orders subjects by group, and the header shows the Field, Program, and Skill Concentration when the class program is linked. Subjects without a group appear at the end. The switch is off by default: a school that does not turn it on, and every non-SMK school, gets report cards exactly as before.',
+            steps: [
+              'Make sure the SMK subjects have a group under Subjects.',
+              'Open Report card settings, the Vocational report card section.',
+              'Tick Group subjects and show the skills identity.',
+              'Open a student’s report card to check the preview and PDF.',
+            ],
+            href: '/report-cards/settings',
+            warning:
+              'A final report card does not change. Reopen the report and finalize again to use the new setting.',
+          },
+        ],
+        faq: [
+          {
+            q: 'The Skills button does not appear.',
+            a: 'The button appears only for vocational levels (SMK/MAK) with the Internship module active, and changing it needs the permission to manage classes.',
+          },
+          {
+            q: 'Why does the report header not show the field of expertise?',
+            a: 'The header shows the skills identity only when the vocational report switch is on and the class program is linked to a concentration.',
+          },
+        ],
+      },
+      su: {
+        title: 'SMK: bidang, program, konsentrasi kaahlian jeung rapor kelompok',
+        summary:
+          'Cara nyusun hirarki Bidang, Program, jeung Konsentrasi Kaahlian sakola, nautkeun jurusan (unit kelas) ka konsentrasi, sarta nyaangkeun rapor nu ngelompokkeun mapel Umum/Kejuruan jeung identitas kaahlian dina kop.',
+        forWho: 'Admin jeung kurikulum SMK/MAK nu nyiapkeun struktur kaahlian jeung rapor.',
+        sections: [
+          {
+            heading: 'Nyusun bidang, program, jeung konsentrasi kaahlian',
+            body: 'Dina kaca Kelas, tombol Kaahlian (ngan jenjang kejuruan nu modul PKL-na aktip) muka hirarki kaahlian. Daptarna henteu diisi otomatis: spéktrum kaahlian resmi béda antarsumber jeung lampiran 244/M/2024 can diverifikasi, jadi sakola ngeusian bidang, program, jeung konsentrasi nu dilayanan luyu jeung SK Dinas atawa Dapodik. Kode Dapodik jeung rujukan sumber sipatna opsional. Kode kudu unik per sakola; bidang, program, atawa konsentrasi nu masih aya eusina teu bisa dihapus, nonaktipkeun waé.',
+            steps: [
+              'Buka Kelas, tuluy klik Kaahlian.',
+              'Tambah bidang kaahlian, tuluy tambah program kaahlian di handapeunana.',
+              'Tambah konsentrasi kaahlian di handapeun program.',
+              'Eusian kode Dapodik lamun aya (opsional).',
+            ],
+            href: '/classes/expertise',
+          },
+          {
+            heading: 'Nautkeun jurusan ka konsentrasi',
+            body: 'Jurusan di Kelas (upamana RPL 3 taun jeung RPL 4 taun) tetep jadi unit operasional kelas, jam pelajaran, jeung KKTP. Tautan ka konsentrasi ngan nambahan identitas kaahlian: hiji konsentrasi meunang dipaké ku dua jurusan (3 jeung 4 taun). Tautkeun tina kartu konsentrasi atawa tina dialog Jurusan di kaca Kelas. Nautkeun teu ngarobah kelas, nilai, atawa rapor nu geus aya.',
+            href: '/classes',
+          },
+          {
+            heading: 'Rapor kelompok jeung identitas kaahlian',
+            body: 'Dina Setélan rapor aya sakelar Kelompokkeun mapel (Umum/Kejuruan) jeung témbongkeun identitas kaahlian. Lamun hurung, rapor ngandung sub-judul nurutkeun kelompok mapel (tina kelompok nu diatur dina unggal mapel, upamana Kelompok Mata Pelajaran Umum atawa Kelompok Kejuruan), mapel diurutkeun per kelompok, jeung kop ngandung Bidang, Program, jeung Konsentrasi Kaahlian lamun jurusan rombél geus ditautkeun. Mapel nu can boga kelompok némbongan di tungtung. Sakelarna pareum sacara baku: sakola nu henteu nyaangkeunana, jeung sakabéh sakola non-SMK, meunang rapor persis siga saméméhna.',
+            steps: [
+              'Pastikeun mapel SMK geus dibéré kelompok di Mata pelajaran.',
+              'Buka Setélan rapor, bagian Rapor SMK.',
+              'Centang Kelompokkeun mapel jeung témbongkeun identitas kaahlian.',
+              'Buka rapor siswa pikeun mariksa pratayang jeung PDF.',
+            ],
+            href: '/report-cards/settings',
+            warning:
+              'Rapor nu geus final teu robah. Buka deui rapor tuluy finalkeun deui sangkan maké setélan anyar.',
+          },
+        ],
+        faq: [
+          {
+            q: 'Tombol Kaahlian teu muncul.',
+            a: 'Tombolna ngan muncul pikeun jenjang kejuruan (SMK/MAK) nu modul Praktik Kerja Lapangan-na aktip, sarta ngarobah merlukeun idin ngokolakeun kelas.',
+          },
+          {
+            q: 'Naha kop rapor teu ngandung bidang kaahlian?',
+            a: 'Kop ngan ngandung identitas kaahlian lamun sakelar rapor kejuruan hurung jeung jurusan rombél ditautkeun ka konsentrasi.',
+          },
+        ],
+      },
+    },
+  },
 ];

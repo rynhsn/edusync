@@ -7,6 +7,8 @@ import {
   type ReportCocurricular,
   type ReportDocument,
   type ReportDocumentV2,
+  type ReportExpertise,
+  type ReportSubjectGroup,
   rankPositions,
 } from '@edusync/contracts';
 import {
@@ -28,6 +30,8 @@ import {
   isNull,
   lte,
   or,
+  programConcentration,
+  refSubjectGroup,
   reportCardSection,
   reportSetting,
   reportSubjectNarrative,
@@ -36,8 +40,13 @@ import {
   schoolLevel,
   schoolProfileItem,
   semester,
+  subject,
   type Tx,
   teacher,
+  vocationalConcentration,
+  vocationalField,
+  vocationalProgram,
+  vocationalSetting,
 } from '@edusync/db';
 import { type EffectiveGradingConfig, loadGradingConfig, remedialContextFor } from './grading-config-lib';
 import { assessedSubjects, computeGrades, notCountedComponentIds, type StudentGrade } from './grading-lib';
@@ -145,6 +154,14 @@ export interface ClassContext {
   kkm: number;
   /** KKM efektif per mapel (KKTP berjenjang, jatuh ke `kkm` bila tak ada kriteria). */
   kkmBySubject: Map<string, number>;
+  /**
+   * Bahan rapor SMK (5.2): null bila sekolah tidak menyalakan `vocational_setting.report_grouped` (dokumen persis seperti sebelumnya).
+   * `groups` = kelompok mapel beku per mapel (urutan `ref_subject_group.sort`); `expertise` null bila jurusan rombel belum ditautkan.
+   */
+  vocational: {
+    expertise: ReportExpertise | null;
+    groups: Map<string, ReportSubjectGroup & { sort: number }>;
+  } | null;
   /** Mapel kelas yang dinilai pada semester itu; mapel yang dipilih per murid disaring lewat `subjectsOf`. */
   subjects: { id: string; name: string }[];
   /** Pengambil per mapel berpenanda partisipasi (3B.2); `null` = tidak ada mapel pilihan, semua murid mengambil semua mapel. */
@@ -172,6 +189,48 @@ export function subjectsOf(c: Pick<ClassContext, 'subjects' | 'takers'>, student
   return c.takers === null ? c.subjects : c.subjects.filter((sub) => takes(c.takers, sub.id, studentId));
 }
 
+/**
+ * Kelompok mapel beku dan identitas keahlian untuk rapor SMK (tahap 5.2); hanya dipanggil bila sakelar menyala. Dua kueri tetap
+ * tanpa memandang jumlah murid. Mapel tanpa kelompok tidak ada di peta; label Indonesia dibekukan di dokumen.
+ */
+async function loadVocationalReport(tx: Tx, programId: string | null, subjectIds: string[]) {
+  const groupRows = subjectIds.length
+    ? await tx
+        .select({
+          subjectId: subject.id,
+          key: refSubjectGroup.key,
+          label: refSubjectGroup.labelId,
+          section: refSubjectGroup.reportSection,
+          sort: refSubjectGroup.sort,
+        })
+        .from(subject)
+        .innerJoin(refSubjectGroup, eq(refSubjectGroup.key, subject.subjectGroup))
+        .where(inArray(subject.id, subjectIds))
+    : [];
+  const groups = new Map(
+    groupRows.map(({ subjectId, ...g }) => [subjectId, g] as [string, ReportSubjectGroup & { sort: number }]),
+  );
+  let expertise: ReportExpertise | null = null;
+  if (programId) {
+    const [e] = await tx
+      .select({
+        field: vocationalField.name,
+        program: vocationalProgram.name,
+        concentration: vocationalConcentration.name,
+      })
+      .from(programConcentration)
+      .innerJoin(
+        vocationalConcentration,
+        eq(vocationalConcentration.id, programConcentration.concentrationId),
+      )
+      .innerJoin(vocationalProgram, eq(vocationalProgram.id, vocationalConcentration.vocationalProgramId))
+      .innerJoin(vocationalField, eq(vocationalField.id, vocationalProgram.fieldId))
+      .where(eq(programConcentration.programId, programId));
+    expertise = e ?? null;
+  }
+  return { expertise, groups };
+}
+
 export async function loadClassContext(
   tx: Tx,
   sem: SemesterRow,
@@ -179,7 +238,11 @@ export async function loadClassContext(
   extraStudentIds: string[] = [],
 ): Promise<ClassContext> {
   const { cls, rows: roster } = await semesterRosterOf(tx, clsInput.id, sem);
-  const [sch] = await tx.select({ name: school.name }).from(school);
+  // Satu kueri untuk nama sekolah dan sakelar kejuruan (jumlah kueri konteks tidak bertambah).
+  const [sch] = await tx
+    .select({ name: school.name, reportGrouped: vocationalSetting.reportGrouped })
+    .from(school)
+    .leftJoin(vocationalSetting, eq(vocationalSetting.schoolId, school.id));
   const [ident] = await tx.select({ nsm: schoolIdentifier.nsm }).from(schoolIdentifier);
   const [year] = await tx
     .select({ name: academicYear.name })
@@ -208,6 +271,13 @@ export async function loadClassContext(
     // Nilai efektif remedial menurut kebijakan semester (undefined = record_only: tanpa kueri tambahan, hasil identik).
     remedial: await remedialContextFor(tx, cfg, { classId: cls.id, subjectIds: subjects.map((s) => s.id) }),
   });
+  const vocational = sch?.reportGrouped
+    ? await loadVocationalReport(
+        tx,
+        cls.programId,
+        subjects.map((s) => s.id),
+      )
+    : null;
   const kkmOf = await kkmResolver(tx, {
     levelCode: cls.level,
     programId: cls.programId,
@@ -237,6 +307,7 @@ export async function loadClassContext(
     yearName: year?.name ?? '',
     schoolName: sch?.name ?? '',
     schoolNsm: ident?.nsm ?? null,
+    vocational,
     reportSettings,
     cfg,
     kkm: settings.kkm,
@@ -580,8 +651,17 @@ export async function buildDocument(
       className: c.cls.name,
       level: c.cls.level,
     },
-    subjects: subjectsOf(c, stu.id).map((sub) => {
+    // Rapor SMK berkelompok: mapel diurut per kelompok (urutan acuan; stabil, mapel tanpa kelompok di akhir).
+    subjects: (c.vocational
+      ? [...subjectsOf(c, stu.id)].sort(
+          (a, b) =>
+            (c.vocational?.groups.get(a.id)?.sort ?? Number.MAX_SAFE_INTEGER) -
+            (c.vocational?.groups.get(b.id)?.sort ?? Number.MAX_SAFE_INTEGER),
+        )
+      : subjectsOf(c, stu.id)
+    ).map((sub) => {
       const g = c.grades.get(sub.id)?.get(stu.id);
+      const group = c.vocational?.groups.get(sub.id);
       const final = g?.final ?? null;
       const predicate = g?.predicate ?? null;
       const kkm = c.kkmBySubject.get(sub.id) ?? c.kkm;
@@ -596,6 +676,7 @@ export async function buildDocument(
         // Manual > otomatis dari TP > per predikat (v1). Tanpa TP berstatus, teksnya persis v1.
         description: manual ?? obj?.text ?? (predicate && !descriptive ? descriptionOf(predicate, d) : null),
         belowKkm: final !== null && final < kkm,
+        ...(group ? { group: { key: group.key, label: group.label, section: group.section } } : {}),
         ...(manual
           ? { descriptionSource: 'manual' as const }
           : obj
@@ -616,6 +697,7 @@ export async function buildDocument(
     ...(v2.cocurricularNote ? { cocurricularNote: v2.cocurricularNote } : {}),
     ...(v2.cocurricular?.length ? { cocurricular: v2.cocurricular } : {}),
     ...(c.schoolNsm ? { schoolNsm: c.schoolNsm } : {}),
+    ...(c.vocational?.expertise ? { expertise: c.vocational.expertise } : {}),
     ...(descriptive && v2.developmentNote ? { developmentNote: v2.developmentNote } : {}),
     generatedAt: new Date().toISOString(),
   };

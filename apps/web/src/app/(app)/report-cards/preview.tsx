@@ -1,10 +1,11 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+import { Fragment } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { TONES, ToneBadge, UserAvatar } from '@/components/ui-kit';
 import { formatKkm } from '@/lib/kktp';
-import { type ReportDisplayOptions, reportView } from '@/lib/report-v2';
+import { type ReportDisplayOptions, reportView, subjectGroupHeading } from '@/lib/report-v2';
 import { cn } from '@/lib/utils';
 import { PredicateBadge, ScoreChip } from '../grades/grade-ui';
 import { formatGrade } from './pdf/format';
@@ -33,6 +34,11 @@ export function ReportCardPreview({ doc, display }: { doc: ReportCardDoc; displa
             <p className="text-muted-foreground">
               {semester.name} · {semester.academicYear}
             </p>
+            {doc.expertise && (
+              <p className="text-muted-foreground text-xs">
+                {[doc.expertise.field, doc.expertise.program, doc.expertise.concentration].join(' › ')}
+              </p>
+            )}
             {doc.schoolNsm && (
               <p className="text-muted-foreground text-xs">
                 {doc.school.name} · {t('nsm')} {doc.schoolNsm}
@@ -66,48 +72,62 @@ export function ReportCardPreview({ doc, display }: { doc: ReportCardDoc; displa
               </TableRow>
             </TableHeader>
             <TableBody>
-              {doc.subjects.map((s) => (
-                <TableRow
-                  key={s.subjectId}
-                  className={cn(
-                    'max-md:grid max-md:gap-x-3 max-md:gap-y-1 max-md:px-3 max-md:py-3',
-                    view.showNumbers ? 'max-md:grid-cols-[1fr_auto]' : 'max-md:grid-cols-1',
-                  )}
-                >
-                  <TableCell className="font-medium max-md:col-start-1 max-md:row-start-1 max-md:p-0 max-md:whitespace-normal">
-                    {s.name}
-                  </TableCell>
-                  {view.showNumbers && (
-                    <>
-                      <TableCell className="text-right tabular-nums max-md:col-start-1 max-md:row-start-2 max-md:p-0 max-md:text-left max-md:text-muted-foreground">
-                        <span className="md:hidden">{t('kkm')}: </span>
-                        {formatKkm(s.kkm)}
-                      </TableCell>
-                      <TableCell className="text-right max-md:col-start-2 max-md:row-start-1 max-md:p-0">
-                        <ScoreChip predicate={s.predicate} below={s.belowKkm}>
-                          {formatGrade(s.final)}
-                        </ScoreChip>
-                      </TableCell>
-                      <TableCell className="max-md:col-start-2 max-md:row-start-2 max-md:p-0 max-md:text-right">
-                        {s.predicate ? <PredicateBadge predicate={s.predicate} /> : '-'}
-                      </TableCell>
-                    </>
-                  )}
-                  <TableCell className="text-muted-foreground min-w-48 whitespace-normal max-md:col-span-2 max-md:min-w-0 max-md:p-0 max-md:text-xs">
-                    {s.description ?? '-'}
-                    {s.descriptionSource === 'manual' && (
-                      <ToneBadge tone="sky" dot={false} className="ml-2 align-middle">
-                        {t('descManual')}
-                      </ToneBadge>
+              {doc.subjects.map((s, i) => {
+                const heading = subjectGroupHeading(doc.subjects, i);
+                return (
+                  <Fragment key={s.subjectId}>
+                    {heading && (
+                      <TableRow className="bg-muted/40 hover:bg-muted/40 max-md:block max-md:px-3 max-md:py-2">
+                        <TableCell
+                          colSpan={view.showNumbers ? 4 : 2}
+                          className="text-muted-foreground text-xs font-semibold tracking-wide uppercase max-md:p-0"
+                        >
+                          {heading.label ?? t('groupOther')}
+                        </TableCell>
+                      </TableRow>
                     )}
-                    {s.descriptionSource === 'objectives' && (
-                      <ToneBadge tone="emerald" dot={false} className="ml-2 align-middle">
-                        {t('sourceObjectives')}
-                      </ToneBadge>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))}
+                    <TableRow
+                      className={cn(
+                        'max-md:grid max-md:gap-x-3 max-md:gap-y-1 max-md:px-3 max-md:py-3',
+                        view.showNumbers ? 'max-md:grid-cols-[1fr_auto]' : 'max-md:grid-cols-1',
+                      )}
+                    >
+                      <TableCell className="font-medium max-md:col-start-1 max-md:row-start-1 max-md:p-0 max-md:whitespace-normal">
+                        {s.name}
+                      </TableCell>
+                      {view.showNumbers && (
+                        <>
+                          <TableCell className="text-right tabular-nums max-md:col-start-1 max-md:row-start-2 max-md:p-0 max-md:text-left max-md:text-muted-foreground">
+                            <span className="md:hidden">{t('kkm')}: </span>
+                            {formatKkm(s.kkm)}
+                          </TableCell>
+                          <TableCell className="text-right max-md:col-start-2 max-md:row-start-1 max-md:p-0">
+                            <ScoreChip predicate={s.predicate} below={s.belowKkm}>
+                              {formatGrade(s.final)}
+                            </ScoreChip>
+                          </TableCell>
+                          <TableCell className="max-md:col-start-2 max-md:row-start-2 max-md:p-0 max-md:text-right">
+                            {s.predicate ? <PredicateBadge predicate={s.predicate} /> : '-'}
+                          </TableCell>
+                        </>
+                      )}
+                      <TableCell className="text-muted-foreground min-w-48 whitespace-normal max-md:col-span-2 max-md:min-w-0 max-md:p-0 max-md:text-xs">
+                        {s.description ?? '-'}
+                        {s.descriptionSource === 'manual' && (
+                          <ToneBadge tone="sky" dot={false} className="ml-2 align-middle">
+                            {t('descManual')}
+                          </ToneBadge>
+                        )}
+                        {s.descriptionSource === 'objectives' && (
+                          <ToneBadge tone="emerald" dot={false} className="ml-2 align-middle">
+                            {t('sourceObjectives')}
+                          </ToneBadge>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  </Fragment>
+                );
+              })}
             </TableBody>
           </Table>
         </div>

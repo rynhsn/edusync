@@ -452,6 +452,31 @@ describe('PDF rapor', () => {
     expect(en.toString('latin1')).toContain(title(`Report card ${base.student.name}`));
     expect(en.toString('latin1')).not.toContain(title(`Rapor ${base.student.name}`));
   });
+
+  it('rapor SMK berkelompok (5.2): subjudul kelompok dan identitas keahlian di kop; tanpa keduanya persis v1', async () => {
+    const groups = [
+      { key: 'religion', label: 'Pendidikan Agama dan Budi Pekerti', section: 'A' },
+      { key: 'general', label: 'Kelompok Mata Pelajaran Umum', section: 'A' },
+      { key: 'vocational', label: 'Kelompok Kejuruan', section: 'B' },
+    ];
+    const grouped: ReportCardDoc = {
+      ...base,
+      schemaVersion: 2,
+      expertise: {
+        field: 'Teknologi Informasi',
+        program: 'Pengembangan Perangkat Lunak dan Gim',
+        concentration: 'Rekayasa Perangkat Lunak',
+      },
+      subjects: base.subjects.map((s, i) => {
+        const group = groups[Math.min(Math.floor(i / 4), 2)];
+        return group ? { ...s, group } : s;
+      }),
+    };
+    const withGroups = await render('rapor-smk-berkelompok', <ReportCardDocument docs={[grouped]} />);
+    const plain = await render('rapor-v1-banding5', <ReportCardDocument docs={[base]} />);
+    expect(pageCount(withGroups)).toBeGreaterThanOrEqual(1);
+    expect(withGroups.length).toBeGreaterThan(plain.length);
+  });
 });
 
 describe('PDF rekap presensi', () => {

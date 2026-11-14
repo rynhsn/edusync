@@ -104,6 +104,7 @@ import { tahfidzRoutes } from './routes/tahfidz';
 import { teacherImportRoutes } from './routes/teacher-import';
 import { teachingPlanRoutes } from './routes/teaching-plan';
 import { tlsAskRoutes } from './routes/tls-ask';
+import { vocationalRoutes } from './routes/vocational';
 import { type AuthLimits, authLimits, Throttle } from './throttle';
 import { appVersion } from './version';
 
@@ -353,6 +354,7 @@ export async function buildApp(env: Env, deps: { dns?: DomainDns } = {}) {
   await app.register(portalRoutes, { env });
   await app.register(portalPublicRoutes, { env });
   await app.register(passwordHelpRoutes, { env });
+  await app.register(vocationalRoutes);
 
   return app;
 }

@@ -1,7 +1,19 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { CalendarDays, Layers, Pencil, Plus, School, Trash2, UserCheck, Users, UserX, X } from 'lucide-react';
+import {
+  Briefcase,
+  CalendarDays,
+  Layers,
+  Pencil,
+  Plus,
+  School,
+  Trash2,
+  UserCheck,
+  Users,
+  UserX,
+  X,
+} from 'lucide-react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
@@ -277,10 +289,12 @@ export function ClassesView() {
   const t = useTranslations('classes');
   const tm = useTranslations('masterData');
   const te = useTranslations();
-  const { school, can } = useSchool();
+  const { school, can, hasModule } = useSchool();
   const queryClient = useQueryClient();
   const header = { header: schoolHeader(school.schoolId) };
   const manage = can('class:manage');
+  // Struktur keahlian (5.1): hanya jenjang kejuruan dengan modul PKL aktif.
+  const vocationalSchool = school.educationProfile?.vocational === true && hasModule('internship');
 
   const [yearChoice, setYearChoice] = useState('');
   const [draft, setDraft] = useState(emptyDraft);
@@ -323,6 +337,22 @@ export function ClassesView() {
   const programs = useQuery({
     queryKey: ['programs', school.schoolId],
     queryFn: async () => unwrap(await api.GET('/v1/programs', { params: header })),
+  });
+  const concentrations = useQuery({
+    queryKey: ['vocational', school.schoolId, 'concentrations'],
+    enabled: vocationalSchool,
+    queryFn: async () => unwrap(await api.GET('/v1/vocational/concentrations', { params: header })),
+  });
+  const linkConcentration = useMutation({
+    mutationFn: async (v: { programId: string; concentrationId: string | null }) =>
+      unwrap(
+        await api.PUT('/v1/programs/{id}/concentration', {
+          params: { ...header, path: { id: v.programId } },
+          body: { concentrationId: v.concentrationId },
+        }),
+      ),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['vocational', school.schoolId] }),
+    onError: (e) => toast.error(te(errorKeyIn(e, 'program'))),
   });
   // Calon wali kelas: guru aktif. Bila pengguna tak boleh melihat guru, isian disembunyikan.
   const teachers = useQuery({
@@ -567,6 +597,11 @@ export function ClassesView() {
         description={manage ? t('subtitle') : `${t('subtitle')} ${tm('readOnly')}`}
         actions={
           <>
+            {vocationalSchool && (
+              <Button variant="outline" nativeButton={false} render={<Link href="/classes/expertise" />}>
+                <Briefcase className="size-4" /> {t('expertiseLink')}
+              </Button>
+            )}
             <Dialog>
               <DialogTrigger
                 render={
@@ -638,6 +673,35 @@ export function ClassesView() {
                           </span>
                         )}
                       </div>
+                      {vocationalSchool && (
+                        <div className="grid gap-1.5">
+                          <Label htmlFor={`program-conc-${p.id}`} className="text-xs">
+                            {t('programConcentration')}
+                          </Label>
+                          <SelectField
+                            id={`program-conc-${p.id}`}
+                            className={TOUCH_SELECT}
+                            disabled={!manage || linkConcentration.isPending}
+                            value={
+                              concentrations.data?.find((c) => c.linkedPrograms.some((l) => l.id === p.id))
+                                ?.id ?? ''
+                            }
+                            onChange={(e) =>
+                              linkConcentration.mutate({
+                                programId: p.id,
+                                concentrationId: e.target.value || null,
+                              })
+                            }
+                          >
+                            <option value="">{t('programConcentrationNone')}</option>
+                            {concentrations.data?.map((c) => (
+                              <option key={c.id} value={c.id}>
+                                {c.name}
+                              </option>
+                            ))}
+                          </SelectField>
+                        </div>
+                      )}
                       {manage && programEditing?.id === p.id && (
                         <div className="grid gap-3 sm:grid-cols-2">
                           <ProgramConfigFields

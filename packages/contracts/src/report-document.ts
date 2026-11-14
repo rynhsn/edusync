@@ -79,9 +79,29 @@ export const reportSubjectObjectivesSchema = z.object({
   low: z.array(z.object({ id: z.uuid(), code: z.string().nullable(), text: z.string() })),
 });
 
+/**
+ * Kelompok mapel beku (tahap 5.2): kunci, label Indonesia, dan bagian rapor (`ref_subject_group.report_section`) saat dokumen disusun.
+ * Hanya ada bila sekolah menyalakan sakelar `report_grouped` dan mapel punya kelompok.
+ */
+export const reportSubjectGroupSchema = z.object({
+  key: z.string(),
+  label: z.string(),
+  section: z.string().nullable(),
+});
+export type ReportSubjectGroup = z.infer<typeof reportSubjectGroupSchema>;
+
+/** Identitas keahlian di kop rapor (tahap 5.2): nama bidang, program, dan konsentrasi keahlian rombel. */
+export const reportExpertiseSchema = z.object({
+  field: z.string(),
+  program: z.string(),
+  concentration: z.string(),
+});
+export type ReportExpertise = z.infer<typeof reportExpertiseSchema>;
+
 export const reportSubjectV2Schema = reportSubjectSchema.extend({
   /** Absen = deskripsi dari predikat (v1). */
   descriptionSource: z.enum(['manual', 'objectives']).optional(),
+  group: reportSubjectGroupSchema.optional(),
   objectives: reportSubjectObjectivesSchema.optional(),
 });
 
@@ -116,6 +136,8 @@ export const reportDocumentV2Schema = reportDocumentSchema.extend({
   developmentNote: z.string().optional(),
   /** NSM madrasah (tahap 4.5) untuk kop; kunci tingkat atas, hanya ada bila NSM terisi. */
   schoolNsm: z.string().optional(),
+  /** Identitas keahlian SMK (tahap 5.2); hanya bila rombel bertaut ke konsentrasi dan sakelar `report_grouped` menyala. */
+  expertise: reportExpertiseSchema.optional(),
   subjects: z.array(reportSubjectV2Schema),
 });
 
@@ -177,8 +199,9 @@ export const REPORT_V2_DOCUMENT_KEYS = [
   'cocurricular',
   'developmentNote',
   'schoolNsm',
+  'expertise',
 ] as const;
-export const REPORT_V2_SUBJECT_KEYS = ['descriptionSource', 'objectives'] as const;
+export const REPORT_V2_SUBJECT_KEYS = ['descriptionSource', 'objectives', 'group'] as const;
 
 /**
  * Versi bentuk dokumen: 2 bila ada minimal satu bagian v2 (kunci hadir, nilai bukan `undefined`), selain itu 1.

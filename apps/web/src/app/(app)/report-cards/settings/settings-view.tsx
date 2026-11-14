@@ -39,6 +39,7 @@ import {
   validateReportSettings,
 } from '../report-card-validation';
 import { Textarea } from '../textarea';
+import { VocationalReportCard } from './vocational-card';
 
 const TEXT_KEYS = ['principalName', 'principalNip', 'city', 'address'] as const;
 const DESC_KEYS = ['descA', 'descB', 'descC', 'descD'] as const;
@@ -398,6 +399,7 @@ export function ReportCardSettingsView() {
           </div>
         </form>
       )}
+      <VocationalReportCard />
     </PageBody>
   );
 }

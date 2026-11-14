@@ -687,6 +687,50 @@ describe('kebijakan peran bawaan', () => {
     expect(PERMISSIONS).not.toContain('cocurricular:assess');
   });
 
+  it('rute struktur keahlian dan sakelar rapor kejuruan (tahap 5.1/5.2) memakai izin lama dan gerbang modul internship', () => {
+    const find = (method: string, url: string) => eps.find((e) => e.method === method && e.url === url);
+    const v = '/v1/vocational';
+    const groups: [string, (ReturnType<typeof find> | undefined)[]][] = [
+      [
+        'class:read',
+        [
+          find('GET', `${v}/fields`),
+          find('GET', `${v}/programs-of-expertise`),
+          find('GET', `${v}/concentrations`),
+        ],
+      ],
+      [
+        'class:manage',
+        [
+          find('POST', `${v}/fields`),
+          find('PUT', `${v}/fields/:id`),
+          find('DELETE', `${v}/fields/:id`),
+          find('POST', `${v}/programs-of-expertise`),
+          find('PUT', `${v}/programs-of-expertise/:id`),
+          find('DELETE', `${v}/programs-of-expertise/:id`),
+          find('POST', `${v}/concentrations`),
+          find('PUT', `${v}/concentrations/:id`),
+          find('DELETE', `${v}/concentrations/:id`),
+          find('PUT', '/v1/programs/:id/concentration'),
+        ],
+      ],
+      ['report_card:read', [find('GET', `${v}/settings/report`)]],
+      ['report_card:manage', [find('PUT', `${v}/settings/report`)]],
+    ];
+    for (const [perm, list] of groups) {
+      for (const e of list) {
+        expect(e, perm).toBeDefined();
+        expect([e?.perms, e?.modules], `${e?.method} ${e?.url}`).toEqual([[perm], ['internship']]);
+        expect(e?.description).toContain(`Izin: \`${perm}\``);
+      }
+      // Peran yang boleh = pemegang izin itu menurut SYSTEM_ROLES (tidak ada izin baru di tahap ini).
+      for (const r of roleKeys) {
+        const has = (SYSTEM_ROLES[r].permissions as readonly string[]).includes(perm);
+        for (const e of list) expect(allows(r, e!), `${r} ${e?.url}`).toBe(has);
+      }
+    }
+  });
+
   it('rute ekspor akademik (tahap 3C.5) memasang data_export:run tanpa modul di gerbang', () => {
     const e = eps.find((x) => x.method === 'GET' && x.url === '/v1/exports/academic');
     // Modul grades hanya diperiksa di handler untuk dataset nilai (400 dataset_requires_module), bukan di gerbang rute.

@@ -266,6 +266,22 @@ v1.4.0 (teks per predikat, bentuk data versi 1); hanya murid dan mata pelajaran 
   untuk MI dan MA, selain MTs; tanpa jam pelajaran dan tanpa mapel khusus MA karena KMA 1503/2025 belum terbaca. Adopsi KMA memberi
   salinan lima mapel itu kelompok `pai_arabic`, dan madrasah mengadopsi kurikulum umum dan KMA bersamaan. Judul PDF rapor, label NSM,
   dan bagian Penilaian kokurikuler di PDF kini mengikuti bahasa pengguna (id/en/su). Bantuan baru "Madrasah" (id/en/su).
+- **SMK: struktur keahlian** (fase 5, tahap 5.1; migrasi 0110): hierarki Bidang, Program, dan Konsentrasi Keahlian yang diisi sekolah sendiri
+  (tanpa seed: daftar resmi berbeda antarsumber dan lampiran 244/M/2024 belum terbaca; kode Dapodik dan rujukan sumber opsional).
+  Tabel baru `vocational_field`, `vocational_program`, `vocational_concentration`, `program_concentration` (tautan jurusan unit kelas ke
+  konsentrasi, satu konsentrasi boleh dipakai dua jurusan 3 dan 4 tahun; bukan kolom baru di `program`), dan `vocational_setting`
+  (satu baris per sekolah, hanya dibuat saat disimpan). Semua tabel ber-RLS dengan FK komposit. Endpoint `/v1/vocational/fields`,
+  `/v1/vocational/programs-of-expertise`, `/v1/vocational/concentrations` (daftar, buat, ubah, hapus; 409 `in_use` bila masih punya
+  isi atau tautan) dan `PUT /v1/programs/{id}/concentration`, memakai izin `class:read` dan `class:manage`, bergerbang modul
+  `internship` dan hanya jenjang kejuruan (404 `not_vocational`). Halaman baru Kelas, tombol Keahlian (/classes/expertise) dengan
+  hierarki bertingkat yang dapat dibuka, dan pilihan konsentrasi di dialog Jurusan. Tanpa perubahan pada kelas, nilai, atau rapor.
+- **SMK: rapor berkelompok** (fase 5, tahap 5.2; tanpa migrasi): sakelar baru `GET/PUT /v1/vocational/settings/report` (izin
+  `report_card:read` dan `report_card:manage`; bawaan mati) di Pengaturan rapor. Bila menyala, dokumen rapor memuat kunci sparse
+  `subjects[].group` (kelompok mapel dari `ref_subject_group`: kunci, label Indonesia, dan bagian; dibekukan di snapshot), mapel diurut
+  per kelompok (mapel tanpa kelompok di akhir), dan `expertise` (bidang, program, konsentrasi) bila jurusan rombel ditautkan ke
+  konsentrasi. Pratinjau, PDF, dan portal menampilkan subjudul kelompok dan identitas keahlian di kop. Sekolah non-SMK dan SMK tanpa
+  sakelar: dokumen, snapshot, leger, saran kelulusan, dan ekspor identik dengan sebelumnya. Bantuan baru "SMK: bidang, program,
+  konsentrasi keahlian dan rapor berkelompok" (id/en/su).
 
 ### Diubah
 
@@ -332,6 +348,9 @@ v1.4.0 (teks per predikat, bentuk data versi 1); hanya murid dan mata pelajaran 
 - Madrasah (tahap 4.5): tabel `school_identifier` dan mapel acuan KMA untuk MI/MA dibiarkan di database. Setelah kembali ke versi sebelumnya
   kolom NSM tidak ada dan kunci `schoolNsm` pada snapshot rapor final diabaikan (rapor tetap terbaca tanpa NSM); mapel sekolah yang sudah
   diadopsi tetap utuh. Tidak ada efek pada nilai, kenaikan, atau kelulusan.
+- SMK (tahap 5.1 dan 5.2): tabel struktur keahlian dan `vocational_setting` dibiarkan di database. Setelah kembali ke versi sebelumnya
+  hierarki keahlian dan sakelar tidak terbaca, rapor tidak lagi berkelompok, dan kunci `group` serta `expertise` pada snapshot rapor final
+  diabaikan (rapor tetap terbaca tanpa keduanya). Tidak ada efek pada nilai, kenaikan, atau kelulusan.
 - Rapor kokurikuler (tahap 4.4): tanpa migrasi. Snapshot rapor final yang sudah memuat `cocurricular` tetap utuh di database; versi lama tidak
   membacanya (kunci itu diabaikan saat respons dibentuk), sehingga rapor final tetap terbaca seperti rapor tanpa bagian kokurikuler
   terstruktur. Tidak ada efek pada nilai, kenaikan, atau kelulusan.

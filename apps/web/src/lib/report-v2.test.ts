@@ -20,6 +20,7 @@ import {
   reportView,
   responseTextIssue,
   responseWindowState,
+  subjectGroupHeading,
   suggestedReportMode,
 } from './report-v2';
 
@@ -257,5 +258,29 @@ describe('kokurikuler terstruktur (tahap 4.4)', () => {
     const draft = cocurricularDraft(long, say);
     expect(draft.length).toBeLessThanOrEqual(1000);
     expect(draft.endsWith('…')).toBe(true);
+  });
+});
+
+describe('subjudul kelompok mapel (tahap 5.2)', () => {
+  const g = (key: string, label: string) => ({ group: { key, label } });
+  it('tanpa group sama sekali tidak ada subjudul (dokumen v1 tetap seperti dulu)', () => {
+    const rows = [{}, {}, {}];
+    expect(rows.map((_, i) => subjectGroupHeading(rows, i))).toEqual([null, null, null]);
+  });
+  it('subjudul muncul di awal tiap kelompok; mapel tanpa kelompok di akhir mendapat label null', () => {
+    const rows = [
+      g('religion', 'Agama'),
+      g('general', 'Umum'),
+      g('general', 'Umum'),
+      g('vocational', 'Kejuruan'),
+      {},
+    ];
+    expect(rows.map((_, i) => subjectGroupHeading(rows, i))).toEqual([
+      { key: 'religion', label: 'Agama' },
+      { key: 'general', label: 'Umum' },
+      null,
+      { key: 'vocational', label: 'Kejuruan' },
+      { key: '_none', label: null },
+    ]);
   });
 });

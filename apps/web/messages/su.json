@@ -1603,7 +1603,9 @@
     "level_unknown": "Tingkat kelas éta teu aya dina daptar tingkat sakola, jadi tingkat saterusna teu kanyahoan. Pilih kelas tujuan atawa bérés daptar tingkatna.",
     "in_use_semester": "Semester ieu masih boga data nu patali, upamana panilaian, jadwal, atawa arsip rapor nu geus kaluar. Data rapor nu geus kaluar teu meunang kahapus, jadi semester ieu teu tiasa dihapus.",
     "in_use_objective": "TP ieu masih dipaké: dikaitkeun ka panilaian, dipaké ATP, atawa geus boga kaputusan kahontal ti guru. Pareuman wungkul sangkan teu muncul deui.",
-    "in_use_outcome": "CP ieu atawa TP di handapeunana masih dipaké ku panilaian, ATP, atawa kaputusan kahontal guru, jadi teu tiasa dihapus. Pareuman wungkul."
+    "in_use_outcome": "CP ieu atawa TP di handapeunana masih dipaké ku panilaian, ATP, atawa kaputusan kahontal guru, jadi teu tiasa dihapus. Pareuman wungkul.",
+    "not_vocational": "Fitur ieu ngan sayogi pikeun jenjang kejuruan (SMK/MAK).",
+    "in_use_expertise": "Data kaahlian ieu masih aya eusina atawa masih ditaut ka jurusan. Hapus atawa leupaskeun heula, atawa nonaktipkeun waé."
   },
   "theme": {
     "label": "Tema",
@@ -2627,7 +2629,10 @@
     "programFinalLevel": "Tingkat ahir",
     "programFinalAuto": "Otomatis (tingkat pangluhurna di sakola)",
     "programFinalIs": "tingkat ahir {level}",
-    "programConfigHelp": "SMK bisa lumangsung 3 taun (réngsé di kelas XII) atawa 4 taun (réngsé di kelas XIII). Tingkat ahir nangtukeun kelas mana nu dianggap kelas ahir nalika kanaékan kelas jeung nyalin taun ajaran. Kosongkeun supaya migunakeun tingkat pangluhurna dina daptar tingkat sakola."
+    "programConfigHelp": "SMK bisa lumangsung 3 taun (réngsé di kelas XII) atawa 4 taun (réngsé di kelas XIII). Tingkat ahir nangtukeun kelas mana nu dianggap kelas ahir nalika kanaékan kelas jeung nyalin taun ajaran. Kosongkeun supaya migunakeun tingkat pangluhurna dina daptar tingkat sakola.",
+    "expertiseLink": "Kaahlian",
+    "programConcentration": "Konsentrasi kaahlian",
+    "programConcentrationNone": "Acan ditaut"
   },
   "subjects": {
     "title": "Mata pelajaran",
@@ -4577,7 +4582,12 @@
     "templateSampleTp": "nambahkeun pecahan",
     "templateUseDefault": "Paké templat biasa",
     "templateTpHint": "Tulis {tp} di tempat daptar TP baris muncul. Kosongkeun kolom pikeun maké kalimah biasa.",
-    "templateNeedsTp": "Kalimah kudu ngandung {tp}."
+    "templateNeedsTp": "Kalimah kudu ngandung {tp}.",
+    "pdfExpertiseField": "Bidang Kaahlian",
+    "pdfExpertiseProgram": "Program Kaahlian",
+    "pdfExpertiseConcentration": "Konsentrasi Kaahlian",
+    "pdfGroupOther": "Lianna",
+    "groupOther": "Lianna"
   },
   "financeReports": {
     "title": "Laporan kauangan",
@@ -8532,5 +8542,37 @@
       "C": "Cukup",
       "K": "Kurang"
     }
+  },
+  "vocational": {
+    "title": "Bidang, program, jeung konsentrasi kaahlian",
+    "subtitle": "Susun hirarki kaahlian sakola, tuluy tautkeun jurusan (unit kelas) ka konsentrasi kaahlian.",
+    "sourceHint": "Eusian luyu jeung SK Dinas atawa Dapodik sakola anjeun. Daptarna henteu diisi otomatis; kode Dapodik sipatna opsional.",
+    "backToClasses": "Balik ka kelas",
+    "emptyTitle": "Acan aya bidang kaahlian",
+    "emptyBody": "Tambahkeun bidang kaahlian munggaran, tuluy program jeung konsentrasina.",
+    "addField": "Tambah bidang",
+    "addProgram": "Tambah program kaahlian",
+    "addConcentration": "Tambah konsentrasi",
+    "editField": "Robah bidang kaahlian",
+    "editProgram": "Robah program kaahlian",
+    "editConcentration": "Robah konsentrasi kaahlian",
+    "dapodikCode": "Kode Dapodik (opsional)",
+    "dapodikShort": "Dapodik {code}",
+    "sourceRef": "Rujukan sumber (opsional)",
+    "sourceShort": "Sumber: {ref}",
+    "parentField": "Bidang kaahlian",
+    "parentProgram": "Program kaahlian",
+    "active": "Aktip",
+    "activeHint": "Nonaktipkeun lamun teu dipaké deui; data heubeul tetep disimpen.",
+    "inactive": "Nonaktip",
+    "linkedPrograms": "Jurusan (unit kelas) nu ditaut",
+    "noLinked": "Acan aya jurusan nu ditaut.",
+    "linkProgram": "Tautkeun jurusan…",
+    "unlink": "Leupaskeun tautan {name}",
+    "reportTitle": "Rapor SMK",
+    "reportHint": "Setélan rapor husus pikeun jenjang kejuruan.",
+    "reportGrouped": "Kelompokkeun mapel (Umum/Kejuruan) jeung témbongkeun identitas kaahlian",
+    "reportGroupedHint": "Rapor ngandung sub-judul kelompok mapel jeung, lamun jurusan rombél ditaut ka konsentrasi, bidang/program/konsentrasi dina kop. Pareum sacara baku; rapor final teu robah.",
+    "reportSaved": "Setélan rapor kejuruan disimpen."
   }
 }

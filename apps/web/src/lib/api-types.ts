@@ -20638,6 +20638,11 @@ export interface paths {
                                     belowKkm: boolean;
                                     /** @enum {string} */
                                     descriptionSource?: "manual" | "objectives";
+                                    group?: {
+                                        key: string;
+                                        label: string;
+                                        section: string | null;
+                                    };
                                     objectives?: {
                                         assessed: number;
                                         achieved: number;
@@ -20706,6 +20711,11 @@ export interface paths {
                                 }[];
                                 developmentNote?: string;
                                 schoolNsm?: string;
+                                expertise?: {
+                                    field: string;
+                                    program: string;
+                                    concentration: string;
+                                };
                             } | null;
                         };
                     };
@@ -38831,7 +38841,7 @@ export interface paths {
         };
         /**
          * Dokumen rapor satu siswa
-         * @description Izin: `report_card:read`; modul `grades`. Rapor final dikembalikan dari snapshot saat finalisasi; rapor draft dihitung langsung dari nilai terkini memakai rumus yang sama dengan rekap penilaian. Mapel = yang punya penilaian di kelas siswa pada semester itu; deskripsi capaian diisi otomatis dari pengaturan rapor menurut predikat. `attendance` menghitung hari yang tercatat pada rentang semester. `rank` hanya ada bila pengaturan menampilkan peringkat (rata-rata sama berbagi peringkat). Hanya pemegang `report_card:manage`, kepala sekolah, kurikulum, atau wali kelas siswa itu (selain itu 403). 404 `not_found` bila siswa tidak ada atau tidak terdaftar di kelas pada tahun ajaran semester itu. Bagian v2 hanya ada bila dipakai (sparse): `schemaVersion` (hanya bila 2; draf membawa versi yang akan ditulis bila difinalkan), `reportMode` (`descriptive` bila tingkat kelas bermode deskriptif Fase A; angka tetap ada untuk staf), `cocurricularNote`, `cocurricular` (penilaian kokurikuler terstruktur per program: butir, tingkat rubrik, catatan; hanya bila siswa punya penilaian pada program yang tampil di rapor; label dibekukan di snapshot; server tidak pernah mengisi `cocurricularNote` otomatis), `schoolNsm` (NSM madrasah untuk kop, hanya bila terisi; dibekukan di snapshot), `developmentNote` (hanya mode deskriptif), `subjects[].descriptionSource` (`manual` bila ada deskripsi manual, `objectives` bila dari TP berstatus siswa itu; absen = dari predikat), `subjects[].objectives` (ringkasan TP, hanya bila ada TP berstatus) dan `guardianResponses` (tanggapan wali, bukan isi snapshot; terlihat staf yang berhak). Rapor final v1 dikembalikan persis seperti dulu.
+         * @description Izin: `report_card:read`; modul `grades`. Rapor final dikembalikan dari snapshot saat finalisasi; rapor draft dihitung langsung dari nilai terkini memakai rumus yang sama dengan rekap penilaian. Mapel = yang punya penilaian di kelas siswa pada semester itu; deskripsi capaian diisi otomatis dari pengaturan rapor menurut predikat. `attendance` menghitung hari yang tercatat pada rentang semester. `rank` hanya ada bila pengaturan menampilkan peringkat (rata-rata sama berbagi peringkat). Hanya pemegang `report_card:manage`, kepala sekolah, kurikulum, atau wali kelas siswa itu (selain itu 403). 404 `not_found` bila siswa tidak ada atau tidak terdaftar di kelas pada tahun ajaran semester itu. Bagian v2 hanya ada bila dipakai (sparse): `schemaVersion` (hanya bila 2; draf membawa versi yang akan ditulis bila difinalkan), `reportMode` (`descriptive` bila tingkat kelas bermode deskriptif Fase A; angka tetap ada untuk staf), `cocurricularNote`, `cocurricular` (penilaian kokurikuler terstruktur per program: butir, tingkat rubrik, catatan; hanya bila siswa punya penilaian pada program yang tampil di rapor; label dibekukan di snapshot; server tidak pernah mengisi `cocurricularNote` otomatis), `schoolNsm` (NSM madrasah untuk kop, hanya bila terisi; dibekukan di snapshot), `expertise` (bidang/program/konsentrasi keahlian untuk kop SMK, hanya bila sakelar `reportGrouped` menyala dan jurusan rombel ditautkan ke konsentrasi), `subjects[].group` (kelompok mapel beku {key,label,section}, hanya bila sakelar `reportGrouped` menyala dan mapel punya kelompok; mapel diurut per kelompok), `developmentNote` (hanya mode deskriptif), `subjects[].descriptionSource` (`manual` bila ada deskripsi manual, `objectives` bila dari TP berstatus siswa itu; absen = dari predikat), `subjects[].objectives` (ringkasan TP, hanya bila ada TP berstatus) dan `guardianResponses` (tanggapan wali, bukan isi snapshot; terlihat staf yang berhak). Rapor final v1 dikembalikan persis seperti dulu.
          */
         get: {
             parameters: {
@@ -38891,6 +38901,11 @@ export interface paths {
                                 belowKkm: boolean;
                                 /** @enum {string} */
                                 descriptionSource?: "manual" | "objectives";
+                                group?: {
+                                    key: string;
+                                    label: string;
+                                    section: string | null;
+                                };
                                 objectives?: {
                                     assessed: number;
                                     achieved: number;
@@ -38959,6 +38974,11 @@ export interface paths {
                             }[];
                             developmentNote?: string;
                             schoolNsm?: string;
+                            expertise?: {
+                                field: string;
+                                program: string;
+                                concentration: string;
+                            };
                             /**
                              * @description Hanya ada bila dokumen berbentuk v2; dihilangkan = v1
                              * @enum {number}
@@ -70004,7 +70024,7 @@ export interface paths {
         };
         /**
          * Dokumen rapor final satu semester
-         * @description Izin: `portal:read`; modul `parent_portal` dan `grades`. Snapshot beku saat rapor difinalisasi. 404 `not_found` bila belum final, tidak ada, atau anak bukan milik akun ini; 403 `module_disabled` bila modul `grades` tidak aktif. Bagian v2 hanya ada bila dipakai: `schemaVersion` (hanya bila 2), `reportMode`, `cocurricularNote`, `cocurricular`, `schoolNsm` (hanya bila NSM madrasah terisi), `developmentNote`, `subjects[].descriptionSource`. Mode deskriptif (Fase A) MEMPROYEKSIKAN dokumen tanpa `final`, `predicate`, `kkm`, `belowKkm` per mapel dan tanpa `rank`. `guardianResponses` hanya memuat tanggapan milik wali pemanggil (tautan wali); tautan siswa dan wali lain tidak melihatnya.
+         * @description Izin: `portal:read`; modul `parent_portal` dan `grades`. Snapshot beku saat rapor difinalisasi. 404 `not_found` bila belum final, tidak ada, atau anak bukan milik akun ini; 403 `module_disabled` bila modul `grades` tidak aktif. Bagian v2 hanya ada bila dipakai: `schemaVersion` (hanya bila 2), `reportMode`, `cocurricularNote`, `cocurricular`, `schoolNsm` (hanya bila NSM madrasah terisi), `expertise` dan `subjects[].group` (rapor SMK berkelompok, hanya bila dipakai), `developmentNote`, `subjects[].descriptionSource`. Mode deskriptif (Fase A) MEMPROYEKSIKAN dokumen tanpa `final`, `predicate`, `kkm`, `belowKkm` per mapel dan tanpa `rank`. `guardianResponses` hanya memuat tanggapan milik wali pemanggil (tautan wali); tautan siswa dan wali lain tidak melihatnya.
          */
         get: {
             parameters: {
@@ -70063,6 +70083,11 @@ export interface paths {
                                 belowKkm?: boolean;
                                 /** @enum {string} */
                                 descriptionSource?: "manual" | "objectives";
+                                group?: {
+                                    key: string;
+                                    label: string;
+                                    section: string | null;
+                                };
                                 objectives?: {
                                     assessed: number;
                                     achieved: number;
@@ -70131,6 +70156,11 @@ export interface paths {
                             }[];
                             developmentNote?: string;
                             schoolNsm?: string;
+                            expertise?: {
+                                field: string;
+                                program: string;
+                                concentration: string;
+                            };
                             /**
                              * @description Hanya ada bila dokumen berbentuk v2; dihilangkan = v1
                              * @enum {number}
@@ -71653,6 +71683,1611 @@ export interface paths {
                 };
             };
         };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/vocational/fields": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Daftar bidang keahlian
+         * @description Izin: `class:read`; modul `internship`; hanya jenjang kejuruan (404 `not_vocational`). Diisi sekolah, tanpa seed.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            code: string;
+                            name: string;
+                            dapodikCode: string | null;
+                            sourceRef: string | null;
+                            sort: number;
+                            active: boolean;
+                            /** @description Jumlah program keahlian di bidang ini */
+                            programCount: number;
+                        }[];
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Buat bidang keahlian
+         * @description Izin: `class:manage`; modul `internship`; hanya jenjang kejuruan. Kode unik per sekolah (409 `conflict`). `dapodikCode` dan `sourceRef` opsional dan informatif.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        code: string;
+                        name: string;
+                        /** @description Kode Dapodik (opsional, isi sesuai SK Dinas/Dapodik) */
+                        dapodikCode?: string | null;
+                        /** @default 0 */
+                        sort?: number;
+                        /** @default true */
+                        active?: boolean;
+                        /** @description Rujukan sumber informatif (mis. '244/M/2024') */
+                        sourceRef?: string | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            code: string;
+                            name: string;
+                            dapodikCode: string | null;
+                            sourceRef: string | null;
+                            sort: number;
+                            active: boolean;
+                            /** @description Jumlah program keahlian di bidang ini */
+                            programCount: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/vocational/fields/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Ubah bidang keahlian
+         * @description Izin: `class:manage`; modul `internship`. Mengganti seluruh isian (kirim lengkap). Kode unik (409 `conflict`).
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        code: string;
+                        name: string;
+                        /** @description Kode Dapodik (opsional, isi sesuai SK Dinas/Dapodik) */
+                        dapodikCode?: string | null;
+                        /** @default 0 */
+                        sort?: number;
+                        /** @default true */
+                        active?: boolean;
+                        /** @description Rujukan sumber informatif (mis. '244/M/2024') */
+                        sourceRef?: string | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            code: string;
+                            name: string;
+                            dapodikCode: string | null;
+                            sourceRef: string | null;
+                            sort: number;
+                            active: boolean;
+                            /** @description Jumlah program keahlian di bidang ini */
+                            programCount: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        /**
+         * Hapus bidang keahlian
+         * @description Izin: `class:manage`; modul `internship`. 409 `in_use` bila masih punya program keahlian (nonaktifkan saja).
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: true;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/vocational/programs-of-expertise": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Daftar program keahlian
+         * @description Izin: `class:read`; modul `internship`; hanya jenjang kejuruan. Program keahlian (di bawah bidang) BUKAN `program` unit operasional kelas; keduanya dihubungkan lewat konsentrasi.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            fieldId: string;
+                            code: string;
+                            name: string;
+                            dapodikCode: string | null;
+                            sort: number;
+                            active: boolean;
+                            /** @description Jumlah konsentrasi keahlian di program ini */
+                            concentrationCount: number;
+                        }[];
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Buat program keahlian
+         * @description Izin: `class:manage`; modul `internship`. 400 `invalid_reference` bila bidang tidak ada; kode unik (409 `conflict`).
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        code: string;
+                        name: string;
+                        /** @description Kode Dapodik (opsional, isi sesuai SK Dinas/Dapodik) */
+                        dapodikCode?: string | null;
+                        /** @default 0 */
+                        sort?: number;
+                        /** @default true */
+                        active?: boolean;
+                        /** Format: uuid */
+                        fieldId: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            fieldId: string;
+                            code: string;
+                            name: string;
+                            dapodikCode: string | null;
+                            sort: number;
+                            active: boolean;
+                            /** @description Jumlah konsentrasi keahlian di program ini */
+                            concentrationCount: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/vocational/programs-of-expertise/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Ubah program keahlian
+         * @description Izin: `class:manage`; modul `internship`. Mengganti seluruh isian (kirim lengkap); `fieldId` boleh dipindah. 400 `invalid_reference`, 409 `conflict`.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        code: string;
+                        name: string;
+                        /** @description Kode Dapodik (opsional, isi sesuai SK Dinas/Dapodik) */
+                        dapodikCode?: string | null;
+                        /** @default 0 */
+                        sort?: number;
+                        /** @default true */
+                        active?: boolean;
+                        /** Format: uuid */
+                        fieldId: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            fieldId: string;
+                            code: string;
+                            name: string;
+                            dapodikCode: string | null;
+                            sort: number;
+                            active: boolean;
+                            /** @description Jumlah konsentrasi keahlian di program ini */
+                            concentrationCount: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        /**
+         * Hapus program keahlian
+         * @description Izin: `class:manage`; modul `internship`. 409 `in_use` bila masih punya konsentrasi keahlian (nonaktifkan saja).
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: true;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/vocational/concentrations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Daftar konsentrasi keahlian
+         * @description Izin: `class:read`; modul `internship`; hanya jenjang kejuruan. Tiap konsentrasi memuat `linkedPrograms` (program unit operasional yang ditautkan, beserta lama 3/4 tahun).
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            vocationalProgramId: string;
+                            code: string;
+                            name: string;
+                            dapodikCode: string | null;
+                            sort: number;
+                            active: boolean;
+                            /** @description Program (unit operasional kelas) yang ditautkan ke konsentrasi ini */
+                            linkedPrograms: {
+                                /** Format: uuid */
+                                id: string;
+                                code: string;
+                                name: string;
+                                durationYears: number | null;
+                            }[];
+                        }[];
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Buat konsentrasi keahlian
+         * @description Izin: `class:manage`; modul `internship`. 400 `invalid_reference` bila program keahlian tidak ada; kode unik (409 `conflict`).
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        code: string;
+                        name: string;
+                        /** @description Kode Dapodik (opsional, isi sesuai SK Dinas/Dapodik) */
+                        dapodikCode?: string | null;
+                        /** @default 0 */
+                        sort?: number;
+                        /** @default true */
+                        active?: boolean;
+                        /** Format: uuid */
+                        vocationalProgramId: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            vocationalProgramId: string;
+                            code: string;
+                            name: string;
+                            dapodikCode: string | null;
+                            sort: number;
+                            active: boolean;
+                            /** @description Program (unit operasional kelas) yang ditautkan ke konsentrasi ini */
+                            linkedPrograms: {
+                                /** Format: uuid */
+                                id: string;
+                                code: string;
+                                name: string;
+                                durationYears: number | null;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/vocational/concentrations/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Ubah konsentrasi keahlian
+         * @description Izin: `class:manage`; modul `internship`. Mengganti seluruh isian (kirim lengkap); `vocationalProgramId` boleh dipindah. 400 `invalid_reference`, 409 `conflict`.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        code: string;
+                        name: string;
+                        /** @description Kode Dapodik (opsional, isi sesuai SK Dinas/Dapodik) */
+                        dapodikCode?: string | null;
+                        /** @default 0 */
+                        sort?: number;
+                        /** @default true */
+                        active?: boolean;
+                        /** Format: uuid */
+                        vocationalProgramId: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            vocationalProgramId: string;
+                            code: string;
+                            name: string;
+                            dapodikCode: string | null;
+                            sort: number;
+                            active: boolean;
+                            /** @description Program (unit operasional kelas) yang ditautkan ke konsentrasi ini */
+                            linkedPrograms: {
+                                /** Format: uuid */
+                                id: string;
+                                code: string;
+                                name: string;
+                                durationYears: number | null;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        /**
+         * Hapus konsentrasi keahlian
+         * @description Izin: `class:manage`; modul `internship`. 409 `in_use` bila masih ditautkan ke program unit operasional (nonaktifkan saja).
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: true;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/programs/{id}/concentration": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Tautkan jurusan ke konsentrasi keahlian
+         * @description Izin: `class:manage`; modul `internship`; hanya jenjang kejuruan. `concentrationId` null melepas tautan. Satu konsentrasi boleh punya beberapa program (mis. 3 dan 4 tahun). 404 bila jurusan tidak ada; 400 `invalid_reference` bila konsentrasi tidak ada. Tautan tidak mengubah kelas, JP, KKTP, atau nilai; identitas keahlian baru tampil di rapor bila sakelar `reportGrouped` menyala.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        concentrationId: string | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            programId: string;
+                            /** Format: uuid */
+                            concentrationId: string | null;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/vocational/settings/report": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Pengaturan rapor kejuruan
+         * @description Izin: `report_card:read`; modul `internship`; hanya jenjang kejuruan. `reportGrouped` false bila belum pernah disimpan (tidak ada baris otomatis): rapor tidak dikelompokkan dan kop tanpa identitas keahlian, persis perilaku lama.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @description Rapor dikelompokkan menurut kelompok mapel (Umum/Kejuruan) dan kop memuat identitas keahlian */
+                            reportGrouped: boolean;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        /**
+         * Simpan pengaturan rapor kejuruan
+         * @description Izin: `report_card:manage`; modul `internship`; hanya jenjang kejuruan. `reportGrouped` true: dokumen rapor memuat `subjects[].group` (kelompok mapel beku dari `ref_subject_group`, mapel diurut per kelompok) dan `expertise` (bidang/program/konsentrasi, bila jurusan rombel ditautkan ke konsentrasi). Berlaku untuk rapor yang disusun sesudahnya; rapor final tidak berubah (snapshot beku).
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @description Rapor dikelompokkan menurut kelompok mapel (Umum/Kejuruan) dan kop memuat identitas keahlian */
+                        reportGrouped: boolean;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @description Rapor dikelompokkan menurut kelompok mapel (Umum/Kejuruan) dan kop memuat identitas keahlian */
+                            reportGrouped: boolean;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;

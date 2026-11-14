@@ -1,5 +1,6 @@
 import { Document, Page, StyleSheet, Text, View } from '@react-pdf/renderer';
-import { type ReportDisplayOptions, reportView } from '../../../../lib/report-v2';
+import { Fragment } from 'react';
+import { type ReportDisplayOptions, reportView, subjectGroupHeading } from '../../../../lib/report-v2';
 import { formatGrade, formatIdDate } from './format';
 import type { ReportCardDoc } from './types';
 
@@ -98,6 +99,8 @@ export interface SignLabels {
   docTitleStudent?: string;
   nsm?: string;
   cocurricular?: { title: string; dimension: string; achievement: string; remark: string };
+  /** Identitas keahlian di kop dan subjudul mapel tanpa kelompok (rapor SMK berkelompok). */
+  expertise?: { field: string; program: string; concentration: string; groupOther: string };
 }
 const DEFAULT_SIGN_LABELS: Required<SignLabels> = {
   parent: 'Orang tua / wali',
@@ -112,6 +115,12 @@ const DEFAULT_SIGN_LABELS: Required<SignLabels> = {
     dimension: 'Dimensi / Topik',
     achievement: 'Capaian',
     remark: 'Keterangan',
+  },
+  expertise: {
+    field: 'Bidang Keahlian',
+    program: 'Program Keahlian',
+    concentration: 'Konsentrasi Keahlian',
+    groupOther: 'Lainnya',
   },
 };
 
@@ -145,6 +154,19 @@ export function ReportCardPage({
           <Text style={styles.address}>
             {labels.nsm} {doc.schoolNsm}
           </Text>
+        ) : null}
+        {doc.expertise ? (
+          <>
+            <Text style={styles.address}>
+              {labels.expertise.field}: {doc.expertise.field}
+            </Text>
+            <Text style={styles.address}>
+              {labels.expertise.program}: {doc.expertise.program}
+            </Text>
+            <Text style={styles.address}>
+              {labels.expertise.concentration}: {doc.expertise.concentration}
+            </Text>
+          </>
         ) : null}
       </View>
       <Text style={styles.title}>{labels.title}</Text>
@@ -194,21 +216,35 @@ export function ReportCardPage({
           ) : null}
           <Text style={[styles.cell, styles.bold, { flex: 4 }]}>Deskripsi Capaian</Text>
         </View>
-        {doc.subjects.map((s, i) => (
-          <View key={s.subjectId} style={styles.row} wrap={false}>
-            <Text style={[styles.cell, styles.center, { width: W.no }]}>{i + 1}</Text>
-            <Text style={[styles.cell, { flex: 3 }]}>{s.name}</Text>
-            {view.showNumbers ? (
-              <>
-                <Text style={[styles.cell, styles.center, s.belowKkm ? styles.bold : {}, { width: W.grade }]}>
-                  {s.final == null ? '-' : `${formatGrade(s.final)}${s.belowKkm ? '*' : ''}`}
-                </Text>
-                <Text style={[styles.cell, styles.center, { width: W.pred }]}>{s.predicate ?? '-'}</Text>
-              </>
-            ) : null}
-            <Text style={[styles.cell, { flex: 4 }]}>{s.description || '-'}</Text>
-          </View>
-        ))}
+        {doc.subjects.map((s, i) => {
+          const heading = subjectGroupHeading(doc.subjects, i);
+          return (
+            <Fragment key={s.subjectId}>
+              {heading ? (
+                <View style={styles.row} wrap={false} minPresenceAhead={30}>
+                  <Text style={[styles.cell, styles.bold, { flex: 1 }]}>
+                    {heading.label ?? labels.expertise.groupOther}
+                  </Text>
+                </View>
+              ) : null}
+              <View style={styles.row} wrap={false}>
+                <Text style={[styles.cell, styles.center, { width: W.no }]}>{i + 1}</Text>
+                <Text style={[styles.cell, { flex: 3 }]}>{s.name}</Text>
+                {view.showNumbers ? (
+                  <>
+                    <Text
+                      style={[styles.cell, styles.center, s.belowKkm ? styles.bold : {}, { width: W.grade }]}
+                    >
+                      {s.final == null ? '-' : `${formatGrade(s.final)}${s.belowKkm ? '*' : ''}`}
+                    </Text>
+                    <Text style={[styles.cell, styles.center, { width: W.pred }]}>{s.predicate ?? '-'}</Text>
+                  </>
+                ) : null}
+                <Text style={[styles.cell, { flex: 4 }]}>{s.description || '-'}</Text>
+              </View>
+            </Fragment>
+          );
+        })}
       </View>
       {view.showBelowKkmNote ? (
         <Text style={styles.small}>* Nilai di bawah KKM (Kriteria Ketuntasan Minimal).</Text>

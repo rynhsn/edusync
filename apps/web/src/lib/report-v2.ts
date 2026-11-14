@@ -285,3 +285,18 @@ export function localDateOf(iso: string): string {
   const pad = (n: number) => String(n).padStart(2, '0');
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
+
+/**
+ * Subjudul kelompok mapel (rapor SMK berkelompok, tahap 5.2) sebelum baris ke-`i`. `null` bila tidak ada subjudul: dokumen tanpa
+ * `group` (v1, sakelar mati) tidak pernah mendapat subjudul; mapel tanpa kelompok (di akhir) mendapat subjudul `label: null`
+ * (UI memakai teks "Lainnya") hanya bila ada mapel berkelompok.
+ */
+export function subjectGroupHeading(
+  subjects: readonly { group?: { key: string; label: string } | undefined }[],
+  i: number,
+): { key: string; label: string | null } | null {
+  if (!subjects.some((s) => s.group)) return null;
+  const cur = subjects[i]?.group;
+  if (i > 0 && (subjects[i - 1]?.group?.key ?? null) === (cur?.key ?? null)) return null;
+  return { key: cur?.key ?? '_none', label: cur?.label ?? null };
+}

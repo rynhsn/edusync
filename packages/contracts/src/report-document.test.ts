@@ -220,3 +220,42 @@ describe('kunci schoolNsm (tahap 4.5)', () => {
     expect(reportDocumentSchemaVersion({ ...v1, schoolNsm: undefined })).toBe(1);
   });
 });
+
+describe('kelompok mapel dan identitas keahlian (tahap 5.2)', () => {
+  const group = { key: 'vocational', label: 'Kelompok Kejuruan', section: 'B' };
+  const expertise = {
+    field: 'Teknologi Informasi',
+    program: 'Pengembangan Perangkat Lunak',
+    concentration: 'RPL',
+  };
+
+  it('subjects[].group dan expertise lolos skema v2, respons staf, dan portal; v1 membuangnya; menaikkan versi ke 2', () => {
+    const grouped = { ...v1, subjects: [{ ...v1.subjects[0]!, group }, v1.subjects[1]!] };
+    expect(reportDocumentV2Schema.parse(grouped)).toEqual(grouped);
+    expect(reportDocumentResponseSchema.parse(grouped)).toEqual(grouped);
+    expect(portalReportDocumentSchema.parse(grouped)).toEqual(grouped);
+    expect(reportDocumentSchema.parse(grouped).subjects[0]).not.toHaveProperty('group');
+    expect(reportDocumentSchemaVersion(grouped)).toBe(2);
+
+    const withExpertise = { ...v1, expertise };
+    expect(reportDocumentV2Schema.parse(withExpertise)).toEqual(withExpertise);
+    expect(portalReportDocumentSchema.parse(withExpertise)).toEqual(withExpertise);
+    expect(reportDocumentSchema.parse(withExpertise)).toEqual(v1);
+    expect(reportDocumentSchemaVersion(withExpertise)).toBe(2);
+  });
+
+  it('tanpa kunci baru dokumen tetap v1 (sakelar mati)', () => {
+    expect(reportDocumentSchemaVersion({ ...v1, expertise: undefined })).toBe(1);
+    expect(REPORT_V2_DOCUMENT_KEYS).toContain('expertise');
+    expect(REPORT_V2_SUBJECT_KEYS).toContain('group');
+  });
+
+  it('kelompok tanpa section (null) sah; bentuk salah ditolak', () => {
+    const doc = { ...v1, subjects: [{ ...v1.subjects[0]!, group: { ...group, section: null } }] };
+    expect(reportDocumentV2Schema.parse(doc)).toEqual(doc);
+    expect(() =>
+      reportDocumentV2Schema.parse({ ...v1, subjects: [{ ...v1.subjects[0]!, group: { key: 'x' } }] }),
+    ).toThrow();
+    expect(() => reportDocumentV2Schema.parse({ ...v1, expertise: { field: 'x' } })).toThrow();
+  });
+});

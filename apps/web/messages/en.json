@@ -1603,7 +1603,9 @@
     "level_unknown": "That class grade is not in the school grade list, so the next grade is unknown. Pick a target class or fix the grade list.",
     "in_use_semester": "This semester still has linked data, such as assessments, schedules, or the archive of issued report cards. Data of issued report cards must never be deleted, so this semester cannot be deleted.",
     "in_use_objective": "This TP is still in use: it is linked to an assessment, used by an ATP, or already has a teacher achievement decision. Deactivate it instead so it no longer appears.",
-    "in_use_outcome": "This CP or a TP under it is still used by an assessment, an ATP, or a teacher achievement decision, so it cannot be deleted. Deactivate it instead."
+    "in_use_outcome": "This CP or a TP under it is still used by an assessment, an ATP, or a teacher achievement decision, so it cannot be deleted. Deactivate it instead.",
+    "not_vocational": "This feature is only available for vocational levels (SMK/MAK).",
+    "in_use_expertise": "This skills entry still has items under it or is still linked to a program. Delete or unlink them first, or just deactivate it."
   },
   "theme": {
     "label": "Theme",
@@ -2627,7 +2629,10 @@
     "programFinalLevel": "Final grade",
     "programFinalAuto": "Automatic (the school's highest grade)",
     "programFinalIs": "final grade {level}",
-    "programConfigHelp": "Vocational schools (SMK) can run for 3 years (ending in grade XII) or 4 years (ending in grade XIII). The final grade decides which class counts as the final class during promotion and the school-year copy. Leave it empty to use the highest grade in the school grade list."
+    "programConfigHelp": "Vocational schools (SMK) can run for 3 years (ending in grade XII) or 4 years (ending in grade XIII). The final grade decides which class counts as the final class during promotion and the school-year copy. Leave it empty to use the highest grade in the school grade list.",
+    "expertiseLink": "Skills",
+    "programConcentration": "Skill concentration",
+    "programConcentrationNone": "Not linked"
   },
   "subjects": {
     "title": "Subjects",
@@ -4577,7 +4582,12 @@
     "templateSampleTp": "adding fractions",
     "templateUseDefault": "Use the default sentence",
     "templateTpHint": "Write {tp} where the list of objectives should appear. Leave the box empty to use the default sentence.",
-    "templateNeedsTp": "The sentence must contain {tp}."
+    "templateNeedsTp": "The sentence must contain {tp}.",
+    "pdfExpertiseField": "Field of Expertise",
+    "pdfExpertiseProgram": "Program of Expertise",
+    "pdfExpertiseConcentration": "Skill Concentration",
+    "pdfGroupOther": "Other",
+    "groupOther": "Other"
   },
   "financeReports": {
     "title": "Finance reports",
@@ -8532,5 +8542,37 @@
       "C": "Fair",
       "K": "Needs improvement"
     }
+  },
+  "vocational": {
+    "title": "Fields, programs, and skill concentrations",
+    "subtitle": "Build the school skills hierarchy, then link programs (class units) to a skill concentration.",
+    "sourceHint": "Fill in according to your school’s Dinas decree or Dapodik. The list is not filled automatically; the Dapodik code is optional.",
+    "backToClasses": "Back to classes",
+    "emptyTitle": "No fields of expertise yet",
+    "emptyBody": "Add the first field of expertise, then its programs and concentrations.",
+    "addField": "Add field",
+    "addProgram": "Add program of expertise",
+    "addConcentration": "Add concentration",
+    "editField": "Edit field of expertise",
+    "editProgram": "Edit program of expertise",
+    "editConcentration": "Edit skill concentration",
+    "dapodikCode": "Dapodik code (optional)",
+    "dapodikShort": "Dapodik {code}",
+    "sourceRef": "Source reference (optional)",
+    "sourceShort": "Source: {ref}",
+    "parentField": "Field of expertise",
+    "parentProgram": "Program of expertise",
+    "active": "Active",
+    "activeHint": "Deactivate when no longer used; older data stays saved.",
+    "inactive": "Inactive",
+    "linkedPrograms": "Linked programs (class units)",
+    "noLinked": "No program is linked yet.",
+    "linkProgram": "Link a program…",
+    "unlink": "Unlink {name}",
+    "reportTitle": "Vocational report card",
+    "reportHint": "Report card settings specific to vocational levels.",
+    "reportGrouped": "Group subjects (General/Vocational) and show the skills identity",
+    "reportGroupedHint": "The report card shows subject group headings and, when the class program is linked to a concentration, the field/program/concentration in the header. Off by default; final reports do not change.",
+    "reportSaved": "Vocational report settings saved."
   }
 }

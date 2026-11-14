@@ -293,6 +293,7 @@ export interface PortalReportDocument {
     description: string | null;
     belowKkm?: boolean;
     descriptionSource?: 'manual' | 'objectives';
+    group?: { key: string; label: string; section: string | null };
   }[];
   extracurriculars: { name: string; predicate: Predicate | null; note: string | null }[];
   attendance: { sick: number; excused: number; absent: number; late: number };
@@ -306,6 +307,7 @@ export interface PortalReportDocument {
   cocurricularNote?: string | null;
   cocurricular?: CocurricularProgramLike[];
   schoolNsm?: string;
+  expertise?: { field: string; program: string; concentration: string };
   developmentNote?: string | null;
   guardianResponses?: PortalGuardianResponse[];
 }

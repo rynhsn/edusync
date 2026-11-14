@@ -1603,7 +1603,9 @@
     "level_unknown": "Tingkat kelas itu tidak ada di daftar tingkat sekolah, jadi tingkat berikutnya tidak diketahui. Pilih kelas tujuan atau perbaiki daftar tingkat.",
     "in_use_semester": "Semester ini masih punya data yang terhubung, misalnya penilaian, jadwal, atau arsip rapor yang sudah terbit. Data rapor yang sudah terbit tidak boleh terhapus, jadi semester ini tidak bisa dihapus.",
     "in_use_objective": "TP ini masih dipakai: dikaitkan ke penilaian, dipakai ATP, atau sudah punya keputusan ketercapaian dari guru. Nonaktifkan saja agar tidak muncul lagi.",
-    "in_use_outcome": "CP ini atau TP di bawahnya masih dipakai oleh penilaian, ATP, atau keputusan ketercapaian guru, jadi tidak bisa dihapus. Nonaktifkan saja."
+    "in_use_outcome": "CP ini atau TP di bawahnya masih dipakai oleh penilaian, ATP, atau keputusan ketercapaian guru, jadi tidak bisa dihapus. Nonaktifkan saja.",
+    "not_vocational": "Fitur ini hanya tersedia untuk jenjang kejuruan (SMK/MAK).",
+    "in_use_expertise": "Data keahlian ini masih punya isi di bawahnya atau masih ditautkan ke jurusan. Hapus atau lepas dulu, atau nonaktifkan saja."
   },
   "theme": {
     "label": "Tema",
@@ -2627,7 +2629,10 @@
     "programFinalLevel": "Tingkat akhir",
     "programFinalAuto": "Otomatis (tingkat tertinggi sekolah)",
     "programFinalIs": "tingkat akhir {level}",
-    "programConfigHelp": "SMK dapat berlangsung 3 tahun (berakhir di kelas XII) atau 4 tahun (berakhir di kelas XIII). Tingkat akhir menentukan kelas mana yang dianggap kelas akhir saat kenaikan kelas dan salin tahun ajaran. Kosongkan agar memakai tingkat tertinggi di daftar tingkat sekolah."
+    "programConfigHelp": "SMK dapat berlangsung 3 tahun (berakhir di kelas XII) atau 4 tahun (berakhir di kelas XIII). Tingkat akhir menentukan kelas mana yang dianggap kelas akhir saat kenaikan kelas dan salin tahun ajaran. Kosongkan agar memakai tingkat tertinggi di daftar tingkat sekolah.",
+    "expertiseLink": "Keahlian",
+    "programConcentration": "Konsentrasi keahlian",
+    "programConcentrationNone": "Belum ditautkan"
   },
   "subjects": {
     "title": "Mata pelajaran",
@@ -4577,7 +4582,12 @@
     "templateSampleTp": "menjumlahkan pecahan",
     "templateUseDefault": "Pakai templat bawaan",
     "templateTpHint": "Tulis {tp} di tempat daftar TP akan muncul. Kosongkan kolom untuk memakai kalimat bawaan.",
-    "templateNeedsTp": "Kalimat harus memuat {tp}."
+    "templateNeedsTp": "Kalimat harus memuat {tp}.",
+    "pdfExpertiseField": "Bidang Keahlian",
+    "pdfExpertiseProgram": "Program Keahlian",
+    "pdfExpertiseConcentration": "Konsentrasi Keahlian",
+    "pdfGroupOther": "Lainnya",
+    "groupOther": "Lainnya"
   },
   "financeReports": {
     "title": "Laporan keuangan",
@@ -8535,5 +8545,37 @@
       "C": "Cukup",
       "K": "Kurang"
     }
+  },
+  "vocational": {
+    "title": "Bidang, program, dan konsentrasi keahlian",
+    "subtitle": "Susun hierarki keahlian sekolah, lalu tautkan jurusan (unit kelas) ke konsentrasi keahlian.",
+    "sourceHint": "Isi sesuai SK Dinas atau Dapodik sekolah Anda. Daftar tidak diisi otomatis; kode Dapodik bersifat opsional.",
+    "backToClasses": "Kembali ke kelas",
+    "emptyTitle": "Belum ada bidang keahlian",
+    "emptyBody": "Tambahkan bidang keahlian pertama, lalu program dan konsentrasinya.",
+    "addField": "Tambah bidang",
+    "addProgram": "Tambah program keahlian",
+    "addConcentration": "Tambah konsentrasi",
+    "editField": "Ubah bidang keahlian",
+    "editProgram": "Ubah program keahlian",
+    "editConcentration": "Ubah konsentrasi keahlian",
+    "dapodikCode": "Kode Dapodik (opsional)",
+    "dapodikShort": "Dapodik {code}",
+    "sourceRef": "Rujukan sumber (opsional)",
+    "sourceShort": "Sumber: {ref}",
+    "parentField": "Bidang keahlian",
+    "parentProgram": "Program keahlian",
+    "active": "Aktif",
+    "activeHint": "Nonaktifkan bila tidak dipakai lagi; data lama tetap tersimpan.",
+    "inactive": "Nonaktif",
+    "linkedPrograms": "Jurusan (unit kelas) tertaut",
+    "noLinked": "Belum ada jurusan yang ditautkan.",
+    "linkProgram": "Tautkan jurusan…",
+    "unlink": "Lepas tautan {name}",
+    "reportTitle": "Rapor SMK",
+    "reportHint": "Pengaturan khusus rapor untuk jenjang kejuruan.",
+    "reportGrouped": "Kelompokkan mapel (Umum/Kejuruan) dan tampilkan identitas keahlian",
+    "reportGroupedHint": "Rapor memuat subjudul kelompok mapel dan, bila jurusan rombel ditautkan ke konsentrasi, bidang/program/konsentrasi di kop. Mati bawaan; rapor final tidak berubah.",
+    "reportSaved": "Pengaturan rapor kejuruan disimpan."
   }
 }

@@ -33,6 +33,8 @@ export interface ReportCardDoc {
     belowKkm?: boolean;
     /** Ada (`manual`) bila deskripsi disunting guru; hilang = otomatis menurut predikat. */
     descriptionSource?: 'manual' | 'objectives';
+    /** Kelompok mapel beku (5.2); hanya pada rapor SMK berkelompok. */
+    group?: { key: string; label: string; section: string | null };
   }[];
   extracurriculars: { name: string; predicate: Predicate | null; note: string | null }[];
   attendance: { sick: number; excused: number; absent: number };
@@ -50,6 +52,8 @@ export interface ReportCardDoc {
   cocurricular?: CocurricularProgramLike[];
   /** NSM madrasah untuk kop (4.5); hanya bila terisi. */
   schoolNsm?: string;
+  /** Identitas keahlian SMK untuk kop (5.2); hanya bila sakelar rapor berkelompok menyala dan jurusan tertaut. */
+  expertise?: { field: string; program: string; concentration: string };
   developmentNote?: string | null;
   guardianResponses?: ReportCardResponse[];
 }

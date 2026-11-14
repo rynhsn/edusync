@@ -39,3 +39,4 @@ export * from './subject-choice';
 export * from './teaching-plan';
 export * from './timezone';
 export * from './transfer';
+export * from './vocational';

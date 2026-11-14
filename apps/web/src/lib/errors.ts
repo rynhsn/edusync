@@ -212,12 +212,21 @@ const KNOWN = [
   'invalid_nsm',
   'nsm_not_applicable',
   'nsm_taken',
+  'not_vocational',
 ] as const;
 
 type KnownCode = (typeof KNOWN)[number];
 
 /** Benda yang sedang diubah atau dihapus; membuat galat umum (`in_use`, `invalid_level`) menyebut penyebab yang tepat. */
-export type ErrorContext = 'level' | 'program' | 'subject' | 'class' | 'semester' | 'outcome' | 'objective';
+export type ErrorContext =
+  | 'level'
+  | 'program'
+  | 'subject'
+  | 'class'
+  | 'semester'
+  | 'outcome'
+  | 'objective'
+  | 'expertise';
 
 const IN_USE_KEY = {
   level: 'errors.in_use_level',
@@ -227,6 +236,7 @@ const IN_USE_KEY = {
   semester: 'errors.in_use_semester',
   outcome: 'errors.in_use_outcome',
   objective: 'errors.in_use_objective',
+  expertise: 'errors.in_use_expertise',
 } as const satisfies Record<ErrorContext, string>;
 
 /**

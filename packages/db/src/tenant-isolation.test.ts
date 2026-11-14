@@ -12,12 +12,18 @@ import {
   cocurricularRubricLevel,
   createDb,
   foundation,
+  program,
+  programConcentration,
   school,
   schoolIdentifier,
   schoolProfileItem,
   semester,
   student,
   teacher,
+  vocationalConcentration,
+  vocationalField,
+  vocationalProgram,
+  vocationalSetting,
   withTenant,
 } from './index';
 
@@ -479,6 +485,94 @@ describe('tabel tenant identitas madrasah (tahap 4.5)', () => {
     } finally {
       for (const sid of [schoolA1, schoolB])
         await platform.db.delete(schoolIdentifier).where(eq(schoolIdentifier.schoolId, sid));
+    }
+  });
+});
+
+describe('tabel tenant struktur keahlian SMK (tahap 5.1)', () => {
+  it('bidang, program, konsentrasi, tautan, dan pengaturan terisolasi; FK komposit, unik, dan CASCADE tautan', async () => {
+    const seed = async (sid: string, n: number) => {
+      const [field] = await platform.db
+        .insert(vocationalField)
+        .values({ schoolId: sid, code: `B${n}`, name: `Bidang ${n}` })
+        .returning();
+      const [vp] = await platform.db
+        .insert(vocationalProgram)
+        .values({ schoolId: sid, fieldId: field!.id, code: `P${n}`, name: `Program ${n}` })
+        .returning();
+      const [conc] = await platform.db
+        .insert(vocationalConcentration)
+        .values({ schoolId: sid, vocationalProgramId: vp!.id, code: `K${n}`, name: `Konsentrasi ${n}` })
+        .returning();
+      const [prog] = await platform.db
+        .insert(program)
+        .values({ schoolId: sid, code: `J${n}`, name: `Jurusan ${n}` })
+        .returning();
+      await platform.db
+        .insert(programConcentration)
+        .values({ schoolId: sid, programId: prog!.id, concentrationId: conc!.id });
+      await platform.db.insert(vocationalSetting).values({ schoolId: sid, updatedBy: 'uji' });
+      return { field: field!.id, vp: vp!.id, conc: conc!.id, prog: prog!.id };
+    };
+    const a = await seed(schoolA1, 1);
+    const b = await seed(schoolB, 2);
+    try {
+      const tables = [
+        vocationalField,
+        vocationalProgram,
+        vocationalConcentration,
+        programConcentration,
+        vocationalSetting,
+      ] as const;
+      for (const t of tables) {
+        const rows = await withTenant(app.db, [schoolA1], (tx) => tx.select().from(t));
+        expect(rows.map((r) => r.schoolId)).toEqual([schoolA1]);
+        expect(await app.db.select().from(t)).toHaveLength(0);
+      }
+      // Tulis lintas sekolah ditolak RLS.
+      await expect(
+        withTenant(app.db, [schoolA1], (tx) =>
+          tx.insert(vocationalField).values({ schoolId: schoolB, code: 'X', name: 'x' }),
+        ),
+      ).rejects.toThrow();
+      // FK komposit: konsentrasi sekolah B tidak boleh ditautkan ke program sekolah A walau id valid.
+      await expect(
+        platform.db
+          .insert(vocationalProgram)
+          .values({ schoolId: schoolA1, fieldId: b.field, code: 'Y', name: 'y' }),
+      ).rejects.toThrow();
+      await expect(
+        platform.db
+          .update(programConcentration)
+          .set({ concentrationId: b.conc })
+          .where(eq(programConcentration.programId, a.prog)),
+      ).rejects.toThrow();
+      // Kode unik per sekolah; sekolah lain boleh memakai kode yang sama.
+      await expect(
+        platform.db.insert(vocationalField).values({ schoolId: schoolA1, code: 'B1', name: 'dobel' }),
+      ).rejects.toThrow();
+      await platform.db.insert(vocationalField).values({ schoolId: schoolB, code: 'B1', name: 'sama' });
+      // Bidang yang masih punya program tidak bisa dihapus (NO ACTION).
+      await expect(
+        platform.db.delete(vocationalField).where(eq(vocationalField.id, a.field)),
+      ).rejects.toThrow();
+      // Hapus `program` menyapu tautannya (ON DELETE CASCADE).
+      await platform.db.delete(program).where(eq(program.id, a.prog));
+      expect(
+        await platform.db
+          .select()
+          .from(programConcentration)
+          .where(eq(programConcentration.programId, a.prog)),
+      ).toHaveLength(0);
+    } finally {
+      for (const sid of [schoolA1, schoolB]) {
+        await platform.db.delete(vocationalSetting).where(eq(vocationalSetting.schoolId, sid));
+        await platform.db.delete(programConcentration).where(eq(programConcentration.schoolId, sid));
+        await platform.db.delete(program).where(eq(program.schoolId, sid));
+        await platform.db.delete(vocationalConcentration).where(eq(vocationalConcentration.schoolId, sid));
+        await platform.db.delete(vocationalProgram).where(eq(vocationalProgram.schoolId, sid));
+        await platform.db.delete(vocationalField).where(eq(vocationalField.schoolId, sid));
+      }
     }
   });
 });

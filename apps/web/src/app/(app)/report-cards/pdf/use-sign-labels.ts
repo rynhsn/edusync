@@ -19,5 +19,11 @@ export function useSignLabels(): SignLabels {
       achievement: t('pdfColAchievement'),
       remark: t('pdfColRemark'),
     },
+    expertise: {
+      field: t('pdfExpertiseField'),
+      program: t('pdfExpertiseProgram'),
+      concentration: t('pdfExpertiseConcentration'),
+      groupOther: t('pdfGroupOther'),
+    },
   };
 }

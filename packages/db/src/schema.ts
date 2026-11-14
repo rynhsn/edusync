@@ -4282,6 +4282,115 @@ export const schoolIdentifier = pgTable(
   ],
 );
 
+/* ---------- Struktur keahlian SMK (fase 5, tahap 5.1; DDL, CHECK, dan FK komposit di migrasi 0110) ---------- */
+
+/** Bidang keahlian. Diisi sekolah (tanpa seed): spektrum keahlian resmi belum terbaca. */
+export const vocationalField = pgTable(
+  'vocational_field',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    code: text('code').notNull(),
+    name: text('name').notNull(),
+    dapodikCode: text('dapodik_code'),
+    /** Rujukan sumber informatif (mis. '244/M/2024'). */
+    sourceRef: text('source_ref'),
+    sort: integer('sort').notNull().default(0),
+    active: boolean('active').notNull().default(true),
+    createdAt: createdAt(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique('vocational_field_school_id_uq').on(t.schoolId, t.id),
+    unique('vocational_field_code_uq').on(t.schoolId, t.code),
+  ],
+);
+
+/** Program keahlian (di bawah bidang). Bukan `program` (unit operasional kelas/JP/KKTP). */
+export const vocationalProgram = pgTable(
+  'vocational_program',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    fieldId: uuid('field_id')
+      .notNull()
+      .references(() => vocationalField.id),
+    code: text('code').notNull(),
+    name: text('name').notNull(),
+    dapodikCode: text('dapodik_code'),
+    sort: integer('sort').notNull().default(0),
+    active: boolean('active').notNull().default(true),
+    createdAt: createdAt(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique('vocational_program_school_id_uq').on(t.schoolId, t.id),
+    unique('vocational_program_code_uq').on(t.schoolId, t.code),
+    index('vocational_program_field_idx').on(t.schoolId, t.fieldId),
+  ],
+);
+
+/** Konsentrasi keahlian (di bawah program keahlian). */
+export const vocationalConcentration = pgTable(
+  'vocational_concentration',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    vocationalProgramId: uuid('vocational_program_id')
+      .notNull()
+      .references(() => vocationalProgram.id),
+    code: text('code').notNull(),
+    name: text('name').notNull(),
+    dapodikCode: text('dapodik_code'),
+    sort: integer('sort').notNull().default(0),
+    active: boolean('active').notNull().default(true),
+    createdAt: createdAt(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique('vocational_concentration_school_id_uq').on(t.schoolId, t.id),
+    unique('vocational_concentration_code_uq').on(t.schoolId, t.code),
+    index('vocational_concentration_program_idx').on(t.schoolId, t.vocationalProgramId),
+  ],
+);
+
+/** Tautan `program` (unit operasional) -> konsentrasi keahlian. Satu baris per program; terhapus bersama `program`. */
+export const programConcentration = pgTable(
+  'program_concentration',
+  {
+    programId: uuid('program_id')
+      .primaryKey()
+      .references(() => program.id),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    concentrationId: uuid('concentration_id')
+      .notNull()
+      .references(() => vocationalConcentration.id),
+  },
+  (t) => [index('program_concentration_concentration_idx').on(t.schoolId, t.concentrationId)],
+);
+
+/**
+ * Pengaturan kejuruan sekolah: satu baris, dibuat hanya saat disimpan. Tanpa baris = semua fitur fase 5 yang memengaruhi rapor mati.
+ * Kolom tahap berikutnya (bobot PKL, skala UKK) ditambah migrasi tahap itu.
+ */
+export const vocationalSetting = pgTable('vocational_setting', {
+  schoolId: uuid('school_id')
+    .primaryKey()
+    .references(() => school.id),
+  /** Rapor dikelompokkan menurut kelompok mapel dan kop memuat identitas keahlian (5.2). */
+  reportGrouped: boolean('report_grouped').notNull().default(false),
+  updatedBy: text('updated_by').notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
 /* ---------- Perubahan paket yayasan (tingkatkan, tambah unit, jadwalkan penurunan) ---------- */
 
 /**

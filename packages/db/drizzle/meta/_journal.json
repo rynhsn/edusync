@@ -771,6 +771,13 @@
       "when": 1797643800000,
       "tag": "0109_madrasah_identity",
       "breakpoints": true
+    },
+    {
+      "idx": 110,
+      "version": "7",
+      "when": 1797730200000,
+      "tag": "0110_vocational_structure",
+      "breakpoints": true
     }
   ]
 }
