@@ -1619,7 +1619,7 @@ export const ACADEMIC_DOCS: DocArticle[] = [
           },
           {
             heading: 'Langkah 2: menyalin kelas, penugasan, dan kalender',
-            body: 'Langkah ini menyiapkan tahun tujuan. Kelas 7A menjadi 8A di tahun tujuan, lengkap dengan wali kelas dan guru mata pelajarannya. Kelas tingkat pertama juga disalin apa adanya untuk siswa baru dan siswa yang tinggal kelas. Kelas tingkat terakhir tidak disalin karena kelulusan ditetapkan sekolah. Kalender akademik hanya disalin bila Anda mencentang pilihannya; pilihan itu mati secara bawaan karena kalender tiap tahun berbeda, dan tanggalnya digeser satu tahun sehingga harus Anda periksa kembali sebelum dipakai. Struktur kurikulum (jam pelajaran dan versi kurikulum tiap tingkat) juga ikut disalin. Hasilnya menampilkan jumlah yang dibuat dan daftar hal yang perlu diperiksa, misalnya wali kelas yang sudah nonaktif. Tiap bagian butuh izin sendiri: kelas dan penugasan butuh izin mengelola kelas, kalender butuh izin mengelola tahun ajaran, struktur kurikulum butuh izin mengelola kurikulum, dan perangkat ajar butuh izin menyusun perangkat ajar. Bagian yang izinnya belum Anda punya tampil redup dengan tulisan Butuh izin dan tidak ikut disalin; minta admin sekolah menambahkan izinnya bila diperlukan. Langkah ini boleh dilewati bila kelas tahun tujuan sudah Anda buat sendiri.',
+            body: 'Langkah ini menyiapkan tahun tujuan. Kelas 7A menjadi 8A di tahun tujuan, lengkap dengan wali kelas dan guru mata pelajarannya. Kelas tingkat pertama juga disalin apa adanya untuk siswa baru dan siswa yang tinggal kelas. Kelas tingkat terakhir tidak disalin karena kelulusan ditetapkan sekolah, kecuali bila sudah ada siswa yang diputuskan tinggal kelas di dalamnya: kelas itu ikut disalin agar siswa tersebut punya kelas tujuan. Kalender akademik hanya disalin bila Anda mencentang pilihannya; pilihan itu mati secara bawaan karena kalender tiap tahun berbeda, dan tanggalnya digeser satu tahun sehingga harus Anda periksa kembali sebelum dipakai. Struktur kurikulum (jam pelajaran dan versi kurikulum tiap tingkat) juga ikut disalin. Hasilnya menampilkan jumlah yang dibuat dan daftar hal yang perlu diperiksa, misalnya wali kelas yang sudah nonaktif. Tiap bagian butuh izin sendiri: kelas dan penugasan butuh izin mengelola kelas, kalender butuh izin mengelola tahun ajaran, struktur kurikulum butuh izin mengelola kurikulum, dan perangkat ajar butuh izin menyusun perangkat ajar. Bagian yang izinnya belum Anda punya tampil redup dengan tulisan Butuh izin dan tidak ikut disalin; minta admin sekolah menambahkan izinnya bila diperlukan. Langkah ini boleh dilewati bila kelas tahun tujuan sudah Anda buat sendiri.',
             steps: [
               'Centang apa saja yang ingin disalin.',
               'Klik Pratinjau untuk melihat jumlahnya dan peringatan.',
@@ -1707,7 +1707,7 @@ export const ACADEMIC_DOCS: DocArticle[] = [
           },
           {
             heading: 'Step 2: copying classes, assignments, and calendar',
-            body: 'This step prepares the target year. Class 7A becomes 8A in the target year, together with its homeroom teacher and subject teachers. First-level classes are also copied as they are for new students and students who repeat. Final-level classes are not copied because graduation is decided by the school. The academic calendar is only copied if you tick that option; it is off by default because calendars differ every year, and its dates are shifted by one year so you must check them again before use. The curriculum structure (lesson periods and the curriculum version of each level) is copied as well. The result shows the numbers created and a list of things to check, for example a homeroom teacher who is no longer active. Each part needs its own permission: classes and assignments need the permission to manage classes, the calendar needs the permission to manage academic years, the curriculum structure needs the permission to manage the curriculum, and teaching materials need the permission to write teaching materials. A part you lack permission for is shown dimmed with the text Needs permission and is not copied; ask a school admin to add the permission if needed. You can skip this step if you already created the target year classes yourself.',
+            body: 'This step prepares the target year. Class 7A becomes 8A in the target year, together with its homeroom teacher and subject teachers. First-level classes are also copied as they are for new students and students who repeat. Final-level classes are not copied because graduation is decided by the school, unless a student in them has already been decided to repeat the year: that class is then copied so the student has a class to go to. The academic calendar is only copied if you tick that option; it is off by default because calendars differ every year, and its dates are shifted by one year so you must check them again before use. The curriculum structure (lesson periods and the curriculum version of each level) is copied as well. The result shows the numbers created and a list of things to check, for example a homeroom teacher who is no longer active. Each part needs its own permission: classes and assignments need the permission to manage classes, the calendar needs the permission to manage academic years, the curriculum structure needs the permission to manage the curriculum, and teaching materials need the permission to write teaching materials. A part you lack permission for is shown dimmed with the text Needs permission and is not copied; ask a school admin to add the permission if needed. You can skip this step if you already created the target year classes yourself.',
             steps: [
               'Tick what you want to copy.',
               'Click Preview to see the numbers and warnings.',
@@ -1795,7 +1795,7 @@ export const ACADEMIC_DOCS: DocArticle[] = [
           },
           {
             heading: 'Léngkah 2: nyalin kelas, tugas, jeung kalénder',
-            body: 'Léngkah ieu nyiapkeun taun tujuan. Kelas 7A jadi 8A di taun tujuan, lengkep jeung wali kelas jeung guru mata pelajaranna. Kelas tingkat kahiji ogé disalin sakumaha aya pikeun siswa anyar jeung siswa nu tinggal kelas. Kelas tingkat panungtungan teu disalin lantaran kalulusan ditetepkeun ku sakola. Kalénder akadémik ngan disalin upami pilihanna dicentang; pilihan éta pareum sacara baku sabab kalénder unggal taun béda, jeung tanggalna digeser sataun kudu dipariksa deui samemeh dipaké. Struktur kurikulum (jam pelajaran jeung vérsi kurikulum unggal tingkat) ogé milu disalin. Hasilna nembongkeun jumlah nu dijieun jeung daptar hal nu kudu dipariksa, upamana wali kelas nu geus nonaktip. Unggal bagian peryogi idin sorangan: kelas jeung tugas peryogi idin ngatur kelas, kalénder peryogi idin ngatur taun pangajaran, struktur kurikulum peryogi idin ngatur kurikulum, jeung parabot ngajar peryogi idin nyusun parabot ngajar. Bagian nu idinna can aya katémbong rada hérang jeung aya tulisan Peryogi idin, tur teu disalin; pénta admin sakola nambahkeun idinna upami peryogi. Léngkah ieu meunang diliwatan upami kelas taun tujuan geus dijieun ku anjeun sorangan.',
+            body: 'Léngkah ieu nyiapkeun taun tujuan. Kelas 7A jadi 8A di taun tujuan, lengkep jeung wali kelas jeung guru mata pelajaranna. Kelas tingkat kahiji ogé disalin sakumaha aya pikeun siswa anyar jeung siswa nu tinggal kelas. Kelas tingkat panungtungan teu disalin lantaran kalulusan ditetepkeun ku sakola, iwal lamun geus aya siswa nu diputuskeun tinggal kelas di jerona: kelas éta milu disalin supaya siswana boga kelas tujuan. Kalénder akadémik ngan disalin upami pilihanna dicentang; pilihan éta pareum sacara baku sabab kalénder unggal taun béda, jeung tanggalna digeser sataun kudu dipariksa deui samemeh dipaké. Struktur kurikulum (jam pelajaran jeung vérsi kurikulum unggal tingkat) ogé milu disalin. Hasilna nembongkeun jumlah nu dijieun jeung daptar hal nu kudu dipariksa, upamana wali kelas nu geus nonaktip. Unggal bagian peryogi idin sorangan: kelas jeung tugas peryogi idin ngatur kelas, kalénder peryogi idin ngatur taun pangajaran, struktur kurikulum peryogi idin ngatur kurikulum, jeung parabot ngajar peryogi idin nyusun parabot ngajar. Bagian nu idinna can aya katémbong rada hérang jeung aya tulisan Peryogi idin, tur teu disalin; pénta admin sakola nambahkeun idinna upami peryogi. Léngkah ieu meunang diliwatan upami kelas taun tujuan geus dijieun ku anjeun sorangan.',
             steps: [
               'Centang naon waé nu rék disalin.',
               'Klik Pratinjau pikeun ningali jumlahna jeung pépéling.',
@@ -2898,6 +2898,227 @@ export const ACADEMIC_DOCS: DocArticle[] = [
           {
             q: 'Naha euweuh kolom peringkat?',
             a: 'Peringkat ngan tampil lamun setélan rapor sakola nampilkeun peringkat.',
+          },
+        ],
+      },
+    },
+  },
+  {
+    slug: 'council-minutes',
+    icon: 'file',
+    tone: 'teal',
+    group: 'academic',
+    text: {
+      id: {
+        title: 'Berita acara musyawarah dan tinggal kelas di tingkat akhir',
+        summary:
+          'Cara mencatat hasil musyawarah dewan pendidik, menautkan keputusan siswa, mencetaknya, dan menempatkan siswa tingkat akhir yang tinggal kelas.',
+        forWho:
+          'Wakil kepala sekolah bidang kurikulum, admin sekolah, kepala sekolah, dan wali kelas yang menyusun atau membaca berita acara kenaikan kelas.',
+        sections: [
+          {
+            heading: 'Gambaran singkat',
+            body: 'Berita acara mencatat hasil rapat dewan pendidik: tanggal, tempat, agenda, peserta, ringkasan keputusan, serta daftar siswa yang tinggal kelas beserta alasan dan tindak lanjutnya. Daftar dan jumlah naik, tinggal, dan lulus diambil otomatis dari keputusan siswa yang Anda tautkan, jadi tidak perlu mengetik ulang.',
+            href: '/promotion/minutes',
+            tip: 'Buka dari tombol Berita acara di halaman Kenaikan kelas.',
+          },
+          {
+            heading: 'Membuat berita acara',
+            body: 'Berita acara dibuat per tahun ajaran. Pilih jenis rapat, tanggal, kelas bila rapatnya khusus satu kelas, lalu tambahkan peserta: pilih guru dari daftar atau tulis nama sendiri, dan isi jabatannya.',
+            steps: [
+              'Buka Kenaikan kelas, lalu klik Berita acara.',
+              'Pilih tahun ajaran, lalu klik Buat berita acara.',
+              'Isi tanggal, tempat, agenda, dan peserta, lalu simpan.',
+            ],
+            href: '/promotion/minutes',
+          },
+          {
+            heading: 'Menautkan keputusan siswa',
+            body: 'Tautan menunjukkan keputusan siswa mana yang dibahas dalam rapat. Ada dua cara: di langkah Keputusan siswa pada halaman Kenaikan kelas, pilih berita acara pada catatan keputusan siswa (atau untuk satu kelas sekaligus); atau buka berita acara dan centang siswanya. Menautkan tidak mengubah keputusan siswa, dan tanggal musyawarah siswa mengikuti tanggal berita acara.',
+            href: '/promotion',
+            tip: 'Tombol Pilih semua yang tinggal kelas mencentang siswa yang tinggal kelas dengan sekali klik.',
+          },
+          {
+            heading: 'Memfinalkan dan membuka kembali',
+            body: 'Setelah rapat selesai dan datanya benar, finalkan berita acara. Rekap keputusan dibekukan, dan berita acara serta keputusan siswa yang tertaut tidak bisa diubah. Bila ada koreksi, buka kembali berita acaranya, ubah, lalu finalkan lagi.',
+            warning:
+              'Keputusan siswa yang tertaut ke berita acara final tampil terkunci di langkah Keputusan siswa sampai berita acaranya dibuka kembali.',
+          },
+          {
+            heading: 'Mencetak atau menyimpan sebagai PDF',
+            body: 'Buka berita acara lalu klik Cetak / PDF. Hasil cetak memuat identitas rapat, daftar peserta dengan kolom tanda tangan, rekap keputusan per kelas, daftar siswa tinggal kelas beserta alasan dan tindak lanjutnya, ringkasan, dan tempat tanda tangan ketua serta sekretaris. Untuk berkas PDF, pilih Simpan sebagai PDF pada pilihan printer.',
+            tip: 'Berita acara yang masih draf tetap bisa dicetak, dan hasil cetaknya diberi catatan bahwa belum final.',
+          },
+          {
+            heading: 'Siswa tingkat akhir yang tinggal kelas',
+            body: 'Siswa kelas tingkat akhir yang diputuskan tinggal kelas ditempatkan di kelas tingkat akhir tahun ajaran berikutnya. Ada dua cara menyiapkannya. Pertama, putuskan tinggal kelas lebih dulu lalu jalankan Salin tahun ajaran: kelas tingkat akhir ikut disalin bila ada siswa yang tinggal di dalamnya. Kedua, di langkah Keputusan siswa pilih sendiri kelas tujuannya dari daftar kelas tahun tujuan. Bila dibiarkan otomatis dan kelasnya belum ada, siswa itu dilaporkan belum tertempatkan pada pratinjau penerapan, tanpa menggagalkan siswa lain.',
+            href: '/promotion',
+            warning:
+              'Pendaftaran siswa di tahun lama tidak dihapus, jadi riwayat kelas dan nilai tahun lama tetap utuh.',
+          },
+          {
+            heading: 'Siapa yang dapat melihat dan mengubah',
+            body: 'Pemegang izin kelola kenaikan kelas dapat membuat, mengubah, menautkan, memfinalkan, membuka kembali, dan menghapus berita acara. Kepala sekolah dan pemegang izin melihat semua rapor dapat membaca dan mencetaknya.',
+          },
+        ],
+        faq: [
+          {
+            q: 'Mengapa tombol Ubah atau Hapus tidak ada?',
+            a: 'Berita acara sudah final, atau akun Anda hanya boleh membaca. Buka kembali berita acara final lebih dulu bila perlu mengubahnya.',
+          },
+          {
+            q: 'Mengapa keputusan siswa tidak bisa diubah?',
+            a: 'Keputusan itu tertaut ke berita acara final. Buka kembali berita acaranya di halaman Berita acara.',
+          },
+          {
+            q: 'Apakah menghapus berita acara menghapus keputusan siswa?',
+            a: 'Tidak. Hanya berita acara dan daftar pesertanya yang dihapus; keputusan siswa tetap ada tanpa tautan.',
+          },
+          {
+            q: 'Siswa yang tinggal kelas belum punya kelas tujuan. Bagaimana?',
+            a: 'Pilih kelas tujuannya di langkah Keputusan siswa, atau jalankan Salin tahun ajaran lagi setelah keputusan tinggal kelas tersimpan, atau buat kelasnya di menu Kelas.',
+          },
+        ],
+      },
+      en: {
+        title: 'Meeting minutes and repeating the final year',
+        summary:
+          'How to record the outcome of the teachers council meeting, link student decisions, print the minutes, and place final-year students who repeat the year.',
+        forWho:
+          'Vice principals for curriculum, school admins, principals, and homeroom teachers who prepare or read the promotion meeting minutes.',
+        sections: [
+          {
+            heading: 'Overview',
+            body: 'The minutes record the outcome of the teachers council meeting: date, place, agenda, attendees, a summary of decisions, and the list of students who repeat the year with their reasons and follow-up. The numbers of students promoted, repeating, and graduating, and the list of repeaters, are taken automatically from the student decisions you link, so nothing needs to be typed again.',
+            href: '/promotion/minutes',
+            tip: 'Open it with the Meeting minutes button on the Promotion page.',
+          },
+          {
+            heading: 'Creating minutes',
+            body: 'Minutes are made per school year. Choose the meeting type, the date, and a class if the meeting was only about one class, then add the attendees: pick a teacher from the list or type a name, and fill in the position.',
+            steps: [
+              'Open Promotion, then click Meeting minutes.',
+              'Choose the school year, then click Create minutes.',
+              'Fill in the date, place, agenda, and attendees, then save.',
+            ],
+            href: '/promotion/minutes',
+          },
+          {
+            heading: 'Linking student decisions',
+            body: "A link shows which student decisions were discussed at the meeting. There are two ways: in the Student decisions step of the Promotion page, choose the minutes in the student's decision notes (or for a whole class at once); or open the minutes and tick the students. Linking does not change the student decision, and the student's meeting date follows the date of the minutes.",
+            href: '/promotion',
+            tip: 'The Select everyone repeating the year button ticks all repeating students in one click.',
+          },
+          {
+            heading: 'Finalizing and reopening',
+            body: 'When the meeting is over and the data is right, finalize the minutes. The summary of decisions is frozen, and the minutes and the linked student decisions can no longer be changed. If something needs correcting, reopen the minutes, edit them, and finalize again.',
+            warning:
+              'Student decisions linked to final minutes appear locked in the Student decisions step until the minutes are reopened.',
+          },
+          {
+            heading: 'Printing or saving as PDF',
+            body: 'Open the minutes and click Print / PDF. The printout has the meeting details, the attendee list with a signature column, the summary of decisions per class, the list of repeating students with reasons and follow-up, the summary, and places for the chair and the secretary to sign. For a PDF file, choose Save as PDF in the printer options.',
+            tip: 'Draft minutes can be printed too, and the printout carries a note that they are not final yet.',
+          },
+          {
+            heading: 'Final-year students who repeat',
+            body: 'Final-year students who are decided to repeat the year are placed in a final-year class of the next school year. There are two ways to prepare it. First, decide the repeat first and then run Copy school year: final-year classes are copied when a student in them repeats. Second, in the Student decisions step, choose the target class yourself from the classes of the target year. If it is left automatic and the class does not exist yet, the student is reported as not yet placed in the apply preview, without failing the other students.',
+            href: '/promotion',
+            warning:
+              "The student's enrolment in the old year is not deleted, so the class and grade history of the old year stays intact.",
+          },
+          {
+            heading: 'Who can view and edit',
+            body: 'People who manage promotion can create, edit, link, finalize, reopen, and delete minutes. Principals and people who can view all report cards can read and print them.',
+          },
+        ],
+        faq: [
+          {
+            q: 'Why are the Edit or Delete buttons missing?',
+            a: 'The minutes are final, or your account can only read. Reopen final minutes first if you need to change them.',
+          },
+          {
+            q: 'Why can a student decision not be changed?',
+            a: 'The decision is linked to final minutes. Reopen the minutes on the Meeting minutes page.',
+          },
+          {
+            q: 'Does deleting the minutes delete the student decisions?',
+            a: 'No. Only the minutes and their attendee list are deleted; the student decisions stay, without the link.',
+          },
+          {
+            q: 'A student who repeats has no target class yet. What now?',
+            a: 'Choose the target class in the Student decisions step, or run Copy school year again after the repeat decisions are saved, or create the class in the Classes menu.',
+          },
+        ],
+      },
+      su: {
+        title: 'Berita acara musyawarah jeung tinggal kelas di tingkat ahir',
+        summary:
+          'Cara nyatet hasil musyawarah déwan guru, numbu kaputusan siswa, nyitak berita acara, jeung nempatkeun siswa tingkat ahir anu tinggal kelas.',
+        forWho:
+          'Wakil kepala sakola bidang kurikulum, admin sakola, kepala sakola, jeung wali kelas anu nyusun atawa maca berita acara naékna kelas.',
+        sections: [
+          {
+            heading: 'Gambaran singgetna',
+            body: 'Berita acara nyatet hasil rapat déwan guru: tanggal, tempat, agenda, pamilon, ringkesan kaputusan, jeung daptar siswa anu tinggal kelas sarta alesan jeung tindak lanjutna. Jumlah naék, tinggal, jeung lulus sarta daptar anu tinggal kelas dicokot otomatis tina kaputusan siswa anu Anjeun tumbu, jadi teu kudu ngetik deui.',
+            href: '/promotion/minutes',
+            tip: 'Buka tina tombol Berita acara di kaca Naékna kelas.',
+          },
+          {
+            heading: 'Nyieun berita acara',
+            body: 'Berita acara dijieun per taun pangajaran. Pilih jenis rapat, tanggal, jeung kelas lamun rapatna husus hiji kelas, tuluy tambahkeun pamilon: pilih guru tina daptar atawa tulis ngaran sorangan, jeung eusian jabatanna.',
+            steps: [
+              'Buka Naékna kelas, tuluy klik Berita acara.',
+              'Pilih taun pangajaran, tuluy klik Jieun berita acara.',
+              'Eusian tanggal, tempat, agenda, jeung pamilon, tuluy simpen.',
+            ],
+            href: '/promotion/minutes',
+          },
+          {
+            heading: 'Numbu kaputusan siswa',
+            body: 'Tumbu nunjukkeun kaputusan siswa mana anu dibahas dina rapat. Aya dua cara: dina léngkah Kaputusan siswa di kaca Naékna kelas, pilih berita acara dina catetan kaputusan siswa (atawa pikeun sakelas sakaligus); atawa buka berita acara tuluy centang siswana. Numbu teu ngarobah kaputusan siswa, jeung tanggal musyawarah siswa nurutan tanggal berita acara.',
+            href: '/promotion',
+            tip: 'Tombol Pilih sakabéh anu tinggal kelas nyentang siswa anu tinggal kelas ku sakali klik.',
+          },
+          {
+            heading: 'Nyieun final jeung muka deui',
+            body: 'Sanggeus rapat réngsé jeung datana bener, finalkeun berita acara. Rékap kaputusan dibekukeun, jeung berita acara sarta kaputusan siswa anu numbu teu bisa dirobah. Lamun aya koréksi, buka deui berita acarana, robah, tuluy finalkeun deui.',
+            warning:
+              'Kaputusan siswa anu numbu ka berita acara final katémbong dikonci dina léngkah Kaputusan siswa nepi ka berita acarana dibuka deui.',
+          },
+          {
+            heading: 'Nyitak atawa nyimpen salaku PDF',
+            body: 'Buka berita acara tuluy klik Citak / PDF. Hasil citakna eusina idéntitas rapat, daptar pamilon jeung kolom tanda tangan, rékap kaputusan per kelas, daptar siswa tinggal kelas sarta alesan jeung tindak lanjutna, ringkesan, jeung tempat tanda tangan ketua sarta sekretaris. Pikeun berkas PDF, pilih Simpen salaku PDF dina pilihan printer.',
+            tip: 'Berita acara anu masih rarancang oge bisa dicitak, jeung hasil citakna dibéré catetan yén can final.',
+          },
+          {
+            heading: 'Siswa tingkat ahir anu tinggal kelas',
+            body: 'Siswa kelas tingkat ahir anu diputuskeun tinggal kelas dititipkeun dina kelas tingkat ahir taun pangajaran satuluyna. Aya dua cara nyiapkeunana. Kahiji, putuskeun tinggal kelas heula tuluy jalankeun Salin taun pangajaran: kelas tingkat ahir milu disalin lamun aya siswa anu tinggal di jerona. Kadua, dina léngkah Kaputusan siswa pilih sorangan kelas tujuanana tina daptar kelas taun tujuan. Lamun diantep otomatis jeung kelasna can aya, éta siswa dilaporkeun can ditempatkeun dina pratayang panerapan, tanpa ngagagalkeun siswa séjén.',
+            href: '/promotion',
+            warning:
+              'Pendaptaran siswa di taun heubeul teu dihapus, jadi jujutan kelas jeung nilai taun heubeul tetep utuh.',
+          },
+          {
+            heading: 'Saha anu bisa nempo jeung ngarobah',
+            body: 'Anu boga idin ngatur naékna kelas bisa nyieun, ngarobah, numbu, nyieun final, muka deui, jeung ngahapus berita acara. Kepala sakola jeung anu boga idin nempo sakabéh rapor bisa maca jeung nyitakna.',
+          },
+        ],
+        faq: [
+          {
+            q: 'Naha tombol Robah atawa Hapus teu aya?',
+            a: 'Berita acarana geus final, atawa akun Anjeun ngan bisa maca. Buka deui berita acara final heula lamun kudu ngarobahna.',
+          },
+          {
+            q: 'Naha kaputusan siswa teu bisa dirobah?',
+            a: 'Kaputusan éta numbu ka berita acara final. Buka deui berita acarana di kaca Berita acara.',
+          },
+          {
+            q: 'Naha ngahapus berita acara ogé ngahapus kaputusan siswa?',
+            a: 'Henteu. Ngan berita acara jeung daptar pamilonna anu dihapus; kaputusan siswa tetep aya tanpa tumbu.',
+          },
+          {
+            q: 'Siswa anu tinggal kelas can boga kelas tujuan. Kumaha?',
+            a: 'Pilih kelas tujuanana dina léngkah Kaputusan siswa, atawa jalankeun Salin taun pangajaran deui sanggeus kaputusan tinggal kelas disimpen, atawa jieun kelasna dina ménu Kelas.',
           },
         ],
       },

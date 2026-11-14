@@ -161,6 +161,8 @@ export function RolloverStep({
         })}
       </fieldset>
 
+      <p className="text-muted-foreground max-w-2xl text-xs">{t('rolloverFinalNote')}</p>
+
       <div className="flex flex-wrap items-center gap-2">
         <Button variant="outline" disabled={!anyOption || run.isPending} onClick={() => run.mutate(true)}>
           <Eye className="size-4" aria-hidden /> {run.isPending ? t('working') : t('preview')}

@@ -14,6 +14,7 @@ import {
   asc,
   calendarEvent,
   classRoom,
+  councilMeeting,
   desc,
   enrollment,
   eq,
@@ -35,6 +36,7 @@ import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { recordHomeroomChange, recordTeachingChange } from '../assignment-history-lib';
+import { meetingFinalError } from '../council-meeting-lib';
 import { errorSchema, HttpError } from '../http-error';
 import { requirePermission, type TenantContext } from '../identity/guards';
 import { assertClassYearNotClosed } from '../report-lock-lib';
@@ -124,6 +126,11 @@ const studentEntry = z.object({
   reason: z.string().nullable().optional().describe('Alasan keputusan (mis. tinggal kelas)'),
   followUp: z.string().nullable().optional().describe('Tindak lanjut'),
   meetingDate: z.iso.date().nullable().optional().describe('Tanggal rapat dewan pendidik'),
+  meetingId: z
+    .uuid()
+    .nullable()
+    .optional()
+    .describe('Berita acara musyawarah yang membahas keputusan ini (ada hanya bila tertaut)'),
   applied: z.boolean().describe('Keputusan sudah diterapkan ke tahun tujuan; tidak bisa diubah lagi'),
 });
 
@@ -158,6 +165,13 @@ const decisionsBody = z.object({
         reason: z.string().trim().max(1000).nullable().optional(),
         followUp: z.string().trim().max(1000).nullable().optional(),
         meetingDate: z.iso.date().nullable().optional(),
+        meetingId: z
+          .uuid()
+          .nullable()
+          .optional()
+          .describe(
+            'Berita acara yang membahas keputusan ini; dihilangkan = dipertahankan, null = dilepas. Tanggal rapat murid diisi dari tanggal berita acara',
+          ),
       }),
     )
     .min(1)
@@ -179,6 +193,12 @@ const rolloverBody = z.object({
     .boolean()
     .optional()
     .describe('Salin ATP berstatus terbit sebagai draf ATP tahun tujuan; bawaan true'),
+  copyFinalLevelForRetained: z
+    .boolean()
+    .optional()
+    .describe(
+      'Salin kelas tingkat akhir (nama sama) bila ada murid yang diputuskan tinggal kelas di kelas itu, agar mereka punya kelas tujuan; bawaan true. Tanpa keputusan tinggal kelas di tingkat akhir, hasil salinan tidak berubah',
+    ),
   dryRun: z.boolean().default(false),
 });
 
@@ -339,6 +359,16 @@ async function runRollover(
   const planned: Planned[] = [];
   const seen = new Set<string>();
   let finalLevelClasses = 0;
+  let finalLevelRetainedClasses = 0;
+  // Tingkat akhir: kelas disalin (nama dan tingkat sama) hanya bila ada murid yang diputuskan tinggal kelas di kelas itu.
+  const retainedFinal = new Set<string>();
+  if (body.copyFinalLevelForRetained ?? true) {
+    const rows = await tx
+      .selectDistinct({ classId: promotionDecision.fromClassId })
+      .from(promotionDecision)
+      .where(and(eq(promotionDecision.academicYearId, source.id), eq(promotionDecision.decision, 'retain')));
+    for (const r of rows) retainedFinal.add(r.classId);
+  }
   for (const c of srcClasses) {
     if (!levels.some((l) => l.code === c.level)) {
       warn(
@@ -350,15 +380,24 @@ async function runRollover(
       continue;
     }
     const finalCode = finalOf(c.programId);
+    let candidates: Planned[];
     if (isFinalLevel(levels, c.level, finalCode)) {
-      finalLevelClasses++;
-      continue;
+      if (!retainedFinal.has(c.id)) {
+        finalLevelClasses++;
+        continue;
+      }
+      // Kelas sebaya hasil kenaikan dengan nama sama sudah ada dalam rencana: murid yang tinggal bergabung di sana.
+      if (seen.has(c.name)) continue;
+      finalLevelRetainedClasses++;
+      candidates = [{ src: c, name: c.name, level: c.level, primary: true }];
+    } else {
+      const next = nextLevel(levels, c.level, finalCode) as string;
+      const derived = deriveTargetClassName(c.name, c.level, next);
+      if (derived.warning)
+        warn('class_name_unmatched', { className: c.name, level: c.level }, derived.warning);
+      candidates = [{ src: c, name: derived.name, level: next, primary: true }];
+      if (c.level === first) candidates.push({ src: c, name: c.name, level: c.level, primary: false });
     }
-    const next = nextLevel(levels, c.level, finalCode) as string;
-    const derived = deriveTargetClassName(c.name, c.level, next);
-    if (derived.warning) warn('class_name_unmatched', { className: c.name, level: c.level }, derived.warning);
-    const candidates: Planned[] = [{ src: c, name: derived.name, level: next, primary: true }];
-    if (c.level === first) candidates.push({ src: c, name: c.name, level: c.level, primary: false });
     for (const cand of candidates) {
       if (seen.has(cand.name)) {
         warn(
@@ -372,6 +411,13 @@ async function runRollover(
       seen.add(cand.name);
       planned.push(cand);
     }
+  }
+  if (finalLevelRetainedClasses > 0) {
+    warn(
+      'final_level_copied_for_retained',
+      { count: finalLevelRetainedClasses },
+      `${finalLevelRetainedClasses} kelas tingkat akhir disalin karena ada murid yang tinggal kelas di dalamnya.`,
+    );
   }
   if (finalLevelClasses > 0) {
     warn(
@@ -1054,6 +1100,7 @@ export async function promotionRoutes(instance: FastifyInstance) {
                     reason: d?.reason ?? null,
                     followUp: d?.followUp ?? null,
                     meetingDate: d?.meetingDate ?? null,
+                    ...(d?.meetingId ? { meetingId: d.meetingId } : {}),
                     applied: !!d?.appliedAt,
                   };
                 }),
@@ -1079,6 +1126,9 @@ export async function promotionRoutes(instance: FastifyInstance) {
           '400 `not_final_level`: lulus hanya untuk kelas tingkat akhir (jurusan dengan `final_level_code` memakai tingkat itu) dan naik tidak bisa dari ' +
           'tingkat terakhir. 400 `student_not_enrolled`: siswa tidak ter-enroll di tahun itu. 400 `invalid_target_class`: ' +
           '`toClassId` harus kelas pada tahun ajaran yang dimulai setelah tahun sumber (diabaikan untuk `graduate`). ' +
+          '`meetingId` (opsional) menautkan keputusan ke berita acara musyawarah tahun itu (dihilangkan = dipertahankan, null = dilepas; tanggal rapat murid diisi dari tanggal berita acara); ' +
+          '400 `invalid_reference` bila berita acara tidak ada pada tahun itu. 409 `meeting_final`: keputusan itu tertaut ke berita acara final atau ' +
+          'hendak ditautkan ke berita acara final. ' +
           '409 `promotion_applied`: keputusan siswa itu sudah diterapkan dan tidak bisa diubah. Penyimpanan dan penerapan untuk tahun ' +
           'sumber yang sama berjalan bergantian (kunci per tahun sumber).',
         headers: schoolHeader,
@@ -1148,6 +1198,28 @@ export async function promotionRoutes(instance: FastifyInstance) {
             ).map((c) => [c.id, c.startsOn]),
           );
 
+          // Berita acara yang terlibat: tujuan penautan dan yang sedang menaungi keputusan tersimpan.
+          const meetingIds = [
+            ...new Set([
+              ...items.flatMap((i) => (i.meetingId ? [i.meetingId] : [])),
+              ...[...existing.values()].flatMap((d) => (d.meetingId ? [d.meetingId] : [])),
+            ]),
+          ];
+          const meetings = new Map(
+            (meetingIds.length
+              ? await tx
+                  .select({
+                    id: councilMeeting.id,
+                    status: councilMeeting.status,
+                    academicYearId: councilMeeting.academicYearId,
+                    heldOn: councilMeeting.heldOn,
+                  })
+                  .from(councilMeeting)
+                  .where(inArray(councilMeeting.id, meetingIds))
+              : []
+            ).map((m) => [m.id, m]),
+          );
+
           const values: (typeof promotionDecision.$inferInsert)[] = [];
           for (const item of items) {
             const enr = enrolled.get(item.studentId);
@@ -1164,6 +1236,9 @@ export async function promotionRoutes(instance: FastifyInstance) {
                 `Keputusan untuk siswa ${item.studentId} sudah diterapkan ke tahun ajaran berikutnya dan tidak bisa diubah.`,
               );
             }
+            // Keputusan yang tertaut ke berita acara final terkunci (juga bila hanya catatannya yang diubah).
+            const prevMeetingId = existing.get(item.studentId)?.meetingId ?? null;
+            if (prevMeetingId && meetings.get(prevMeetingId)?.status === 'final') throw meetingFinalError();
             const final = isFinalLevel(levels, enr.level, finalOf(enr.programId));
             if (item.decision === 'graduate' && !final) {
               throw bad(
@@ -1194,6 +1269,19 @@ export async function promotionRoutes(instance: FastifyInstance) {
               }
               toClassId = item.toClassId;
             }
+            // Berita acara: dihilangkan = pertahankan; null = lepas; id = tautkan (tahun sama, belum final).
+            let meetingId = prevMeetingId;
+            let meetingHeldOn: string | null = null;
+            if (item.meetingId === null) meetingId = null;
+            else if (item.meetingId !== undefined) {
+              const m = meetings.get(item.meetingId);
+              if (!m || m.academicYearId !== year.id) {
+                throw bad('invalid_reference', 'Berita acara tidak ditemukan pada tahun ajaran ini.');
+              }
+              if (m.status === 'final') throw meetingFinalError();
+              meetingId = m.id;
+              meetingHeldOn = m.heldOn;
+            }
             // Dihilangkan = pertahankan catatan tersimpan; null eksplisit = kosongkan.
             const prev = existing.get(item.studentId);
             values.push({
@@ -1206,7 +1294,11 @@ export async function promotionRoutes(instance: FastifyInstance) {
               note: item.note === undefined ? (prev?.note ?? null) : item.note,
               reason: item.reason === undefined ? (prev?.reason ?? null) : item.reason,
               followUp: item.followUp === undefined ? (prev?.followUp ?? null) : item.followUp,
-              meetingDate: item.meetingDate === undefined ? (prev?.meetingDate ?? null) : item.meetingDate,
+              // Bila ditautkan ke berita acara, tanggal rapat murid mengikuti tanggal berita acara (konsistensi).
+              meetingDate:
+                meetingHeldOn ??
+                (item.meetingDate === undefined ? (prev?.meetingDate ?? null) : item.meetingDate),
+              meetingId,
               decidedBy: ctx.userId,
               decidedAt: new Date(),
             });
@@ -1224,6 +1316,7 @@ export async function promotionRoutes(instance: FastifyInstance) {
                 reason: sql`excluded.reason`,
                 followUp: sql`excluded.follow_up`,
                 meetingDate: sql`excluded.meeting_date`,
+                meetingId: sql`excluded.meeting_id`,
                 decidedBy: sql`excluded.decided_by`,
                 decidedAt: sql`excluded.decided_at`,
               },
@@ -1259,7 +1352,9 @@ export async function promotionRoutes(instance: FastifyInstance) {
         summary: 'Salin tahun ajaran ke tahun berikutnya',
         description:
           'Izin: `promotion:manage`. Menyalin ke `targetYearId`: kelas (tingkat non-akhir menjadi tingkat berikutnya, mis. 7A menjadi 8A; ' +
-          'tingkat pertama juga disalin sebagai tingkat yang sama untuk siswa baru dan yang tinggal kelas; tingkat akhir tidak disalin) ' +
+          'tingkat pertama juga disalin sebagai tingkat yang sama untuk siswa baru dan yang tinggal kelas; tingkat akhir tidak disalin, ' +
+          'kecuali kelas tingkat akhir yang memuat murid berkeputusan tinggal kelas: disalin dengan nama dan tingkat yang sama agar mereka punya kelas tujuan, ' +
+          'dapat dimatikan dengan `copyFinalLevelForRetained` false, peringatan `final_level_copied_for_retained`) ' +
           'beserta wali kelas, penugasan guru mapel ke kelas hasil salinan, kalender akademik (hanya bila `copyCalendar` true; bawaan false; tanggal digeser selisih tahun mulai), ' +
           'struktur kurikulum (alokasi JP serta versi kurikulum per tingkat yang sama; `copyCurriculum`, bawaan true), ' +
           'dan ATP berstatus terbit (`copyTeachingPlans`, bawaan true; disalin sebagai draf versi 1 beserta item, hanya versi ' +
@@ -1275,7 +1370,7 @@ export async function promotionRoutes(instance: FastifyInstance) {
           '400 `invalid_target`: tahun tujuan sama dengan sumber atau tidak dimulai setelahnya. ' +
           '400 `levels_not_configured`: daftar tingkat sekolah kosong. Respons memuat `warnings` (teks) dan `warningItems` ' +
           '(kode stabil + parameter, sejajar dengan `warnings`: class_level_unknown, class_name_unmatched, class_name_conflict, ' +
-          'final_level_not_copied, class_level_mismatch, inactive_homeroom_skipped, homeroom_multiple, inactive_teacher_skipped, ' +
+          'final_level_not_copied, final_level_copied_for_retained, class_level_mismatch, inactive_homeroom_skipped, homeroom_multiple, inactive_teacher_skipped, ' +
           'event_class_skipped, event_out_of_year, flow_inactive_objectives, part_skipped_no_permission) bagi hal yang perlu diperiksa. Tingkat akhir kelas mengikuti `final_level_code` jurusannya.',
         headers: schoolHeader,
         params: idParams,

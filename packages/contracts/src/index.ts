@@ -6,6 +6,7 @@ export * from './billing-settings';
 export * from './calendar';
 export * from './card-layout';
 export * from './catalog';
+export * from './council-meeting';
 export * from './curriculum';
 export * from './education-ids';
 export * from './education-profile';

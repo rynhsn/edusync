@@ -3,20 +3,24 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ChevronDown, ChevronRight, Lock, NotebookPen, Save, TriangleAlert } from 'lucide-react';
 import Link from 'next/link';
-import { useTranslations } from 'next-intl';
-import { useEffect, useState } from 'react';
+import { useLocale, useTranslations } from 'next-intl';
+import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
-import { FieldError } from '@/components/form-field-error';
+import { FieldError, TOUCH_SELECT } from '@/components/form-field-error';
 import { ListSkeleton, REVEAL, SearchBox } from '@/components/master-kit';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { DatePicker } from '@/components/ui/date-picker';
 import { Label } from '@/components/ui/label';
+import { SelectField } from '@/components/ui/select-field';
 import { Textarea } from '@/components/ui/textarea';
 import { EmptyPanel, StatCard, StatGrid, TONES, type Tone, ToneBadge } from '@/components/ui-kit';
+import type { Locale } from '@/i18n/config';
 import { api, schoolHeader, unwrap } from '@/lib/api';
+import type { MeetingListItem } from '@/lib/council-meeting';
 import { errorKey } from '@/lib/errors';
+import { formatCalendarDate } from '@/lib/format-date';
 import { cn } from '@/lib/utils';
 import {
   buildSavePayload,
@@ -31,28 +35,34 @@ import {
   invalidDetailsFor,
   isBlocked,
   isClassOpen,
+  isFrozen,
   levelUnknownClasses,
   MAX_DETAIL_LENGTH,
+  markLocked,
   missingByClass,
+  needsRetainTarget,
   optionsFor,
   optionsForStudent,
   type PromotionClass,
   type PromotionStudent,
   SAVE_CHUNK,
+  sameLevelTargets,
   saveBlockers,
   setClassDecision,
   setClassMeetingDate,
+  setClassMeetingId,
   setDetail,
   summarize,
+  type TargetClass,
 } from './promotion-logic';
 import { StepError } from './step-error';
 
 const DECISION_TONE: Record<Decision, Tone> = { promote: 'emerald', retain: 'amber', graduate: 'violet' };
 
 /** Data keputusan satu tahun sumber beserta pilihan yang sedang diedit; dipakai bersama oleh langkah 3 dan 4. */
-export function useDecisions(sourceId: string, enabled: boolean) {
+export function useDecisions(sourceId: string, enabled: boolean, targetId = '') {
   const t = useTranslations('promotion');
-  const { school } = useSchool();
+  const { school, can } = useSchool();
   const queryClient = useQueryClient();
   const key = ['promotions', school.schoolId, sourceId];
   const query = useQuery({
@@ -77,7 +87,37 @@ export function useDecisions(sourceId: string, enabled: boolean) {
     }
   }, [data]);
 
-  const classes: PromotionClass[] = data?.classes ?? [];
+  // Berita acara tahun sumber (hanya untuk pemegang hak baca) dan kelas tahun tujuan (kelas tujuan tinggal kelas tingkat akhir).
+  const meetingsQuery = useQuery({
+    queryKey: ['council-meetings', school.schoolId, sourceId],
+    enabled: enabled && !!sourceId && can('report_card:read_all'),
+    queryFn: async () =>
+      unwrap(
+        await api.GET('/v1/council-meetings', {
+          params: { header: schoolHeader(school.schoolId), query: { academicYearId: sourceId } },
+        }),
+      ),
+  });
+  const meetings: MeetingListItem[] = meetingsQuery.data?.items ?? [];
+  const targetsQuery = useQuery({
+    queryKey: ['classes', school.schoolId, targetId],
+    enabled: enabled && !!targetId && can('class:read'),
+    queryFn: async () =>
+      unwrap(
+        await api.GET('/v1/classes', {
+          params: { header: schoolHeader(school.schoolId), query: { academicYearId: targetId } },
+        }),
+      ),
+  });
+  const targets: TargetClass[] = targetsQuery.data ?? [];
+  const finalIds = useMemo(
+    () => new Set((meetingsQuery.data?.items ?? []).filter((m) => m.status === 'final').map((m) => m.id)),
+    [meetingsQuery.data],
+  );
+  const classes: PromotionClass[] = useMemo(
+    () => markLocked(data?.classes ?? [], finalIds),
+    [data, finalIds],
+  );
   const summary = summarize(classes, choices, details);
   const blockers = saveBlockers(classes, choices, details);
 
@@ -98,7 +138,21 @@ export function useDecisions(sourceId: string, enabled: boolean) {
     onSettled: () => queryClient.invalidateQueries({ queryKey: key }),
   });
 
-  return { query, classes, choices, setChoices, details, setDetails, summary, blockers, save };
+  return {
+    query,
+    classes,
+    choices,
+    setChoices,
+    details,
+    setDetails,
+    summary,
+    blockers,
+    save,
+    meetings,
+    canMeetings: can('report_card:read_all'),
+    targets,
+    targetsReady: targetsQuery.isSuccess,
+  };
 }
 
 export type DecisionsState = ReturnType<typeof useDecisions>;
@@ -108,13 +162,19 @@ function DetailsPanel({
   student,
   details,
   setDetails,
+  meetings,
+  canMeetings,
 }: {
   student: PromotionStudent;
   details: Details;
   setDetails: (fn: (d: Details) => Details) => void;
+  meetings: MeetingListItem[];
+  canMeetings: boolean;
 }) {
   const t = useTranslations('promotion');
+  const locale = useLocale() as Locale;
   const d = effectiveDetails(student, details);
+  const choosable = meetings.filter((m) => m.status === 'draft' || m.id === d.meetingId);
   const bad = invalidDetailsFor(d);
   const id = `promo-${student.studentId}`;
   return (
@@ -157,8 +217,48 @@ function DetailsPanel({
           <FieldError id={`${id}-meeting-error`} issue={{ code: 'dateInvalid' }} />
         )}
       </div>
+      {canMeetings && (
+        <div className="grid content-start gap-2">
+          <Label htmlFor={`${id}-minutes`}>{t('detailMeeting')}</Label>
+          {choosable.length === 0 ? (
+            <p className="text-muted-foreground text-xs">
+              {t('detailMeetingEmpty')}{' '}
+              <Link href="/promotion/minutes" className="font-medium underline underline-offset-2">
+                {t('minutesCreate')}
+              </Link>
+            </p>
+          ) : (
+            <>
+              <SelectField
+                id={`${id}-minutes`}
+                className={TOUCH_SELECT}
+                value={d.meetingId}
+                onChange={(e) =>
+                  setDetails((cur) => setDetail(cur, student.studentId, 'meetingId', e.target.value))
+                }
+              >
+                <option value="">{t('detailMeetingNone')}</option>
+                {choosable.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.title} · {formatCalendarDate(locale, m.heldOn)}
+                  </option>
+                ))}
+              </SelectField>
+              <p className="text-muted-foreground text-xs">{t('detailMeetingHint')}</p>
+            </>
+          )}
+        </div>
+      )}
     </div>
   );
+}
+
+/** Pilihan data berita acara dan kelas tahun tujuan yang dibagikan ke baris siswa. */
+interface RowContext {
+  meetings: MeetingListItem[];
+  canMeetings: boolean;
+  targets: TargetClass[];
+  targetsReady: boolean;
 }
 
 function StudentRow({
@@ -168,6 +268,7 @@ function StudentRow({
   details,
   setChoices,
   setDetails,
+  ctx,
 }: {
   cls: PromotionClass;
   student: PromotionStudent;
@@ -175,6 +276,7 @@ function StudentRow({
   details: Details;
   setChoices: (fn: (c: Choices) => Choices) => void;
   setDetails: (fn: (d: Details) => Details) => void;
+  ctx: RowContext;
 }) {
   const t = useTranslations('promotion');
   const [open, setOpen] = useState(false);
@@ -184,9 +286,12 @@ function StudentRow({
     retain: t('decisionRetain'),
     graduate: t('decisionGraduate'),
   };
-  const undecided = !student.applied && !choice;
+  const frozen = isFrozen(student);
+  const undecided = !frozen && !choice;
   const d = effectiveDetails(student, details);
-  const hasNotes = d.reason.trim() !== '' || d.followUp.trim() !== '' || d.meetingDate !== '';
+  const hasNotes =
+    d.reason.trim() !== '' || d.followUp.trim() !== '' || d.meetingDate !== '' || d.meetingId !== '';
+  const retainTargets = needsRetainTarget(cls, choice) ? sameLevelTargets(cls, ctx.targets) : null;
   const changedNotes = detailsChanged(student, details);
 
   return (
@@ -201,13 +306,13 @@ function StudentRow({
             )}
           </p>
         </div>
-        {student.applied ? (
+        {frozen ? (
           <span className="flex items-center gap-2">
             {student.decision && (
               <ToneBadge tone={DECISION_TONE[student.decision]}>{label[student.decision]}</ToneBadge>
             )}
             <ToneBadge tone="slate" dot={false}>
-              <Lock className="size-3" aria-hidden /> {t('applied')}
+              <Lock className="size-3" aria-hidden /> {student.applied ? t('applied') : t('lockedBadge')}
             </ToneBadge>
           </span>
         ) : (
@@ -230,7 +335,39 @@ function StudentRow({
           </fieldset>
         )}
       </div>
-      {!student.applied && (
+      {!frozen && retainTargets && ctx.targetsReady && (
+        <div className="grid gap-1.5 sm:max-w-md">
+          <Label htmlFor={`promo-${student.studentId}-target`} className="text-xs">
+            {t('retainTargetLabel')}
+          </Label>
+          {retainTargets.length === 0 ? (
+            <p className="text-xs text-amber-700 dark:text-amber-300">
+              {t('retainTargetNone', { level: cls.level })}
+            </p>
+          ) : (
+            <>
+              <SelectField
+                id={`promo-${student.studentId}-target`}
+                className={TOUCH_SELECT}
+                value={d.toClassId}
+                onChange={(e) =>
+                  setDetails((cur) => setDetail(cur, student.studentId, 'toClassId', e.target.value))
+                }
+              >
+                <option value="">{t('retainTargetAuto')}</option>
+                {retainTargets.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </SelectField>
+              <p className="text-muted-foreground text-xs">{t('retainTargetHint')}</p>
+            </>
+          )}
+        </div>
+      )}
+      {frozen && !student.applied && <p className="text-muted-foreground text-xs">{t('lockedHint')}</p>}
+      {!frozen && (
         <>
           <button
             type="button"
@@ -248,7 +385,15 @@ function StudentRow({
             )}
           </button>
           <div id={`promo-${student.studentId}-notes`} hidden={!open}>
-            {open && <DetailsPanel student={student} details={details} setDetails={setDetails} />}
+            {open && (
+              <DetailsPanel
+                student={student}
+                details={details}
+                setDetails={setDetails}
+                meetings={ctx.meetings}
+                canMeetings={ctx.canMeetings}
+              />
+            )}
           </div>
         </>
       )}
@@ -267,6 +412,7 @@ function ClassCard({
   details,
   setChoices: setChoicesRaw,
   setDetails,
+  ctx,
 }: {
   cls: PromotionClass;
   students: PromotionStudent[];
@@ -279,11 +425,15 @@ function ClassCard({
   details: Details;
   setChoices: (fn: (c: Choices) => Choices) => void;
   setDetails: (fn: (d: Details) => Details) => void;
+  ctx: RowContext;
 }) {
   const t = useTranslations('promotion');
+  const locale = useLocale() as Locale;
   const options = optionsFor(cls);
-  const editable = cls.students.filter((s) => !s.applied).length;
+  const editable = cls.students.filter((s) => !isFrozen(s)).length;
   const [bulkDate, setBulkDate] = useState('');
+  const [bulkMeeting, setBulkMeeting] = useState('');
+  const draftMeetings = ctx.meetings.filter((m) => m.status === 'draft');
   const setChoices = (fn: (c: Choices) => Choices) => {
     onInteract();
     setChoicesRaw(fn);
@@ -385,6 +535,36 @@ function ClassCard({
                 >
                   {t('classMeetingApply')}
                 </Button>
+                {ctx.canMeetings && draftMeetings.length > 0 && (
+                  <>
+                    <div className="grid min-w-0 flex-1 basis-48 gap-1.5">
+                      <Label htmlFor={`${panelId}-minutes`} className="text-xs">
+                        {t('classMeetingLink')}
+                      </Label>
+                      <SelectField
+                        id={`${panelId}-minutes`}
+                        className={TOUCH_SELECT}
+                        value={bulkMeeting}
+                        placeholder={t('detailMeetingNone')}
+                        onChange={(e) => setBulkMeeting(e.target.value)}
+                      >
+                        {draftMeetings.map((m) => (
+                          <option key={m.id} value={m.id}>
+                            {m.title} · {formatCalendarDate(locale, m.heldOn)}
+                          </option>
+                        ))}
+                      </SelectField>
+                    </div>
+                    <Button
+                      variant="outline"
+                      className="max-sm:h-11"
+                      disabled={bulkMeeting === ''}
+                      onClick={() => setDetails((cur) => setClassMeetingId(cls, cur, bulkMeeting))}
+                    >
+                      {t('classMeetingLinkApply')}
+                    </Button>
+                  </>
+                )}
               </div>
             )}
             {cls.students.length === 0 ? (
@@ -402,6 +582,7 @@ function ClassCard({
                     details={details}
                     setChoices={setChoices}
                     setDetails={setDetails}
+                    ctx={ctx}
                   />
                 ))}
               </ul>
@@ -417,6 +598,12 @@ export function DecisionsStep({ state }: { state: DecisionsState }) {
   const t = useTranslations('promotion');
   const te = useTranslations();
   const { query, classes, choices, setChoices, details, setDetails, summary, blockers, save } = state;
+  const ctx: RowContext = {
+    meetings: state.meetings,
+    canMeetings: state.canMeetings,
+    targets: state.targets,
+    targetsReady: state.targetsReady,
+  };
   const [q, setQ] = useState('');
   const [openByUser, setOpenByUser] = useState<Record<string, boolean>>({});
   const missing = missingByClass(classes, choices);
@@ -444,6 +631,14 @@ export function DecisionsStep({ state }: { state: DecisionsState }) {
           {t('decisionsTitle')}
         </h2>
         <p className="text-muted-foreground mt-1 max-w-2xl text-sm">{t('decisionsHelp')}</p>
+        {state.canMeetings && (
+          <p className="mt-1 max-w-2xl text-sm">
+            <Link href="/promotion/minutes" className="font-medium underline underline-offset-2">
+              {t('minutesLink')}
+            </Link>{' '}
+            <span className="text-muted-foreground">{t('minutesLinkHint')}</span>
+          </p>
+        )}
       </div>
 
       {query.isPending && <ListSkeleton rows={4} stats={4} />}
@@ -498,6 +693,14 @@ export function DecisionsStep({ state }: { state: DecisionsState }) {
               value={summary.applied}
               hint={t('statAppliedHint')}
             />
+            {summary.locked > 0 && (
+              <StatCard
+                tone="sky"
+                label={t('statLocked')}
+                value={summary.locked}
+                hint={t('statLockedHint')}
+              />
+            )}
           </StatGrid>
 
           <div className="flex flex-wrap items-center gap-2">
@@ -532,6 +735,7 @@ export function DecisionsStep({ state }: { state: DecisionsState }) {
                 details={details}
                 setChoices={setChoices}
                 setDetails={setDetails}
+                ctx={ctx}
               />
             ))}
           </ul>

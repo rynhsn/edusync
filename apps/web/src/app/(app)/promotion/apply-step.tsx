@@ -52,7 +52,7 @@ export function ApplyStep({
   names: Map<string, string>;
 }) {
   const t = useTranslations('promotion');
-  const { school } = useSchool();
+  const { school, can } = useSchool();
   const queryClient = useQueryClient();
 
   const blocked = unsaved > 0 || decided === 0;
@@ -272,6 +272,14 @@ export function ApplyStep({
             </div>
           )}
           {result.dryRun && <p className="text-muted-foreground text-xs">{t('previewNote')}</p>}
+          {!result.dryRun && can('report_card:read_all') && (
+            <p className="text-sm">
+              {t('applyMinutesHint')}{' '}
+              <Link href="/promotion/minutes" className="font-medium underline underline-offset-2">
+                {t('minutesLink')}
+              </Link>
+            </p>
+          )}
         </div>
       )}
     </section>

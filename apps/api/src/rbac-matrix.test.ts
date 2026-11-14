@@ -487,6 +487,39 @@ describe('kebijakan peran bawaan', () => {
     }
   });
 
+  it('rute berita acara dan laporan ringkas keputusan (tahap 3C.3) memasang izin sesuai rancangan tanpa modul', () => {
+    const find = (method: string, url: string) => eps.find((e) => e.method === method && e.url === url);
+    const reads = [
+      find('GET', '/v1/council-meetings'),
+      find('GET', '/v1/council-meetings/:id'),
+      find('GET', '/v1/academic-years/:id/promotions/summary'),
+    ];
+    const writes = [
+      find('POST', '/v1/council-meetings'),
+      find('PUT', '/v1/council-meetings/:id'),
+      find('DELETE', '/v1/council-meetings/:id'),
+      find('POST', '/v1/council-meetings/:id/finalize'),
+      find('POST', '/v1/council-meetings/:id/reopen'),
+      find('PUT', '/v1/council-meetings/:id/decisions'),
+    ];
+    for (const e of reads) {
+      expect([e?.perms, e?.modules], `${e?.method} ${e?.url}`).toEqual([['report_card:read_all'], []]);
+      expect(e?.description).toContain('Izin: `report_card:read_all`');
+    }
+    for (const e of writes) {
+      expect([e?.perms, e?.modules], `${e?.method} ${e?.url}`).toEqual([['promotion:manage'], []]);
+      expect(e?.description).toContain('Izin: `promotion:manage`');
+    }
+    for (const r of roleKeys) {
+      const holds = (p: string) => perms(r).has(p as never);
+      for (const e of reads) expect(allows(r, e!), `${r} ${e?.url}`).toBe(holds('report_card:read_all'));
+      for (const e of writes) expect(allows(r, e!), `${r} ${e?.url}`).toBe(holds('promotion:manage'));
+    }
+    for (const r of ['guardian', 'student', 'principal', 'teacher', 'treasurer'] as const) {
+      for (const e of writes) expect(allows(r, e!), `${r} ${e?.url}`).toBe(false);
+    }
+  });
+
   it('rute pilihan mapel (tahap 3B.1) memasang izin sesuai rancangan tanpa modul', () => {
     const find = (method: string, url: string) => eps.find((e) => e.method === method && e.url === url);
     const classReads = [

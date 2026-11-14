@@ -33,6 +33,7 @@ import { registerAuthRoutes } from './routes/auth';
 import { billingRoutes } from './routes/billing';
 import { calendarRoutes } from './routes/calendar';
 import { cardRoutes } from './routes/cards';
+import { councilMeetingRoutes } from './routes/council-meetings';
 import { curriculumRoutes } from './routes/curriculum';
 import { curriculumStructureRoutes } from './routes/curriculum-structure';
 import { examBankRoutes } from './routes/exam-bank';
@@ -283,6 +284,7 @@ export async function buildApp(env: Env, deps: { dns?: DomainDns } = {}) {
   await app.register(roleRoutes);
   await app.register(academicStructureRoutes);
   await app.register(promotionRoutes);
+  await app.register(councilMeetingRoutes);
   await app.register(peopleRoutes);
   await app.register(studentTransferRoutes);
   await app.register(subjectChoiceRoutes);

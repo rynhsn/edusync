@@ -12256,6 +12256,11 @@ export interface paths {
                                      * @description Tanggal rapat dewan pendidik
                                      */
                                     meetingDate?: string | null;
+                                    /**
+                                     * Format: uuid
+                                     * @description Berita acara musyawarah yang membahas keputusan ini (ada hanya bila tertaut)
+                                     */
+                                    meetingId?: string | null;
                                     /** @description Keputusan sudah diterapkan ke tahun tujuan; tidak bisa diubah lagi */
                                     applied: boolean;
                                 }[];
@@ -12309,7 +12314,7 @@ export interface paths {
         };
         /**
          * Simpan keputusan kenaikan kelas
-         * @description Izin: `promotion:manage`. Upsert keputusan per siswa (`promote`, `retain`, `graduate`) untuk tahun ajaran yang ditutup; `graduate` berarti "ditetapkan lulus": kelulusan ditetapkan sekolah setelah ujian satuan pendidikan, tidak disarankan otomatis. Catatan opsional per baris: `note`, `reason` (alasan), `followUp` (tindak lanjut), `meetingDate` (tanggal rapat dewan pendidik, YYYY-MM-DD); yang DIHILANGKAN dipertahankan dari keputusan tersimpan, `null` eksplisit mengosongkan. Semua atau tidak sama sekali. 400 `level_unknown`: `promote` tanpa `toClassId` untuk kelas yang tingkatnya tidak ada di daftar tingkat sekolah. 400 `not_final_level`: lulus hanya untuk kelas tingkat akhir (jurusan dengan `final_level_code` memakai tingkat itu) dan naik tidak bisa dari tingkat terakhir. 400 `student_not_enrolled`: siswa tidak ter-enroll di tahun itu. 400 `invalid_target_class`: `toClassId` harus kelas pada tahun ajaran yang dimulai setelah tahun sumber (diabaikan untuk `graduate`). 409 `promotion_applied`: keputusan siswa itu sudah diterapkan dan tidak bisa diubah. Penyimpanan dan penerapan untuk tahun sumber yang sama berjalan bergantian (kunci per tahun sumber).
+         * @description Izin: `promotion:manage`. Upsert keputusan per siswa (`promote`, `retain`, `graduate`) untuk tahun ajaran yang ditutup; `graduate` berarti "ditetapkan lulus": kelulusan ditetapkan sekolah setelah ujian satuan pendidikan, tidak disarankan otomatis. Catatan opsional per baris: `note`, `reason` (alasan), `followUp` (tindak lanjut), `meetingDate` (tanggal rapat dewan pendidik, YYYY-MM-DD); yang DIHILANGKAN dipertahankan dari keputusan tersimpan, `null` eksplisit mengosongkan. Semua atau tidak sama sekali. 400 `level_unknown`: `promote` tanpa `toClassId` untuk kelas yang tingkatnya tidak ada di daftar tingkat sekolah. 400 `not_final_level`: lulus hanya untuk kelas tingkat akhir (jurusan dengan `final_level_code` memakai tingkat itu) dan naik tidak bisa dari tingkat terakhir. 400 `student_not_enrolled`: siswa tidak ter-enroll di tahun itu. 400 `invalid_target_class`: `toClassId` harus kelas pada tahun ajaran yang dimulai setelah tahun sumber (diabaikan untuk `graduate`). `meetingId` (opsional) menautkan keputusan ke berita acara musyawarah tahun itu (dihilangkan = dipertahankan, null = dilepas; tanggal rapat murid diisi dari tanggal berita acara); 400 `invalid_reference` bila berita acara tidak ada pada tahun itu. 409 `meeting_final`: keputusan itu tertaut ke berita acara final atau hendak ditautkan ke berita acara final. 409 `promotion_applied`: keputusan siswa itu sudah diterapkan dan tidak bisa diubah. Penyimpanan dan penerapan untuk tahun sumber yang sama berjalan bergantian (kunci per tahun sumber).
          */
         put: {
             parameters: {
@@ -12338,6 +12343,11 @@ export interface paths {
                             followUp?: string | null;
                             /** Format: date */
                             meetingDate?: string | null;
+                            /**
+                             * Format: uuid
+                             * @description Berita acara yang membahas keputusan ini; dihilangkan = dipertahankan, null = dilepas. Tanggal rapat murid diisi dari tanggal berita acara
+                             */
+                            meetingId?: string | null;
                         }[];
                     };
                 };
@@ -12444,7 +12454,7 @@ export interface paths {
         put?: never;
         /**
          * Salin tahun ajaran ke tahun berikutnya
-         * @description Izin: `promotion:manage`. Menyalin ke `targetYearId`: kelas (tingkat non-akhir menjadi tingkat berikutnya, mis. 7A menjadi 8A; tingkat pertama juga disalin sebagai tingkat yang sama untuk siswa baru dan yang tinggal kelas; tingkat akhir tidak disalin) beserta wali kelas, penugasan guru mapel ke kelas hasil salinan, kalender akademik (hanya bila `copyCalendar` true; bawaan false; tanggal digeser selisih tahun mulai), struktur kurikulum (alokasi JP serta versi kurikulum per tingkat yang sama; `copyCurriculum`, bawaan true), dan ATP berstatus terbit (`copyTeachingPlans`, bawaan true; disalin sebagai draf versi 1 beserta item, hanya versi terbit terbaru tiap ATP, semester dikosongkan, `flowsCreated`). Selain `promotion:manage`, tiap bagian butuh izin spesifik pemanggil: kelas, wali kelas, dan penugasan guru butuh `class:manage`; kalender butuh `academic_year:manage`; kurikulum (alokasi dan versi) butuh `curriculum:manage`; ATP butuh `teaching_plan:write`. Bagian yang diminta (flag true, termasuk bawaan true) tetapi tidak diizinkan DILEWATI, bukan 403: hitungannya 0 dan `warningItems` memuat `part_skipped_no_permission` dengan params `part` (`classes`, `calendar`, `curriculum`, `teachingPlans`) dan `permission` (izin yang kurang); `dryRun` berperilaku sama. Pemanggil dengan semua izin (admin dan Kurikulum bawaan) tidak terpengaruh. Idempoten: kelas dicocokkan menurut nama, penugasan menurut (kelas, mapel), acara menurut (jenis, cakupan, judul, tanggal mulai), alokasi menurut (tingkat, jurusan, mapel), versi menurut tingkat, ATP menurut (mapel, nama, tingkat); yang sudah ada dilewati. Data tahun sumber tidak diubah. `dryRun` menghitung tanpa menulis. 400 `invalid_target`: tahun tujuan sama dengan sumber atau tidak dimulai setelahnya. 400 `levels_not_configured`: daftar tingkat sekolah kosong. Respons memuat `warnings` (teks) dan `warningItems` (kode stabil + parameter, sejajar dengan `warnings`: class_level_unknown, class_name_unmatched, class_name_conflict, final_level_not_copied, class_level_mismatch, inactive_homeroom_skipped, homeroom_multiple, inactive_teacher_skipped, event_class_skipped, event_out_of_year, flow_inactive_objectives, part_skipped_no_permission) bagi hal yang perlu diperiksa. Tingkat akhir kelas mengikuti `final_level_code` jurusannya.
+         * @description Izin: `promotion:manage`. Menyalin ke `targetYearId`: kelas (tingkat non-akhir menjadi tingkat berikutnya, mis. 7A menjadi 8A; tingkat pertama juga disalin sebagai tingkat yang sama untuk siswa baru dan yang tinggal kelas; tingkat akhir tidak disalin, kecuali kelas tingkat akhir yang memuat murid berkeputusan tinggal kelas: disalin dengan nama dan tingkat yang sama agar mereka punya kelas tujuan, dapat dimatikan dengan `copyFinalLevelForRetained` false, peringatan `final_level_copied_for_retained`) beserta wali kelas, penugasan guru mapel ke kelas hasil salinan, kalender akademik (hanya bila `copyCalendar` true; bawaan false; tanggal digeser selisih tahun mulai), struktur kurikulum (alokasi JP serta versi kurikulum per tingkat yang sama; `copyCurriculum`, bawaan true), dan ATP berstatus terbit (`copyTeachingPlans`, bawaan true; disalin sebagai draf versi 1 beserta item, hanya versi terbit terbaru tiap ATP, semester dikosongkan, `flowsCreated`). Selain `promotion:manage`, tiap bagian butuh izin spesifik pemanggil: kelas, wali kelas, dan penugasan guru butuh `class:manage`; kalender butuh `academic_year:manage`; kurikulum (alokasi dan versi) butuh `curriculum:manage`; ATP butuh `teaching_plan:write`. Bagian yang diminta (flag true, termasuk bawaan true) tetapi tidak diizinkan DILEWATI, bukan 403: hitungannya 0 dan `warningItems` memuat `part_skipped_no_permission` dengan params `part` (`classes`, `calendar`, `curriculum`, `teachingPlans`) dan `permission` (izin yang kurang); `dryRun` berperilaku sama. Pemanggil dengan semua izin (admin dan Kurikulum bawaan) tidak terpengaruh. Idempoten: kelas dicocokkan menurut nama, penugasan menurut (kelas, mapel), acara menurut (jenis, cakupan, judul, tanggal mulai), alokasi menurut (tingkat, jurusan, mapel), versi menurut tingkat, ATP menurut (mapel, nama, tingkat); yang sudah ada dilewati. Data tahun sumber tidak diubah. `dryRun` menghitung tanpa menulis. 400 `invalid_target`: tahun tujuan sama dengan sumber atau tidak dimulai setelahnya. 400 `levels_not_configured`: daftar tingkat sekolah kosong. Respons memuat `warnings` (teks) dan `warningItems` (kode stabil + parameter, sejajar dengan `warnings`: class_level_unknown, class_name_unmatched, class_name_conflict, final_level_not_copied, final_level_copied_for_retained, class_level_mismatch, inactive_homeroom_skipped, homeroom_multiple, inactive_teacher_skipped, event_class_skipped, event_out_of_year, flow_inactive_objectives, part_skipped_no_permission) bagi hal yang perlu diperiksa. Tingkat akhir kelas mengikuti `final_level_code` jurusannya.
          */
         post: {
             parameters: {
@@ -12476,6 +12486,8 @@ export interface paths {
                         copyCurriculum?: boolean;
                         /** @description Salin ATP berstatus terbit sebagai draf ATP tahun tujuan; bawaan true */
                         copyTeachingPlans?: boolean;
+                        /** @description Salin kelas tingkat akhir (nama sama) bila ada murid yang diputuskan tinggal kelas di kelas itu, agar mereka punya kelas tujuan; bawaan true. Tanpa keputusan tinggal kelas di tingkat akhir, hasil salinan tidak berubah */
+                        copyFinalLevelForRetained?: boolean;
                         /** @default false */
                         dryRun?: boolean;
                     };
@@ -12737,6 +12749,1353 @@ export interface paths {
                 };
             };
         };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/council-meetings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Daftar berita acara musyawarah dewan pendidik
+         * @description Izin: `report_card:read_all`. Filter opsional `academicYearId`, `kind` (`promotion`, `graduation`, `other`), `status` (`draft`, `final`). Terbaru lebih dulu menurut tanggal rapat.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    academicYearId?: string;
+                    kind?: "promotion" | "graduation" | "other";
+                    status?: "draft" | "final";
+                };
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            items: {
+                                /** Format: uuid */
+                                id: string;
+                                /** Format: uuid */
+                                academicYearId: string;
+                                /** Format: uuid */
+                                semesterId: string | null;
+                                /** Format: uuid */
+                                classId: string | null;
+                                className: string | null;
+                                /** @enum {string} */
+                                kind: "promotion" | "graduation" | "other";
+                                title: string;
+                                /** Format: date */
+                                heldOn: string;
+                                location: string | null;
+                                chairName: string | null;
+                                secretaryName: string | null;
+                                agenda: string | null;
+                                summary: string | null;
+                                /** @enum {string} */
+                                status: "draft" | "final";
+                                finalizedAt: string | null;
+                                /** @description Jumlah keputusan kenaikan yang tertaut */
+                                linkedCount: number;
+                                attendeeCount: number;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Buat berita acara musyawarah dewan pendidik
+         * @description Izin: `promotion:manage`. Membuat berita acara berstatus draf untuk satu tahun ajaran (`academicYearId`), dengan peserta (guru atau nama bebas, peran `chair`/`secretary`/`member`, jabatan). Keputusan kenaikan ditautkan lewat `PUT /v1/academic-years/{id}/promotions` (`meetingId`) atau `PUT /v1/council-meetings/{id}/decisions`. 400 `invalid_reference`: tahun, semester, kelas, atau guru tidak ditemukan atau tidak sesuai tahun itu.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        academicYearId: string;
+                        /** Format: uuid */
+                        semesterId?: string | null;
+                        /**
+                         * Format: uuid
+                         * @description Kelas yang dibahas; kosong = seluruh tahun ajaran
+                         */
+                        classId?: string | null;
+                        /** @enum {string} */
+                        kind: "promotion" | "graduation" | "other";
+                        title: string;
+                        /** Format: date */
+                        heldOn: string;
+                        location?: string | null;
+                        chairName?: string | null;
+                        secretaryName?: string | null;
+                        agenda?: string | null;
+                        summary?: string | null;
+                        attendees?: {
+                            /**
+                             * Format: uuid
+                             * @description Guru yang hadir (opsional); nama diisi dari guru bila `name` kosong
+                             */
+                            teacherId?: string | null;
+                            name?: string;
+                            /** @description Jabatan di rapat (teks bebas) */
+                            positionTitle?: string | null;
+                            /**
+                             * @default member
+                             * @enum {string}
+                             */
+                            role?: "chair" | "secretary" | "member";
+                        }[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            academicYearId: string;
+                            /** Format: uuid */
+                            semesterId: string | null;
+                            /** Format: uuid */
+                            classId: string | null;
+                            className: string | null;
+                            /** @enum {string} */
+                            kind: "promotion" | "graduation" | "other";
+                            title: string;
+                            /** Format: date */
+                            heldOn: string;
+                            location: string | null;
+                            chairName: string | null;
+                            secretaryName: string | null;
+                            agenda: string | null;
+                            summary: string | null;
+                            /** @enum {string} */
+                            status: "draft" | "final";
+                            finalizedAt: string | null;
+                            /** @description Jumlah keputusan kenaikan yang tertaut */
+                            linkedCount: number;
+                            attendeeCount: number;
+                            attendees: {
+                                /** Format: uuid */
+                                teacherId: string | null;
+                                name: string;
+                                positionTitle: string | null;
+                                /** @enum {string} */
+                                role: "chair" | "secretary" | "member";
+                            }[];
+                            /** @description Rekap keputusan tertaut: dibekukan dari `minutes` bila berita acara final, selain itu dihitung dari keputusan tersimpan */
+                            digest: {
+                                totals: {
+                                    total: number;
+                                    promote: number;
+                                    retain: number;
+                                    graduate: number;
+                                };
+                                classes: {
+                                    /** Format: uuid */
+                                    classId: string;
+                                    name: string;
+                                    level: string;
+                                    promote: number;
+                                    retain: number;
+                                    graduate: number;
+                                }[];
+                                retained: {
+                                    /** Format: uuid */
+                                    studentId: string;
+                                    name: string;
+                                    /** Format: uuid */
+                                    classId: string;
+                                    className: string;
+                                    reason: string | null;
+                                    followUp: string | null;
+                                    /** Format: date */
+                                    meetingDate: string | null;
+                                    applied: boolean;
+                                }[];
+                            };
+                            /** @description true bila `digest` dibaca dari rekap beku saat finalisasi */
+                            frozen: boolean;
+                            linked: {
+                                /** Format: uuid */
+                                studentId: string;
+                                name: string;
+                                className: string;
+                                /** @enum {string} */
+                                decision: "promote" | "retain" | "graduate";
+                                applied: boolean;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/council-meetings/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Detail berita acara beserta peserta dan rekap keputusan
+         * @description Izin: `report_card:read_all`. Peserta, rekap keputusan tertaut (`digest`: jumlah naik/tinggal/lulus total dan per kelas, daftar tinggal kelas dengan alasan dan tindak lanjut) dan daftar murid tertaut. Berita acara final membaca rekap beku dari saat finalisasi (`frozen` true); selain itu rekap dihitung dari keputusan tersimpan.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            academicYearId: string;
+                            /** Format: uuid */
+                            semesterId: string | null;
+                            /** Format: uuid */
+                            classId: string | null;
+                            className: string | null;
+                            /** @enum {string} */
+                            kind: "promotion" | "graduation" | "other";
+                            title: string;
+                            /** Format: date */
+                            heldOn: string;
+                            location: string | null;
+                            chairName: string | null;
+                            secretaryName: string | null;
+                            agenda: string | null;
+                            summary: string | null;
+                            /** @enum {string} */
+                            status: "draft" | "final";
+                            finalizedAt: string | null;
+                            /** @description Jumlah keputusan kenaikan yang tertaut */
+                            linkedCount: number;
+                            attendeeCount: number;
+                            attendees: {
+                                /** Format: uuid */
+                                teacherId: string | null;
+                                name: string;
+                                positionTitle: string | null;
+                                /** @enum {string} */
+                                role: "chair" | "secretary" | "member";
+                            }[];
+                            /** @description Rekap keputusan tertaut: dibekukan dari `minutes` bila berita acara final, selain itu dihitung dari keputusan tersimpan */
+                            digest: {
+                                totals: {
+                                    total: number;
+                                    promote: number;
+                                    retain: number;
+                                    graduate: number;
+                                };
+                                classes: {
+                                    /** Format: uuid */
+                                    classId: string;
+                                    name: string;
+                                    level: string;
+                                    promote: number;
+                                    retain: number;
+                                    graduate: number;
+                                }[];
+                                retained: {
+                                    /** Format: uuid */
+                                    studentId: string;
+                                    name: string;
+                                    /** Format: uuid */
+                                    classId: string;
+                                    className: string;
+                                    reason: string | null;
+                                    followUp: string | null;
+                                    /** Format: date */
+                                    meetingDate: string | null;
+                                    applied: boolean;
+                                }[];
+                            };
+                            /** @description true bila `digest` dibaca dari rekap beku saat finalisasi */
+                            frozen: boolean;
+                            linked: {
+                                /** Format: uuid */
+                                studentId: string;
+                                name: string;
+                                className: string;
+                                /** @enum {string} */
+                                decision: "promote" | "retain" | "graduate";
+                                applied: boolean;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        /**
+         * Ubah berita acara (hanya draf)
+         * @description Izin: `promotion:manage`. Mengubah isi berita acara draf; `attendees` (bila dikirim) menggantikan seluruh daftar peserta, dihilangkan = peserta tetap. Tahun ajaran tidak bisa dipindah. 409 `meeting_final`: berita acara sudah final, buka kembali lebih dulu. 400 `invalid_reference` seperti pembuatan.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        semesterId?: string | null;
+                        /**
+                         * Format: uuid
+                         * @description Kelas yang dibahas; kosong = seluruh tahun ajaran
+                         */
+                        classId?: string | null;
+                        /** @enum {string} */
+                        kind: "promotion" | "graduation" | "other";
+                        title: string;
+                        /** Format: date */
+                        heldOn: string;
+                        location?: string | null;
+                        chairName?: string | null;
+                        secretaryName?: string | null;
+                        agenda?: string | null;
+                        summary?: string | null;
+                        attendees?: {
+                            /**
+                             * Format: uuid
+                             * @description Guru yang hadir (opsional); nama diisi dari guru bila `name` kosong
+                             */
+                            teacherId?: string | null;
+                            name?: string;
+                            /** @description Jabatan di rapat (teks bebas) */
+                            positionTitle?: string | null;
+                            /**
+                             * @default member
+                             * @enum {string}
+                             */
+                            role?: "chair" | "secretary" | "member";
+                        }[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            academicYearId: string;
+                            /** Format: uuid */
+                            semesterId: string | null;
+                            /** Format: uuid */
+                            classId: string | null;
+                            className: string | null;
+                            /** @enum {string} */
+                            kind: "promotion" | "graduation" | "other";
+                            title: string;
+                            /** Format: date */
+                            heldOn: string;
+                            location: string | null;
+                            chairName: string | null;
+                            secretaryName: string | null;
+                            agenda: string | null;
+                            summary: string | null;
+                            /** @enum {string} */
+                            status: "draft" | "final";
+                            finalizedAt: string | null;
+                            /** @description Jumlah keputusan kenaikan yang tertaut */
+                            linkedCount: number;
+                            attendeeCount: number;
+                            attendees: {
+                                /** Format: uuid */
+                                teacherId: string | null;
+                                name: string;
+                                positionTitle: string | null;
+                                /** @enum {string} */
+                                role: "chair" | "secretary" | "member";
+                            }[];
+                            /** @description Rekap keputusan tertaut: dibekukan dari `minutes` bila berita acara final, selain itu dihitung dari keputusan tersimpan */
+                            digest: {
+                                totals: {
+                                    total: number;
+                                    promote: number;
+                                    retain: number;
+                                    graduate: number;
+                                };
+                                classes: {
+                                    /** Format: uuid */
+                                    classId: string;
+                                    name: string;
+                                    level: string;
+                                    promote: number;
+                                    retain: number;
+                                    graduate: number;
+                                }[];
+                                retained: {
+                                    /** Format: uuid */
+                                    studentId: string;
+                                    name: string;
+                                    /** Format: uuid */
+                                    classId: string;
+                                    className: string;
+                                    reason: string | null;
+                                    followUp: string | null;
+                                    /** Format: date */
+                                    meetingDate: string | null;
+                                    applied: boolean;
+                                }[];
+                            };
+                            /** @description true bila `digest` dibaca dari rekap beku saat finalisasi */
+                            frozen: boolean;
+                            linked: {
+                                /** Format: uuid */
+                                studentId: string;
+                                name: string;
+                                className: string;
+                                /** @enum {string} */
+                                decision: "promote" | "retain" | "graduate";
+                                applied: boolean;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        /**
+         * Hapus berita acara (hanya draf)
+         * @description Izin: `promotion:manage`. Menghapus berita acara draf beserta pesertanya; keputusan kenaikan yang tertaut dilepas (keputusannya sendiri tidak berubah). 409 `meeting_final`: berita acara final tidak bisa dihapus; buka kembali lebih dulu.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: true;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/council-meetings/{id}/finalize": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Finalkan berita acara
+         * @description Izin: `promotion:manage`. Membekukan rekap keputusan yang tertaut (`minutes`) dan mengunci berita acara; keputusan kenaikan yang tertaut tidak bisa diubah sampai dibuka kembali (409 `meeting_final`). 409 `meeting_final` bila sudah final.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            academicYearId: string;
+                            /** Format: uuid */
+                            semesterId: string | null;
+                            /** Format: uuid */
+                            classId: string | null;
+                            className: string | null;
+                            /** @enum {string} */
+                            kind: "promotion" | "graduation" | "other";
+                            title: string;
+                            /** Format: date */
+                            heldOn: string;
+                            location: string | null;
+                            chairName: string | null;
+                            secretaryName: string | null;
+                            agenda: string | null;
+                            summary: string | null;
+                            /** @enum {string} */
+                            status: "draft" | "final";
+                            finalizedAt: string | null;
+                            /** @description Jumlah keputusan kenaikan yang tertaut */
+                            linkedCount: number;
+                            attendeeCount: number;
+                            attendees: {
+                                /** Format: uuid */
+                                teacherId: string | null;
+                                name: string;
+                                positionTitle: string | null;
+                                /** @enum {string} */
+                                role: "chair" | "secretary" | "member";
+                            }[];
+                            /** @description Rekap keputusan tertaut: dibekukan dari `minutes` bila berita acara final, selain itu dihitung dari keputusan tersimpan */
+                            digest: {
+                                totals: {
+                                    total: number;
+                                    promote: number;
+                                    retain: number;
+                                    graduate: number;
+                                };
+                                classes: {
+                                    /** Format: uuid */
+                                    classId: string;
+                                    name: string;
+                                    level: string;
+                                    promote: number;
+                                    retain: number;
+                                    graduate: number;
+                                }[];
+                                retained: {
+                                    /** Format: uuid */
+                                    studentId: string;
+                                    name: string;
+                                    /** Format: uuid */
+                                    classId: string;
+                                    className: string;
+                                    reason: string | null;
+                                    followUp: string | null;
+                                    /** Format: date */
+                                    meetingDate: string | null;
+                                    applied: boolean;
+                                }[];
+                            };
+                            /** @description true bila `digest` dibaca dari rekap beku saat finalisasi */
+                            frozen: boolean;
+                            linked: {
+                                /** Format: uuid */
+                                studentId: string;
+                                name: string;
+                                className: string;
+                                /** @enum {string} */
+                                decision: "promote" | "retain" | "graduate";
+                                applied: boolean;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/council-meetings/{id}/reopen": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Buka kembali berita acara final
+         * @description Izin: `promotion:manage`. Mengembalikan berita acara final menjadi draf dan membuang rekap beku (rekap dihitung ulang dari keputusan tersimpan); keputusan tertaut dapat diubah lagi. 409 `meeting_not_final` bila masih draf.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            academicYearId: string;
+                            /** Format: uuid */
+                            semesterId: string | null;
+                            /** Format: uuid */
+                            classId: string | null;
+                            className: string | null;
+                            /** @enum {string} */
+                            kind: "promotion" | "graduation" | "other";
+                            title: string;
+                            /** Format: date */
+                            heldOn: string;
+                            location: string | null;
+                            chairName: string | null;
+                            secretaryName: string | null;
+                            agenda: string | null;
+                            summary: string | null;
+                            /** @enum {string} */
+                            status: "draft" | "final";
+                            finalizedAt: string | null;
+                            /** @description Jumlah keputusan kenaikan yang tertaut */
+                            linkedCount: number;
+                            attendeeCount: number;
+                            attendees: {
+                                /** Format: uuid */
+                                teacherId: string | null;
+                                name: string;
+                                positionTitle: string | null;
+                                /** @enum {string} */
+                                role: "chair" | "secretary" | "member";
+                            }[];
+                            /** @description Rekap keputusan tertaut: dibekukan dari `minutes` bila berita acara final, selain itu dihitung dari keputusan tersimpan */
+                            digest: {
+                                totals: {
+                                    total: number;
+                                    promote: number;
+                                    retain: number;
+                                    graduate: number;
+                                };
+                                classes: {
+                                    /** Format: uuid */
+                                    classId: string;
+                                    name: string;
+                                    level: string;
+                                    promote: number;
+                                    retain: number;
+                                    graduate: number;
+                                }[];
+                                retained: {
+                                    /** Format: uuid */
+                                    studentId: string;
+                                    name: string;
+                                    /** Format: uuid */
+                                    classId: string;
+                                    className: string;
+                                    reason: string | null;
+                                    followUp: string | null;
+                                    /** Format: date */
+                                    meetingDate: string | null;
+                                    applied: boolean;
+                                }[];
+                            };
+                            /** @description true bila `digest` dibaca dari rekap beku saat finalisasi */
+                            frozen: boolean;
+                            linked: {
+                                /** Format: uuid */
+                                studentId: string;
+                                name: string;
+                                className: string;
+                                /** @enum {string} */
+                                decision: "promote" | "retain" | "graduate";
+                                applied: boolean;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/council-meetings/{id}/decisions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Tautkan keputusan kenaikan murid ke berita acara
+         * @description Izin: `promotion:manage`. Menetapkan daftar murid yang keputusan kenaikannya (tahun ajaran berita acara) dibahas di berita acara ini: yang disebut ditautkan (tanggal rapat murid mengikuti tanggal berita acara), yang sebelumnya tertaut tetapi tidak disebut dilepas. Keputusan sendiri tidak berubah, jadi keputusan yang sudah diterapkan pun boleh ditautkan. 409 `meeting_final`: berita acara ini final, atau ada keputusan yang masih tertaut ke berita acara final lain. 400 `invalid_reference`: murid tanpa keputusan di tahun itu.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        studentIds: string[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            linked: number;
+                            unlinked: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/academic-years/{id}/promotions/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Laporan ringkas keputusan kenaikan satu tahun ajaran
+         * @description Izin: `report_card:read_all`. Rekap keputusan kenaikan tersimpan: jumlah naik, tinggal, dan lulus (total dan per kelas asal) serta daftar murid tinggal kelas dengan alasan dan tindak lanjut, untuk berita acara. Filter opsional `classId` (kelas asal) dan `meetingId` (hanya keputusan yang tertaut ke berita acara itu). Murid terhapus tidak dihitung.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    classId?: string;
+                    meetingId?: string;
+                };
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            academicYear: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                            };
+                            digest: {
+                                totals: {
+                                    total: number;
+                                    promote: number;
+                                    retain: number;
+                                    graduate: number;
+                                };
+                                classes: {
+                                    /** Format: uuid */
+                                    classId: string;
+                                    name: string;
+                                    level: string;
+                                    promote: number;
+                                    retain: number;
+                                    graduate: number;
+                                }[];
+                                retained: {
+                                    /** Format: uuid */
+                                    studentId: string;
+                                    name: string;
+                                    /** Format: uuid */
+                                    classId: string;
+                                    className: string;
+                                    reason: string | null;
+                                    followUp: string | null;
+                                    /** Format: date */
+                                    meetingDate: string | null;
+                                    applied: boolean;
+                                }[];
+                            };
+                            /** @description Murid aktif tahun itu yang belum punya keputusan */
+                            undecided: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;

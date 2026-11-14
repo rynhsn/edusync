@@ -16,12 +16,15 @@ import {
   invalidDetailsFor,
   isBlocked,
   isClassOpen,
+  isFrozen,
   isIsoDate,
   isRolloverPart,
   levelUnknownClasses,
+  markLocked,
   missingByClass,
   missingFinalStudents,
   needsGraduateConfirm,
+  needsRetainTarget,
   optionsFor,
   optionsForStudent,
   type PromotionClass,
@@ -29,10 +32,12 @@ import {
   permissionForOption,
   ROLLOVER_WARNING_CODES,
   rolloverWarnings,
+  sameLevelTargets,
   saveBlockers,
   sendableRolloverOptions,
   setClassDecision,
   setClassMeetingDate,
+  setClassMeetingId,
   setDetail,
   summarize,
   UNPLACED_REASON_CODES,
@@ -166,6 +171,7 @@ describe('keputusan', () => {
       graduate: 1,
       undecided: 1,
       applied: 1,
+      locked: 0,
       unsaved: 1,
     });
   });
@@ -225,11 +231,15 @@ describe('catatan keputusan', () => {
       reason: 'sering sakit',
       followUp: '',
       meetingDate: '2026-06-20',
+      toClassId: '',
+      meetingId: '',
     });
     expect(effectiveDetails(s, { x: { followUp: 'pendampingan' } })).toEqual({
       reason: 'sering sakit',
       followUp: 'pendampingan',
       meetingDate: '2026-06-20',
+      toClassId: '',
+      meetingId: '',
     });
   });
 
@@ -541,5 +551,129 @@ describe('peringatan lulus tanpa rapor final', () => {
       }
       expect(p.applyWarning.graduate_report_not_final).toContain('{count}');
     }
+  });
+});
+
+describe('berita acara dan kelas tujuan tinggal kelas tingkat akhir (3C.3)', () => {
+  const finalCls: PromotionClass = {
+    classId: 'c9',
+    name: '9A',
+    level: '9',
+    nextLevel: null,
+    isFinalLevel: true,
+    students: [
+      {
+        studentId: 'a',
+        name: 'Ani',
+        nis: null,
+        decision: 'retain',
+        suggestedDecision: null,
+        toClassId: null,
+        note: null,
+        applied: false,
+      },
+      {
+        studentId: 'b',
+        name: 'Budi',
+        nis: null,
+        decision: 'retain',
+        suggestedDecision: null,
+        toClassId: null,
+        note: null,
+        meetingId: 'm-final',
+        applied: false,
+      },
+      {
+        studentId: 'c',
+        name: 'Cici',
+        nis: null,
+        decision: 'graduate',
+        suggestedDecision: null,
+        toClassId: null,
+        note: null,
+        applied: true,
+      },
+    ],
+  };
+
+  it('kelas tujuan hanya untuk tinggal kelas di tingkat akhir; kelas sebaya diurutkan nama', () => {
+    expect(needsRetainTarget(finalCls, 'retain')).toBe(true);
+    expect(needsRetainTarget(finalCls, 'graduate')).toBe(false);
+    expect(needsRetainTarget({ isFinalLevel: false }, 'retain')).toBe(false);
+    const targets = [
+      { id: '1', name: '9B', level: '9' },
+      { id: '2', name: '8A', level: '8' },
+      { id: '3', name: '9A', level: '9' },
+    ];
+    expect(sameLevelTargets(finalCls, targets).map((t) => t.name)).toEqual(['9A', '9B']);
+  });
+
+  it('memilih kelas tujuan membuat siswa perlu disimpan dan membawa toClassId; kosong = otomatis (tanpa toClassId)', () => {
+    const choices = { a: 'retain' as const };
+    expect(pendingStudents([finalCls], choices, {})).toHaveLength(0);
+    const picked = { a: { toClassId: 'kelas-tujuan' } };
+    expect(pendingStudents([finalCls], choices, picked).map((p) => p.student.studentId)).toEqual(['a']);
+    expect(buildSavePayload([finalCls], choices, picked)[0]).toMatchObject({
+      studentId: 'a',
+      decision: 'retain',
+      toClassId: 'kelas-tujuan',
+    });
+    const withSaved: PromotionClass = {
+      ...finalCls,
+      students: finalCls.students.map((s) => (s.studentId === 'a' ? { ...s, toClassId: 'tersimpan' } : s)),
+    };
+    // Tanpa suntingan, kelas tujuan tersimpan dibawa; dikosongkan pengguna = tidak dikirim (server menjadikannya otomatis).
+    expect(buildSavePayload([withSaved], choices, { a: { reason: 'x' } })[0]).toMatchObject({
+      toClassId: 'tersimpan',
+    });
+    const cleared = buildSavePayload([withSaved], choices, { a: { toClassId: '' } })[0];
+    expect(cleared).not.toHaveProperty('toClassId');
+  });
+
+  it('tautan berita acara hanya dikirim bila diubah; melepas mengirim null', () => {
+    const choices = { a: 'retain' as const };
+    const link = buildSavePayload([finalCls], choices, { a: { meetingId: 'm1' } })[0];
+    expect(link).toMatchObject({ meetingId: 'm1' });
+    const linkedCls: PromotionClass = {
+      ...finalCls,
+      students: finalCls.students.map((s) => (s.studentId === 'a' ? { ...s, meetingId: 'm1' } : s)),
+    };
+    // Tidak disentuh: dihilangkan (server mempertahankan).
+    expect(buildSavePayload([linkedCls], choices, { a: { reason: 'baru' } })[0]).not.toHaveProperty(
+      'meetingId',
+    );
+    expect(buildSavePayload([linkedCls], choices, { a: { meetingId: '' } })[0]).toMatchObject({
+      meetingId: null,
+    });
+  });
+
+  it('berita acara final mengunci siswa tertaut: tidak ikut disimpan, diputuskan, atau dihitung hilang; dihitung terpisah', () => {
+    const [locked] = markLocked([finalCls], new Set(['m-final']));
+    expect(locked?.students.find((s) => s.studentId === 'b')?.locked).toBe(true);
+    expect(locked?.students.find((s) => s.studentId === 'a')?.locked).toBeUndefined();
+    expect(isFrozen({ applied: false, locked: true })).toBe(true);
+    expect(isFrozen({ applied: true })).toBe(true);
+    expect(isFrozen({ applied: false })).toBe(false);
+    const lockedList = [locked as PromotionClass];
+    const choices = { a: 'retain' as const, b: 'graduate' as const };
+    // b berubah dari retain ke graduate, tetapi terkunci: tidak masuk daftar simpan.
+    expect(pendingStudents(lockedList, choices, {}).map((p) => p.student.studentId)).toEqual([]);
+    expect(summarize(lockedList, choices)).toMatchObject({ locked: 1, applied: 1 });
+    // Aksi massal melewati yang terkunci.
+    expect(
+      setClassDecision(lockedList[0] as PromotionClass, { a: 'retain', b: 'retain' }, 'graduate'),
+    ).toEqual({
+      a: 'graduate',
+      b: 'retain',
+    });
+    // Tanpa berita acara final, daftar tidak berubah.
+    expect(markLocked([finalCls], new Set())[0]).toEqual(finalCls);
+  });
+
+  it('berita acara massal satu kelas melewati siswa yang diterapkan atau terkunci', () => {
+    const [locked] = markLocked([finalCls], new Set(['m-final']));
+    const out = setClassMeetingId(locked as PromotionClass, {}, 'm2');
+    expect(Object.keys(out)).toEqual(['a']);
+    expect(out.a).toEqual({ meetingId: 'm2' });
   });
 });

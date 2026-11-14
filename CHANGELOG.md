@@ -119,6 +119,26 @@ v1.4.0 (teks per predikat, bentuk data versi 1); hanya murid dan mata pelajaran 
   `GET /v1/report-cards/ledger` (izin `report_card:read` dan wali kelas itu atau pemegang kelola rapor; modul `grades`; 400
   `invalid_reference`), tanpa migrasi. Layar kirim nilai ujian ke buku nilai kini memberi tahu jumlah murid yang dilewati karena
   tidak mengambil mapel, dan galat `student_not_taking_subject` memiliki pesan terjemahan.
+- **Berita acara musyawarah dewan pendidik dan tinggal kelas di tingkat akhir.** Halaman baru "Berita acara" (dari tombol di halaman
+  Kenaikan kelas) mencatat hasil rapat dewan pendidik per tahun ajaran: jenis rapat (kenaikan kelas, kelulusan, lainnya), tanggal,
+  tempat, kelas opsional, agenda, ringkasan, ketua, sekretaris, dan peserta (guru atau nama bebas, peran, jabatan). Keputusan
+  kenaikan murid ditautkan ke berita acara, di wizard Kenaikan kelas (per murid atau per kelas) atau dengan mencentang murid di
+  berita acara; menautkan tidak mengubah keputusan, dan tanggal musyawarah murid mengikuti tanggal berita acara. Rekap (jumlah naik,
+  tinggal, dan lulus total dan per kelas, serta daftar murid tinggal kelas dengan alasan dan tindak lanjut) dihitung dari keputusan
+  tertaut; saat berita acara difinalkan rekap itu dibekukan dan keputusan tertaut terkunci (409 `meeting_final`) sampai berita acara
+  dibuka kembali. Berita acara dapat dicetak atau disimpan sebagai PDF dari peramban. Endpoint baru `GET/POST /v1/council-meetings`,
+  `GET/PUT/DELETE /v1/council-meetings/{id}`, `POST /v1/council-meetings/{id}/finalize`, `POST .../reopen`,
+  `PUT .../decisions`, dan laporan ringkas `GET /v1/academic-years/{id}/promotions/summary` (baca: `report_card:read_all`; tulis:
+  `promotion:manage`). `PUT /v1/academic-years/{id}/promotions` menerima `meetingId` per baris (dihilangkan = dipertahankan) dan
+  daftar keputusan mengembalikannya hanya bila tertaut. Migrasi 0103 (aditif): tabel `council_meeting` dan
+  `council_meeting_attendee` (RLS dan kunci asing komposit) serta kolom `promotion_decision.meeting_id` (boleh kosong).
+- **Tinggal kelas di tingkat akhir kini mendapat kelas tujuan.** Salin tahun ajaran menyalin kelas tingkat akhir (nama dan tingkat
+  sama, beserta wali kelas dan penugasan guru) hanya bila sudah ada murid yang diputuskan tinggal kelas di kelas itu (parameter
+  `copyFinalLevelForRetained`, bawaan true; peringatan `final_level_copied_for_retained`); bila kelas sebaya hasil kenaikan dengan
+  nama yang sama sudah ada, murid itu bergabung di sana tanpa salinan. Di langkah Keputusan siswa, murid tingkat akhir yang tinggal
+  kelas dapat dipilihkan kelas tujuan eksplisit di tahun tujuan. Tanpa kelas tujuan, murid tetap dilaporkan `no_target_class` seperti
+  sebelumnya. Pendaftaran tahun sumber tidak dihapus sehingga riwayat rombel utuh. Tanpa keputusan tinggal kelas di tingkat akhir,
+  hasil salin tahun ajaran tidak berubah.
 
 ### Diubah
 
@@ -152,6 +172,12 @@ v1.4.0 (teks per predikat, bentuk data versi 1); hanya murid dan mata pelajaran 
   lengkap" sampai maju lagi); lembar skor kembali menerima skor untuk semua murid rombel. Skor yang sudah tersimpan tidak
   hilang. Rapor final aman karena dibaca dari snapshot (hanya berisi mapel yang diambil murid). Sekolah tanpa penanda tidak
   terpengaruh.
+- Berita acara musyawarah dan tinggal kelas di tingkat akhir (tahap 3C.3): tabel `council_meeting` dan `council_meeting_attendee`
+  serta kolom `promotion_decision.meeting_id` dibiarkan di database dan tampil lagi setelah maju. Setelah kembali ke versi
+  sebelumnya, halaman dan endpoint berita acara tidak ada; versi lama mengabaikan `meeting_id` sehingga keputusan kenaikan tetap
+  berlaku apa adanya (tanggal musyawarah murid yang sudah terisi tidak berubah) dan penguncian oleh berita acara final tidak
+  berlaku. Kelas tingkat akhir yang sudah disalin untuk murid yang tinggal kelas tetap ada (kelas biasa) dan murid yang sudah
+  ditempatkan di dalamnya tetap di sana; salin tahun ajaran versi lama kembali tidak menyalin kelas tingkat akhir.
 - Legger kelas (tahap 3C.2): tidak ada tabel atau kolom baru. Setelah kembali ke versi sebelumnya halaman Legger dan endpoint-nya
   tidak ada; tidak ada efek pada nilai atau rapor (leger Excel lama di halaman Rapor tetap tersedia).
 - Mutasi murid dan riwayat rombel (tahap 3C.1): tabel `student_transfer` dan `enrollment_change` dibiarkan di database dan

@@ -745,6 +745,67 @@ export const enrollmentChange = pgTable(
 );
 
 /**
+ * Berita acara musyawarah dewan pendidik (tahap 3C.3). `minutes` dibekukan saat `status = 'final'` (rekap keputusan tertaut);
+ * keputusan yang tertaut ke berita acara final terkunci. FK komposit, CHECK, dan RLS ada di migrasi 0103.
+ */
+export const councilMeeting = pgTable(
+  'council_meeting',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    academicYearId: uuid('academic_year_id').notNull(),
+    semesterId: uuid('semester_id'),
+    classId: uuid('class_id'),
+    kind: text('kind', { enum: ['promotion', 'graduation', 'other'] }).notNull(),
+    title: text('title').notNull(),
+    heldOn: date('held_on').notNull(),
+    location: text('location'),
+    chairName: text('chair_name'),
+    secretaryName: text('secretary_name'),
+    agenda: text('agenda'),
+    summary: text('summary'),
+    minutes: jsonb('minutes'),
+    status: text('status', { enum: ['draft', 'final'] })
+      .notNull()
+      .default('draft'),
+    finalizedAt: timestamp('finalized_at', { withTimezone: true }),
+    finalizedBy: text('finalized_by'),
+    createdBy: text('created_by').notNull(),
+    createdAt: createdAt(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique('council_meeting_school_id_uq').on(t.schoolId, t.id),
+    index('council_meeting_year_idx').on(t.schoolId, t.academicYearId),
+  ],
+);
+
+/** Peserta berita acara: guru (opsional) atau nama bebas, peran dan jabatan. Terhapus bersama berita acaranya. */
+export const councilMeetingAttendee = pgTable(
+  'council_meeting_attendee',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    meetingId: uuid('meeting_id').notNull(),
+    teacherId: uuid('teacher_id'),
+    name: text('name').notNull(),
+    positionTitle: text('position_title'),
+    role: text('role', { enum: ['chair', 'secretary', 'member'] })
+      .notNull()
+      .default('member'),
+    sort: integer('sort').notNull().default(0),
+  },
+  (t) => [
+    unique('council_meeting_attendee_school_id_uq').on(t.schoolId, t.id),
+    index('council_meeting_attendee_meeting_idx').on(t.schoolId, t.meetingId),
+  ],
+);
+
+/**
  * Penanda partisipasi mapel per rombel (tahap 3B.1), SPARSE: baris ada hanya bila mapel itu di rombel itu diikuti murid yang
  * terdaftar saja (`mode = 'selected'`). Tanpa baris = semua murid rombel mengikuti (perilaku sebelumnya). Hanya baris ini yang
  * menyalakan fitur pilihan mapel. FK komposit di SQL tangan 0102.
@@ -995,6 +1056,8 @@ export const promotionDecision = pgTable(
     reason: text('reason'),
     followUp: text('follow_up'),
     meetingDate: date('meeting_date'),
+    /** Berita acara yang membahas keputusan ini (tahap 3C.3); FK komposit di migrasi 0103. */
+    meetingId: uuid('meeting_id'),
     decidedBy: text('decided_by'),
     decidedAt: timestamp('decided_at', { withTimezone: true }).notNull().defaultNow(),
     appliedAt: timestamp('applied_at', { withTimezone: true }),

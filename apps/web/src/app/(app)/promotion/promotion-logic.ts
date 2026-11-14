@@ -22,7 +22,11 @@ export interface PromotionStudent {
   reason?: string | null;
   followUp?: string | null;
   meetingDate?: string | null;
+  /** Berita acara yang membahas keputusan ini (tahap 3C.3); ada hanya bila tertaut. */
+  meetingId?: string | null;
   applied: boolean;
+  /** Diisi klien: keputusan tertaut ke berita acara final, jadi terkunci di server (409 `meeting_final`). */
+  locked?: boolean;
 }
 
 export interface PromotionClass {
@@ -51,6 +55,10 @@ export interface StudentDetails {
   reason: string;
   followUp: string;
   meetingDate: string;
+  /** Kelas tujuan eksplisit di tahun tujuan ('' = otomatis); dipakai untuk tinggal kelas di tingkat akhir. */
+  toClassId: string;
+  /** Berita acara yang membahas keputusan ('' = tanpa berita acara). */
+  meetingId: string;
 }
 /** Suntingan catatan per studentId; hanya field yang diubah pengguna. */
 export type Details = Record<string, Partial<StudentDetails>>;
@@ -64,6 +72,8 @@ export interface DecisionItem {
   reason?: string | null;
   followUp?: string | null;
   meetingDate?: string | null;
+  /** Berita acara: `null` melepas tautan (server mempertahankan tautan bila field dihilangkan). */
+  meetingId?: string | null;
 }
 
 /** Batas server per permintaan simpan. */
@@ -127,7 +137,7 @@ export function setClassDecision(cls: PromotionClass, choices: Choices, decision
   if (!cls.students.some((s) => optionsForStudent(cls, s).includes(decision))) return choices;
   const next = { ...choices };
   for (const s of cls.students) {
-    if (!s.applied && optionsForStudent(cls, s).includes(decision)) next[s.studentId] = decision;
+    if (!isFrozen(s) && optionsForStudent(cls, s).includes(decision)) next[s.studentId] = decision;
   }
   return next;
 }
@@ -136,14 +146,22 @@ export function setClassDecision(cls: PromotionClass, choices: Choices, decision
 
 /** Catatan yang tersimpan di server untuk siswa ini. */
 export function savedDetails(
-  s: Pick<PromotionStudent, 'reason' | 'followUp' | 'meetingDate'>,
+  s: Pick<PromotionStudent, 'reason' | 'followUp' | 'meetingDate'> &
+    Partial<Pick<PromotionStudent, 'toClassId' | 'meetingId'>>,
 ): StudentDetails {
-  return { reason: s.reason ?? '', followUp: s.followUp ?? '', meetingDate: s.meetingDate ?? '' };
+  return {
+    reason: s.reason ?? '',
+    followUp: s.followUp ?? '',
+    meetingDate: s.meetingDate ?? '',
+    toClassId: s.toClassId ?? '',
+    meetingId: s.meetingId ?? '',
+  };
 }
 
 /** Catatan yang berlaku: suntingan bila ada, kalau tidak yang tersimpan. */
 export function effectiveDetails(
-  s: Pick<PromotionStudent, 'studentId' | 'reason' | 'followUp' | 'meetingDate'>,
+  s: Pick<PromotionStudent, 'studentId' | 'reason' | 'followUp' | 'meetingDate'> &
+    Partial<Pick<PromotionStudent, 'toClassId' | 'meetingId'>>,
   details: Details,
 ): StudentDetails {
   const saved = savedDetails(s);
@@ -152,11 +170,14 @@ export function effectiveDetails(
     reason: edit?.reason ?? saved.reason,
     followUp: edit?.followUp ?? saved.followUp,
     meetingDate: edit?.meetingDate ?? saved.meetingDate,
+    toClassId: edit?.toClassId ?? saved.toClassId,
+    meetingId: edit?.meetingId ?? saved.meetingId,
   };
 }
 
 export function detailsChanged(
-  s: Pick<PromotionStudent, 'studentId' | 'reason' | 'followUp' | 'meetingDate'>,
+  s: Pick<PromotionStudent, 'studentId' | 'reason' | 'followUp' | 'meetingDate'> &
+    Partial<Pick<PromotionStudent, 'toClassId' | 'meetingId'>>,
   details: Details,
 ): boolean {
   const saved = savedDetails(s);
@@ -164,7 +185,9 @@ export function detailsChanged(
   return (
     now.reason.trim() !== saved.reason.trim() ||
     now.followUp.trim() !== saved.followUp.trim() ||
-    now.meetingDate !== saved.meetingDate
+    now.meetingDate !== saved.meetingDate ||
+    now.toClassId !== saved.toClassId ||
+    now.meetingId !== saved.meetingId
   );
 }
 
@@ -181,9 +204,54 @@ export function setDetail(
 export function setClassMeetingDate(cls: PromotionClass, details: Details, date: string): Details {
   const next = { ...details };
   for (const s of cls.students) {
-    if (!s.applied) next[s.studentId] = { ...next[s.studentId], meetingDate: date };
+    if (!isFrozen(s)) next[s.studentId] = { ...next[s.studentId], meetingDate: date };
   }
   return next;
+}
+
+/** Berita acara yang sama untuk seluruh siswa kelas yang belum diterapkan dan belum terkunci. Kosong melepas tautan. */
+export function setClassMeetingId(cls: PromotionClass, details: Details, meetingId: string): Details {
+  const next = { ...details };
+  for (const s of cls.students) {
+    if (!isFrozen(s)) next[s.studentId] = { ...next[s.studentId], meetingId };
+  }
+  return next;
+}
+
+/** Keputusan tidak bisa diubah lagi: sudah diterapkan, atau tertaut ke berita acara final. */
+export const isFrozen = (s: Pick<PromotionStudent, 'applied' | 'locked'>): boolean =>
+  s.applied || s.locked === true;
+
+/** Tandai siswa yang keputusannya tertaut ke berita acara final (terkunci di server). */
+export function markLocked(
+  classes: readonly PromotionClass[],
+  finalMeetingIds: ReadonlySet<string>,
+): PromotionClass[] {
+  if (finalMeetingIds.size === 0) return [...classes];
+  return classes.map((c) => ({
+    ...c,
+    students: c.students.map((s) =>
+      s.meetingId && finalMeetingIds.has(s.meetingId) && !s.applied ? { ...s, locked: true } : s,
+    ),
+  }));
+}
+
+/** Kelas tujuan eksplisit hanya untuk tinggal kelas di tingkat akhir (rollover tidak menyalin kelas tingkat akhir tanpa keputusan tinggal). */
+export const needsRetainTarget = (cls: Pick<PromotionClass, 'isFinalLevel'>, choice: Decision | undefined) =>
+  cls.isFinalLevel && choice === 'retain';
+
+export interface TargetClass {
+  id: string;
+  name: string;
+  level: string;
+}
+
+/** Kelas tahun tujuan yang sebaya (tingkat sama dengan kelas asal), terurut nama. */
+export function sameLevelTargets<T extends TargetClass>(
+  cls: Pick<PromotionClass, 'level'>,
+  targets: readonly T[],
+): T[] {
+  return targets.filter((t) => t.level === cls.level).sort((a, b) => a.name.localeCompare(b.name, 'id'));
 }
 
 /** TTTT-BB-HH yang benar-benar ada di kalender. */
@@ -194,7 +262,9 @@ export function isIsoDate(text: string): boolean {
 }
 
 /** Catatan yang tidak sah: tanggal bukan tanggal nyata (boleh kosong), atau teks melewati batas server. */
-export function invalidDetailsFor(d: StudentDetails): (keyof StudentDetails)[] {
+export function invalidDetailsFor(
+  d: Pick<StudentDetails, 'reason' | 'followUp' | 'meetingDate'>,
+): (keyof StudentDetails)[] {
   const bad: (keyof StudentDetails)[] = [];
   if (d.reason.trim().length > MAX_DETAIL_LENGTH) bad.push('reason');
   if (d.followUp.trim().length > MAX_DETAIL_LENGTH) bad.push('followUp');
@@ -210,7 +280,7 @@ export function pendingStudents(classes: readonly PromotionClass[], choices: Cho
   for (const cls of classes) {
     for (const student of cls.students) {
       const decision = choices[student.studentId];
-      if (student.applied || !decision) continue;
+      if (isFrozen(student) || !decision) continue;
       if (decision !== student.decision || detailsChanged(student, details)) {
         out.push({ cls, student, decision });
       }
@@ -231,8 +301,14 @@ export function buildSavePayload(
 ): DecisionItem[] {
   return pendingStudents(classes, choices, details).map(({ student, decision }) => {
     const item: DecisionItem = { studentId: student.studentId, decision };
-    if (decision !== 'graduate' && decision === student.decision && student.toClassId) {
-      item.toClassId = student.toClassId;
+    const edited = details[student.studentId]?.toClassId;
+    if (decision !== 'graduate') {
+      // Kelas tujuan yang dipilih pengguna menang; kosong = otomatis. Tanpa suntingan, yang tersimpan dibawa bila keputusannya sama.
+      if (edited !== undefined) {
+        if (edited) item.toClassId = edited;
+      } else if (decision === student.decision && student.toClassId) {
+        item.toClassId = student.toClassId;
+      }
     }
     if (student.note) item.note = student.note;
     // Server mempertahankan field yang dihilangkan, jadi nilai kosong dikirim sebagai null eksplisit.
@@ -240,6 +316,8 @@ export function buildSavePayload(
     item.reason = d.reason.trim() || null;
     item.followUp = d.followUp.trim() || null;
     item.meetingDate = d.meetingDate || null;
+    // Tautan berita acara hanya dikirim bila diubah (dihilangkan = dipertahankan di server; null eksplisit melepas).
+    if (d.meetingId !== savedDetails(student).meetingId) item.meetingId = d.meetingId || null;
     return item;
   });
 }
@@ -258,7 +336,7 @@ export function missingFinalStudents(classes: readonly PromotionClass[], choices
   for (const cls of classes) {
     if (!cls.isFinalLevel) continue;
     for (const student of cls.students) {
-      if (!student.applied && !choices[student.studentId]) out.push({ cls, student });
+      if (!isFrozen(student) && !choices[student.studentId]) out.push({ cls, student });
     }
   }
   return out;
@@ -333,6 +411,8 @@ export interface Summary {
   undecided: number;
   /** Keputusan yang sudah diterapkan ke tahun tujuan (terkunci). */
   applied: number;
+  /** Keputusan tertaut ke berita acara final (terkunci sampai dibuka kembali). */
+  locked: number;
   /** Pilihan atau catatan yang belum tersimpan di server. */
   unsaved: number;
 }
@@ -343,12 +423,25 @@ export function summarize(
   choices: Choices,
   details: Details = {},
 ): Summary {
-  const out: Summary = { total: 0, promote: 0, retain: 0, graduate: 0, undecided: 0, applied: 0, unsaved: 0 };
+  const out: Summary = {
+    total: 0,
+    promote: 0,
+    retain: 0,
+    graduate: 0,
+    undecided: 0,
+    applied: 0,
+    locked: 0,
+    unsaved: 0,
+  };
   for (const cls of classes) {
     for (const s of cls.students) {
       out.total++;
       if (s.applied) {
         out.applied++;
+        continue;
+      }
+      if (s.locked) {
+        out.locked++;
         continue;
       }
       const d = choices[s.studentId];
@@ -377,6 +470,7 @@ export const ROLLOVER_WARNING_CODES = [
   'class_name_conflict',
   'class_level_mismatch',
   'final_level_not_copied',
+  'final_level_copied_for_retained',
   'inactive_homeroom_skipped',
   'homeroom_multiple',
   'inactive_teacher_skipped',
