@@ -522,6 +522,16 @@ describe('kebijakan peran bawaan', () => {
     }
   });
 
+  it('rute legger kelas (tahap 3C.2) memakai hak daftar rapor dan modul grades', () => {
+    const ledger = eps.find((e) => e.method === 'GET' && e.url === '/v1/report-cards/ledger');
+    const list = eps.find((e) => e.method === 'GET' && e.url === '/v1/report-cards');
+    expect([ledger?.perms, ledger?.modules]).toEqual([list?.perms, list?.modules]);
+    expect([ledger?.perms, ledger?.modules]).toEqual([['report_card:read'], ['grades']]);
+    expect(ledger?.description).toContain('Izin: `report_card:read`');
+    // Gerbang sama dengan daftar rapor untuk semua peran; kekhususan kelas (wali kelas) diperiksa di handler.
+    for (const r of roleKeys) expect(allows(r, ledger!), r).toBe(allows(r, list!));
+  });
+
   it('hanya admin sekolah yang mengelola peran dan anggota', () => {
     for (const r of roleKeys.filter((k) => k !== 'school_admin')) {
       expect(perms(r).has('role:manage'), r).toBe(false);

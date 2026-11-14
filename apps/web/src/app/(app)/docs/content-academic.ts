@@ -2657,4 +2657,250 @@ export const ACADEMIC_DOCS: DocArticle[] = [
       },
     },
   },
+  {
+    slug: 'ledger',
+    icon: 'file',
+    tone: 'teal',
+    group: 'academic',
+    module: 'grades',
+    text: {
+      id: {
+        title: 'Legger kelas',
+        summary:
+          'Cara membuka legger satu kelas, membaca nilai dan statusnya, serta mengunduhnya ke Excel atau mencetaknya.',
+        forWho:
+          'Wali kelas, kepala sekolah, dan pengelola kurikulum atau rapor yang perlu melihat nilai seluruh siswa satu kelas dalam satu lembar.',
+        sections: [
+          {
+            heading: 'Gambaran singkat',
+            body: 'Legger adalah daftar nilai akhir seluruh siswa satu kelas dalam satu semester: satu baris per siswa, satu kolom per mata pelajaran, lengkap dengan rata-rata, peringkat (bila sekolah menampilkannya), jumlah sakit, izin, dan alpa, serta status rapornya. Angkanya diambil dari data rapor yang sama, jadi selalu cocok dengan rapor siswa.',
+            href: '/report-cards/ledger',
+            tip: 'Buka dari tombol Legger di halaman Rapor, atau langsung dari alamat halamannya.',
+          },
+          {
+            heading: 'Membuka legger',
+            body: 'Pilih semester dan kelas. Di layar lebar, legger tampil sebagai tabel dengan nama siswa yang tetap terlihat saat tabel digeser ke samping. Di ponsel dan tablet kecil, setiap siswa tampil sebagai kartu sehingga halaman tidak perlu digeser.',
+            steps: [
+              'Buka menu Rapor, lalu klik Legger. Anda juga bisa membuka halaman Legger langsung.',
+              'Pilih semester dan kelas.',
+              'Baca nilai tiap mata pelajaran, rata-rata, dan status rapor siswa.',
+            ],
+            href: '/report-cards/ledger',
+          },
+          {
+            heading: 'Status final dan draf',
+            body: 'Siswa berstatus Final memakai angka yang sudah dibekukan saat rapor difinalkan, sehingga tidak berubah walau nilai di buku nilai diubah kemudian. Siswa berstatus Draf dihitung dari nilai terkini dan masih bisa berubah sampai rapornya difinalkan.',
+            warning: 'Sebelum mencetak untuk keperluan resmi, pastikan semua siswa sudah berstatus Final.',
+          },
+          {
+            heading: 'Mata pelajaran yang tidak diambil',
+            body: 'Pada sekolah yang memakai mata pelajaran pilihan, siswa tidak mengambil semua mapel. Sel mapel yang tidak diambil siswa ditandai garis panjang dengan keterangan Tidak mengambil mapel ini, dan tidak ikut dihitung dalam rata-rata. Tanda strip pendek berarti nilainya belum ada. Angka berwarna merah berarti di bawah KKM.',
+          },
+          {
+            heading: 'Siswa pindah dan lulusan',
+            body: 'Daftar siswa mengikuti daftar pada halaman Rapor: siswa aktif, lulusan tahun itu, serta siswa yang pindah atau keluar sesudah semester itu berakhir tetap tampil, sehingga legger semester lama tetap lengkap.',
+          },
+          {
+            heading: 'Mengunduh ke Excel',
+            body: 'Klik Unduh Excel untuk menyimpan legger sebagai berkas Excel yang bisa diolah lebih lanjut. Nilai tersimpan sebagai angka, dan NIS tersimpan sebagai teks agar angka nol di depannya tidak hilang.',
+            steps: [
+              'Pilih semester dan kelas.',
+              'Klik Unduh Excel.',
+              'Buka berkas yang terunduh di Excel atau aplikasi lembar kerja lain.',
+            ],
+            href: '/report-cards/ledger',
+          },
+          {
+            heading: 'Mencetak atau menyimpan sebagai PDF',
+            body: 'Klik Cetak / PDF untuk membuka jendela cetak dengan kertas melintang. Untuk mendapatkan berkas PDF, pilih Simpan sebagai PDF pada pilihan printer.',
+            tip: 'Pada pengaturan cetak, matikan Header dan footer bila ingin hasil yang lebih bersih.',
+          },
+          {
+            heading: 'Kelas dengan rapor deskriptif',
+            body: 'Bila kelas memakai rapor deskriptif, legger tetap menampilkan angka, tetapi hanya untuk staf sekolah. Sebuah catatan muncul di halaman dan di hasil cetak sebagai pengingat agar angka ini tidak dibagikan kepada orang tua atau wali.',
+          },
+          {
+            heading: 'Siapa yang dapat melihat',
+            body: 'Pemegang izin kelola rapor, kepala sekolah, dan kurikulum dapat melihat legger semua kelas. Wali kelas hanya dapat melihat legger kelas yang diampunya.',
+          },
+        ],
+        faq: [
+          {
+            q: 'Mengapa sebagian siswa berstatus Draf?',
+            a: 'Rapor siswa itu belum difinalkan. Finalkan rapor kelas di halaman Rapor agar angkanya dibekukan.',
+          },
+          {
+            q: 'Mengapa angka di legger berbeda dengan buku nilai?',
+            a: 'Siswa berstatus Final memakai angka saat rapor difinalkan. Bila nilai diubah sesudahnya, buka kembali rapor kelas lalu finalkan lagi agar angka baru ikut.',
+          },
+          {
+            q: 'Mengapa ada siswa yang sel mapelnya bertanda garis?',
+            a: 'Siswa itu tidak mengambil mata pelajaran tersebut. Pilihan siswa diatur di halaman Pilihan mapel.',
+          },
+          {
+            q: 'Mengapa kolom peringkat tidak ada?',
+            a: 'Peringkat hanya tampil bila pengaturan rapor sekolah menampilkan peringkat.',
+          },
+        ],
+      },
+      en: {
+        title: 'Class ledger',
+        summary:
+          'How to open the ledger of a class, read its grades and status, and download it to Excel or print it.',
+        forWho:
+          'Homeroom teachers, principals, and curriculum or report card managers who need the grades of a whole class on one sheet.',
+        sections: [
+          {
+            heading: 'Overview',
+            body: "The ledger lists the final grades of every student in a class for one semester: one row per student, one column per subject, with the average, the rank (when the school shows it), the number of sick, excused, and absent days, and the report card status. The figures come from the same data as the report cards, so they always match a student's report card.",
+            href: '/report-cards/ledger',
+            tip: 'Open it with the Ledger button on the Report cards page, or go to the page directly.',
+          },
+          {
+            heading: 'Opening the ledger',
+            body: 'Choose a semester and a class. On wide screens the ledger is a table where the student name stays visible while you scroll sideways. On phones and small tablets each student appears as a card, so the page never needs to scroll sideways.',
+            steps: [
+              'Open Report cards, then click Ledger. You can also open the Ledger page directly.',
+              'Choose a semester and a class.',
+              'Read each subject grade, the average, and the report card status of each student.',
+            ],
+            href: '/report-cards/ledger',
+          },
+          {
+            heading: 'Final and draft status',
+            body: 'A student marked Final uses the figures frozen when the report card was finalized, so they do not change even if grades are edited later. A student marked Draft is calculated from the latest grades and can still change until the report card is finalized.',
+            warning: 'Before printing for official use, make sure every student is marked Final.',
+          },
+          {
+            heading: 'Subjects a student does not take',
+            body: 'In schools with elective subjects, students do not take every subject. A subject cell the student does not take shows a long dash labelled Does not take this subject, and it is left out of the average. A short dash means there is no grade yet. A red number is below the pass mark.',
+          },
+          {
+            heading: 'Students who moved and graduates',
+            body: "The list of students follows the list on the Report cards page: active students, that year's graduates, and students who moved or left after that semester ended are still shown, so the ledger of an old semester stays complete.",
+          },
+          {
+            heading: 'Downloading to Excel',
+            body: 'Click Download Excel to save the ledger as an Excel file you can work with further. Grades are saved as numbers, and the student ID is saved as text so leading zeros are kept.',
+            steps: [
+              'Choose a semester and a class.',
+              'Click Download Excel.',
+              'Open the downloaded file in Excel or another spreadsheet app.',
+            ],
+            href: '/report-cards/ledger',
+          },
+          {
+            heading: 'Printing or saving as PDF',
+            body: 'Click Print / PDF to open the print window with the paper in landscape. To get a PDF file, choose Save as PDF as the printer.',
+            tip: 'In the print settings, turn off Headers and footers for a cleaner result.',
+          },
+          {
+            heading: 'Classes with descriptive report cards',
+            body: 'If the class uses descriptive report cards, the ledger still shows the numbers, but only for school staff. A note appears on the page and on the printout as a reminder not to share these numbers with parents or guardians.',
+          },
+          {
+            heading: 'Who can see it',
+            body: 'Holders of the report card management permission, the principal, and the curriculum team can see the ledger of every class. A homeroom teacher can only see the ledger of the class they lead.',
+          },
+        ],
+        faq: [
+          {
+            q: 'Why are some students marked Draft?',
+            a: 'Their report card has not been finalized yet. Finalize the class on the Report cards page to freeze the figures.',
+          },
+          {
+            q: 'Why do the ledger figures differ from the grade book?',
+            a: 'Students marked Final use the figures from when the report card was finalized. If grades were edited afterwards, reopen the class report cards and finalize them again so the new figures are included.',
+          },
+          {
+            q: 'Why does a subject cell show a dash for some students?',
+            a: 'That student does not take that subject. Student choices are managed on the Subject choices page.',
+          },
+          {
+            q: 'Why is there no rank column?',
+            a: "The rank only appears when the school's report card settings show the rank.",
+          },
+        ],
+      },
+      su: {
+        title: 'Legger kelas',
+        summary:
+          'Cara muka legger sakelas, maca nilai jeung statusna, sarta ngundeur ka Excel atawa nyitakna.',
+        forWho:
+          'Wali kelas, kepala sakola, jeung pangurus kurikulum atawa rapor anu perlu ningali nilai sakabéh murid sakelas dina hiji lambar.',
+        sections: [
+          {
+            heading: 'Gambaran singget',
+            body: 'Legger téh daptar nilai ahir sakabéh murid sakelas dina sasemester: hiji baris per murid, hiji kolom per mata pelajaran, lengkep jeung rata-rata, peringkat (lamun sakola nampilkeunana), jumlah gering, idin, jeung alpa, sarta status raporna. Angkana dicokot tina data rapor anu sarua, jadi salawasna cocog jeung rapor murid.',
+            href: '/report-cards/ledger',
+            tip: 'Buka tina tombol Legger di kaca Rapor, atawa langsung tina alamat kacana.',
+          },
+          {
+            heading: 'Muka legger',
+            body: 'Pilih semester jeung kelas. Dina layar lega, legger tampil salaku tabel jeung ngaran murid tetep katingali basa tabelna digeser ka gigir. Dina HP jeung tablét leutik, tiap murid tampil salaku kartu supaya kacana teu kudu digeser.',
+            steps: [
+              'Buka ménu Rapor, terus klik Legger. Anjeun ogé bisa muka kaca Legger langsung.',
+              'Pilih semester jeung kelas.',
+              'Baca nilai unggal mata pelajaran, rata-rata, jeung status rapor murid.',
+            ],
+            href: '/report-cards/ledger',
+          },
+          {
+            heading: 'Status final jeung rarancang',
+            body: 'Murid anu statusna Final maké angka anu geus dibekukeun basa raporna difinalkeun, jadi teu robah sanajan nilai di buku nilai dirobah satuluyna. Murid anu statusna Rarancang diitung tina nilai panganyarna sarta masih bisa robah nepi ka raporna difinalkeun.',
+            warning: 'Samemeh nyitak pikeun kaperluan resmi, pastikeun sakabéh murid geus statusna Final.',
+          },
+          {
+            heading: 'Mata pelajaran anu teu dicandak',
+            body: 'Di sakola anu maké mata pelajaran pilihan, murid teu nyandak sakabéh mapel. Sél mapel anu teu dicandak murid dibéré tanda garis panjang jeung kalimah Teu nyandak mapel ieu, sarta teu diitung dina rata-rata. Garis pondok hartina nilaina can aya. Angka beureum hartina handapeun KKM.',
+          },
+          {
+            heading: 'Murid pindah jeung lulusan',
+            body: 'Daptar murid nuturkeun daptar di kaca Rapor: murid aktif, lulusan taun éta, jeung murid anu pindah atawa kaluar sanggeus semesterna réngsé tetep tampil, jadi legger semester heubeul tetep lengkep.',
+          },
+          {
+            heading: 'Ngundeur ka Excel',
+            body: 'Klik Undeur Excel pikeun nyimpen legger salaku berkas Excel anu bisa diolah deui. Nilai disimpen salaku angka, jeung NIS disimpen salaku téks supaya nol di hareupna teu leungit.',
+            steps: [
+              'Pilih semester jeung kelas.',
+              'Klik Undeur Excel.',
+              'Buka berkas anu diundeur dina Excel atawa aplikasi lambar kerja séjén.',
+            ],
+            href: '/report-cards/ledger',
+          },
+          {
+            heading: 'Nyitak atawa nyimpen salaku PDF',
+            body: 'Klik Citak / PDF pikeun muka jandéla citak jeung kartas ngalegana. Pikeun meunangkeun berkas PDF, pilih Simpen salaku PDF dina pilihan printer.',
+            tip: 'Dina setélan citak, pareuman Header jeung footer lamun hayang hasil anu leuwih bersih.',
+          },
+          {
+            heading: 'Kelas jeung rapor déskriptif',
+            body: 'Lamun kelas maké rapor déskriptif, legger tetep nembongkeun angka, tapi ngan keur staf sakola. Aya catetan di kaca jeung dina hasil citak salaku pépéling supaya angka ieu ulah dibagikeun ka kolot atawa wali.',
+          },
+          {
+            heading: 'Saha anu bisa ningali',
+            body: 'Nu boga idin ngokolakeun rapor, kepala sakola, jeung kurikulum bisa ningali legger sakabéh kelas. Wali kelas ngan bisa ningali legger kelas anu diwalikeunana.',
+          },
+        ],
+        faq: [
+          {
+            q: 'Naha sawaréh murid statusna Rarancang?',
+            a: 'Raporna can difinalkeun. Finalkeun rapor kelas di kaca Rapor supaya angkana dibekukeun.',
+          },
+          {
+            q: 'Naha angka di legger béda jeung buku nilai?',
+            a: 'Murid anu statusna Final maké angka basa raporna difinalkeun. Lamun nilai dirobah sanggeusna, buka deui rapor kelas terus finalkeun deui supaya angka anyar milu.',
+          },
+          {
+            q: 'Naha sél mapel sawaréh murid dibéré garis?',
+            a: 'Murid éta teu nyandak mata pelajaran éta. Pilihan murid diatur di kaca Pilihan mapel.',
+          },
+          {
+            q: 'Naha euweuh kolom peringkat?',
+            a: 'Peringkat ngan tampil lamun setélan rapor sakola nampilkeun peringkat.',
+          },
+        ],
+      },
+    },
+  },
 ];

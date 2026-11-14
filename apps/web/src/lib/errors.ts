@@ -195,6 +195,7 @@ const KNOWN = [
   'choice_rule_violation',
   'scope_overlap',
   'choice_locked',
+  'student_not_taking_subject',
 ] as const;
 
 type KnownCode = (typeof KNOWN)[number];

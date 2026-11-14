@@ -243,6 +243,8 @@ export function ScoresView({ id }: { id: string }) {
       ),
     onSuccess: (r) => {
       toast.success(t('sent', { assessments: r.assessments, scores: r.scores }));
+      // Murid yang tidak mengambil mapel ujian ini tidak diberi skor (mapel pilihan); beri tahu jumlahnya.
+      if (r.skippedNotTaking) toast.info(t('sentSkippedNotTaking', { count: r.skippedNotTaking }));
       queryClient.invalidateQueries({ queryKey: ['assessments'] });
     },
   });

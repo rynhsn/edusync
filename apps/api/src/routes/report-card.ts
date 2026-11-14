@@ -28,6 +28,7 @@ import { z } from 'zod';
 import { ensureSemesterFrozen } from '../grading-config-lib';
 import { errorSchema, HttpError } from '../http-error';
 import { requireModule, requirePermission, type TenantContext } from '../identity/guards';
+import { buildLedger } from '../ledger-lib';
 import { notifyReportCards } from '../messaging-lib';
 import {
   canViewClass,
@@ -347,6 +348,82 @@ export async function reportCardRoutes(instance: FastifyInstance) {
             ...completeness,
           };
         });
+      });
+    },
+  );
+
+  /* ---------- Legger ---------- */
+
+  const predicateCell = z.enum(['A', 'B', 'C', 'D']).nullable();
+  app.get(
+    '/v1/report-cards/ledger',
+    {
+      onRequest: readGate,
+      schema: {
+        tags: tag,
+        summary: 'Legger satu kelas',
+        description:
+          'Izin: `report_card:read`; modul `grades`. Matriks siswa x mapel untuk satu kelas pada satu semester: nilai akhir, ' +
+          'predikat, rata-rata, peringkat (hanya bila ada: pengaturan rapor menampilkan peringkat atau tertera di snapshot), ' +
+          'ketidakhadiran (sakit, izin, alpa, terlambat), status rapor, dan sumber angka. Daftar siswa sama dengan daftar rapor ' +
+          '(aktif, lulusan, dan siswa yang keluar sesudah semester berakhir). Rapor final dibaca dari snapshot (`source: snapshot`); ' +
+          'draf dihitung dari nilai terkini dengan rumus yang sama dengan rapor dan rekap (`source: live`). Kolom mapel = mapel ' +
+          'yang dinilai di kelas itu pada semester itu, ditambah mapel yang hanya ada di snapshot. Sel mapel yang tidak diambil ' +
+          'siswa itu (mapel pilihan) membawa `notTaken: true`; kunci itu absen bila tidak berlaku. `belowKkm: true` hanya bila ' +
+          'nilai di bawah KKM. `reportMode: descriptive` (hanya bila tingkat kelas bermode rapor deskriptif) menandai bahwa angka ' +
+          'ini khusus staf dan tidak untuk dibagikan ke wali. Hanya pemegang `report_card:manage`, kepala sekolah, kurikulum, ' +
+          'atau wali kelas itu (selain itu 403). Semester/kelas harus milik sekolah ini dan satu tahun ajaran (400 ' +
+          '`invalid_reference`). Unduhan Excel dan cetak dibuat di klien dari respons ini.',
+        headers: schoolHeader,
+        querystring: listQuery,
+        response: {
+          200: z.object({
+            semester: z.object({ id: z.uuid(), name: z.string(), academicYear: z.string() }),
+            class: z.object({ id: z.uuid(), name: z.string(), level: z.string() }),
+            reportMode: z.literal('descriptive').optional(),
+            showRank: z.boolean(),
+            subjects: z.array(z.object({ id: z.uuid(), name: z.string(), kkm: z.number() })),
+            students: z.array(
+              z.object({
+                studentId: z.uuid(),
+                name: z.string(),
+                nis: z.string().nullable(),
+                status: z.enum(['draft', 'final']),
+                source: z.enum(['snapshot', 'live']),
+                cells: z.array(
+                  z.object({
+                    subjectId: z.uuid(),
+                    final: z.number().nullable(),
+                    predicate: predicateCell,
+                    belowKkm: z.literal(true).optional(),
+                    notTaken: z.literal(true).optional(),
+                  }),
+                ),
+                average: z.number().nullable(),
+                subjectsGraded: z.number().int(),
+                subjectsTotal: z.number().int(),
+                rank: z.object({ position: z.number().int(), of: z.number().int() }).nullable(),
+                attendance: z.object({
+                  sick: z.number().int(),
+                  excused: z.number().int(),
+                  absent: z.number().int(),
+                  late: z.number().int(),
+                }),
+              }),
+            ),
+          }),
+          400: errorSchema,
+          ...guarded,
+        },
+      },
+    },
+    async (request) => {
+      const ctx = request.ctx as TenantContext;
+      const { semesterId, classId } = request.query;
+      return tenant(request, async (tx) => {
+        const { sem, cls } = await requireSemesterClass(tx, semesterId, classId);
+        if (!(await canViewClass(tx, ctx, cls.homeroomTeacherId))) throw notAllowed();
+        return buildLedger(tx, await loadClassContext(tx, sem, cls));
       });
     },
   );

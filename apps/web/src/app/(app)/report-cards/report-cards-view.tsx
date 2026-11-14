@@ -15,8 +15,10 @@ import {
   MessageSquare,
   MessagesSquare,
   ScrollText,
+  Table2,
   Users,
 } from 'lucide-react';
+import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -369,6 +371,9 @@ export function ReportCardsView() {
         actions={
           ready && (
             <>
+              <Button variant="outline" nativeButton={false} render={<Link href="/report-cards/ledger" />}>
+                <Table2 className="size-4" aria-hidden /> {t('openLedger')}
+              </Button>
               <Button variant="outline" disabled={rows.length === 0 || !!progress} onClick={downloadAll}>
                 <Download className="size-4" />{' '}
                 {progress

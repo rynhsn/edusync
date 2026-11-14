@@ -32488,6 +32488,149 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/report-cards/ledger": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Legger satu kelas
+         * @description Izin: `report_card:read`; modul `grades`. Matriks siswa x mapel untuk satu kelas pada satu semester: nilai akhir, predikat, rata-rata, peringkat (hanya bila ada: pengaturan rapor menampilkan peringkat atau tertera di snapshot), ketidakhadiran (sakit, izin, alpa, terlambat), status rapor, dan sumber angka. Daftar siswa sama dengan daftar rapor (aktif, lulusan, dan siswa yang keluar sesudah semester berakhir). Rapor final dibaca dari snapshot (`source: snapshot`); draf dihitung dari nilai terkini dengan rumus yang sama dengan rapor dan rekap (`source: live`). Kolom mapel = mapel yang dinilai di kelas itu pada semester itu, ditambah mapel yang hanya ada di snapshot. Sel mapel yang tidak diambil siswa itu (mapel pilihan) membawa `notTaken: true`; kunci itu absen bila tidak berlaku. `belowKkm: true` hanya bila nilai di bawah KKM. `reportMode: descriptive` (hanya bila tingkat kelas bermode rapor deskriptif) menandai bahwa angka ini khusus staf dan tidak untuk dibagikan ke wali. Hanya pemegang `report_card:manage`, kepala sekolah, kurikulum, atau wali kelas itu (selain itu 403). Semester/kelas harus milik sekolah ini dan satu tahun ajaran (400 `invalid_reference`). Unduhan Excel dan cetak dibuat di klien dari respons ini.
+         */
+        get: {
+            parameters: {
+                query: {
+                    semesterId: string;
+                    classId: string;
+                };
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            semester: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                academicYear: string;
+                            };
+                            class: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                level: string;
+                            };
+                            /** @enum {string} */
+                            reportMode?: "descriptive";
+                            showRank: boolean;
+                            subjects: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                kkm: number;
+                            }[];
+                            students: {
+                                /** Format: uuid */
+                                studentId: string;
+                                name: string;
+                                nis: string | null;
+                                /** @enum {string} */
+                                status: "draft" | "final";
+                                /** @enum {string} */
+                                source: "snapshot" | "live";
+                                cells: {
+                                    /** Format: uuid */
+                                    subjectId: string;
+                                    final: number | null;
+                                    /** @enum {string|null} */
+                                    predicate: "A" | "B" | "C" | "D" | null;
+                                    /** @enum {boolean} */
+                                    belowKkm?: true;
+                                    /** @enum {boolean} */
+                                    notTaken?: true;
+                                }[];
+                                average: number | null;
+                                subjectsGraded: number;
+                                subjectsTotal: number;
+                                rank: {
+                                    position: number;
+                                    of: number;
+                                } | null;
+                                attendance: {
+                                    sick: number;
+                                    excused: number;
+                                    absent: number;
+                                    late: number;
+                                };
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/report-cards/{studentId}": {
         parameters: {
             query?: never;

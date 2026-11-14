@@ -109,6 +109,16 @@ v1.4.0 (teks per predikat, bentuk data versi 1); hanya murid dan mata pelajaran 
   yang belum terdaftar tidak dihapus: skor itu hanya tersembunyi dan tampil lagi bila penanda dimatikan atau murid didaftarkan.
   Sekolah tanpa penanda identik dengan sebelumnya; rapor final tetap dari snapshot dan bentuk dokumen rapor tidak berubah.
   Kode galat baru: `student_not_taking_subject`.
+- **Legger kelas.** Halaman baru "Legger" (dari tombol di halaman Rapor) menampilkan nilai akhir seluruh murid satu kelas pada
+  satu semester dalam satu matriks murid x mapel, lengkap dengan predikat di bawah KKM, rata-rata, peringkat (bila pengaturan rapor
+  menampilkannya), sakit, izin, alpa, terlambat, status rapor (draf atau final), dan sumber angka. Rapor final dibaca dari
+  snapshot (tidak berubah walau skor diubah kemudian); draf dihitung dari nilai terkini dengan rumus yang sama dengan rapor dan
+  rekap. Daftar murid sama dengan daftar rapor (aktif, lulusan, dan murid pindah atau keluar sesudah semester berakhir); sel mapel
+  yang tidak diambil murid ditandai `notTaken` dan tidak masuk rata-rata. Kelas bermode rapor deskriptif memuat penanda
+  `reportMode` supaya angka tidak dibagikan ke wali. Unduh Excel dan cetak atau simpan PDF dibuat di peramban. Endpoint baru
+  `GET /v1/report-cards/ledger` (izin `report_card:read` dan wali kelas itu atau pemegang kelola rapor; modul `grades`; 400
+  `invalid_reference`), tanpa migrasi. Layar kirim nilai ujian ke buku nilai kini memberi tahu jumlah murid yang dilewati karena
+  tidak mengambil mapel, dan galat `student_not_taking_subject` memiliki pesan terjemahan.
 
 ### Diubah
 
@@ -142,6 +152,8 @@ v1.4.0 (teks per predikat, bentuk data versi 1); hanya murid dan mata pelajaran 
   lengkap" sampai maju lagi); lembar skor kembali menerima skor untuk semua murid rombel. Skor yang sudah tersimpan tidak
   hilang. Rapor final aman karena dibaca dari snapshot (hanya berisi mapel yang diambil murid). Sekolah tanpa penanda tidak
   terpengaruh.
+- Legger kelas (tahap 3C.2): tidak ada tabel atau kolom baru. Setelah kembali ke versi sebelumnya halaman Legger dan endpoint-nya
+  tidak ada; tidak ada efek pada nilai atau rapor (leger Excel lama di halaman Rapor tetap tersedia).
 - Mutasi murid dan riwayat rombel (tahap 3C.1): tabel `student_transfer` dan `enrollment_change` dibiarkan di database dan
   tampil lagi setelah maju. Setelah kembali ke versi sebelumnya, murid berstatus pindah kembali dikecualikan dari daftar rapor
   kelas (rapor final mereka tetap aman di snapshot dan tetap terbaca lewat dokumen tunggal), dan membuka kembali lalu
