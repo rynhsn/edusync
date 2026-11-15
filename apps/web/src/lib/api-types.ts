@@ -56679,7 +56679,7 @@ export interface paths {
         };
         /**
          * Pengaturan notifikasi WhatsApp (global)
-         * @description Staf platform (baca). Bawaan: menyala, penyedia `whatsapp` di produksi dan `log` di tempat lain, batas 500 pesan antre per sekolah. Variabel lingkungan `MESSAGING_PROVIDER` pada worker menimpa `provider`. Statistik: pesan dibuat dalam 24 jam terakhir (status `sending` dihitung `queued`) dan jumlah sambungan per status. `retry` mengatur kirim ulang (jeda, percobaan maksimum, kedaluwarsa pesan, batas usia tap). `runtime` memuat status Chrome yang dilaporkan worker (jalur Chrome tetap di variabel lingkungan `WA_CHROME_PATH` pada worker).
+         * @description Staf platform (baca). Bawaan: menyala, penyedia `whatsapp` di produksi dan `log` di tempat lain, batas 500 pesan antre per sekolah. Variabel lingkungan `MESSAGING_PROVIDER` pada worker menimpa `provider`. Statistik: pesan dibuat dalam 24 jam terakhir (status `sending` dihitung `queued`) dan jumlah sambungan per status. `retry` mengatur kirim ulang (jeda, percobaan maksimum, kedaluwarsa pesan, batas usia tap). `runtime` memuat penyedia dan waktu laporan terakhir worker (`chrome` usang: Baileys tidak memakai Chrome).
          */
         get: {
             parameters: {
@@ -56723,7 +56723,8 @@ export interface paths {
                             envProvider: "whatsapp" | "log" | null;
                             /** @description Status yang dilaporkan worker; null bila worker belum pernah melapor */
                             runtime: {
-                                chrome: {
+                                /** @description Usang (tanpa Chrome sejak Baileys); hanya ada pada laporan worker versi lama */
+                                chrome?: {
                                     /** @enum {string} */
                                     status: "detected" | "not_configured" | "not_found";
                                     path: string | null;
@@ -56849,7 +56850,8 @@ export interface paths {
                             envProvider: "whatsapp" | "log" | null;
                             /** @description Status yang dilaporkan worker; null bila worker belum pernah melapor */
                             runtime: {
-                                chrome: {
+                                /** @description Usang (tanpa Chrome sejak Baileys); hanya ada pada laporan worker versi lama */
+                                chrome?: {
                                     /** @enum {string} */
                                     status: "detected" | "not_configured" | "not_found";
                                     path: string | null;

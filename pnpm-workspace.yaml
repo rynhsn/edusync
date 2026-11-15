@@ -7,4 +7,5 @@ allowBuilds:
   "@parcel/watcher": false
   sharp: false
   unrs-resolver: false
-  puppeteer: false
+  "@whiskeysockets/baileys": false
+  protobufjs: false

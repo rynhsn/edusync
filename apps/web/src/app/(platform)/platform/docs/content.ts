@@ -1248,7 +1248,7 @@ export const PLATFORM_DOCS: DocArticle[] = [
               'Buka WhatsApp di menu Sistem.',
               'Di kartu Pesan 24 jam terakhir, lihat jumlah pesan menurut status: Antre, Terkirim, Gagal, Dilewati. Jumlah Gagal yang terus naik berarti ada masalah.',
               'Di kartu Akun WhatsApp sekolah, lihat jumlah akun menurut status sambungan: Terhubung, Menunggu pemindaian, Menyambung, Gagal, Terputus.',
-              'Di kartu Status worker, pastikan tertulis Chrome terdeteksi dan laporannya tidak lama. Worker adalah program di server yang benar-benar mengirim pesan.',
+              'Di kartu Status worker, pastikan laporannya tidak lama (waktu cek terbaru). Worker adalah program di server yang benar-benar mengirim pesan.',
             ],
             href: '/platform/messaging',
             tip: 'Bila laporan di Status worker tertulis lama, program pengirim pesan mungkin berhenti. Hubungi tim teknis.',
@@ -1289,8 +1289,8 @@ export const PLATFORM_DOCS: DocArticle[] = [
             a: 'Pertama, pastikan Aktifkan pengiriman pesan menyala dan Penyedia adalah WhatsApp. Kedua, lihat di Akun WhatsApp sekolah apakah akun sekolah itu Terhubung. Ketiga, cek jumlah Gagal dan Antre. Bila akun Menunggu pemindaian atau Terputus, minta admin sekolah memindai ulang kode QR.',
           },
           {
-            q: 'Status worker menulis Chrome belum terdeteksi. Bagaimana?',
-            a: 'Ini perlu dibereskan oleh tim teknis di server karena pengaturannya ada di server, bukan di konsol. Sampaikan tulisan statusnya apa adanya kepada mereka.',
+            q: 'Setelah pembaruan, akun WhatsApp sekolah menjadi Menunggu pemindaian. Kenapa?',
+            a: 'Sejak rilis 0.6.0 pengiriman WhatsApp memakai Baileys tanpa Chrome. Sesi lama tidak bisa dipindahkan, jadi setiap sekolah yang sudah tertaut perlu memindai ulang kode QR sekali di halaman Notifikasi WhatsApp. Setelah itu sesi tersimpan terenkripsi di database dan bertahan saat worker dimulai ulang.',
           },
           {
             q: 'Pilihan Penyedia tidak mau berubah setelah saya simpan. Kenapa?',
@@ -1315,7 +1315,7 @@ export const PLATFORM_DOCS: DocArticle[] = [
               'Open WhatsApp in the System menu.',
               'In the Messages in the last 24 hours card, see the message count by status: Queued, Sent, Failed, Skipped. A Failed count that keeps rising means there is a problem.',
               'In the School WhatsApp accounts card, see the account count by connection status: Connected, Waiting for scan, Connecting, Failed, Disconnected.',
-              'In the Worker status card, make sure it says Chrome detected and the report is not old. The worker is the program on the server that actually sends the messages.',
+              'In the Worker status card, make sure the report is recent (latest check time). The worker is the program on the server that actually sends the messages.',
             ],
             href: '/platform/messaging',
             tip: 'If the report in Worker status is old, the message-sending program may have stopped. Contact the technical team.',
@@ -1356,8 +1356,8 @@ export const PLATFORM_DOCS: DocArticle[] = [
             a: 'First, make sure Enable message sending is on and the Provider is WhatsApp. Second, look in School WhatsApp accounts to see if that school account is Connected. Third, check the Failed and Queued counts. If the account is Waiting for scan or Disconnected, ask the school admin to scan the QR code again.',
           },
           {
-            q: 'Worker status says Chrome is not detected. What now?',
-            a: 'The technical team has to fix this on the server because the setting lives on the server, not in the console. Pass them the status text as it is.',
+            q: 'After the update a school WhatsApp account shows Waiting for scan. Why?',
+            a: 'Since release 0.6.0 WhatsApp sending uses Baileys without Chrome. Old sessions cannot be carried over, so every school that was already linked has to scan the QR code once more on the WhatsApp notifications page. After that the session is stored encrypted in the database and survives worker restarts.',
           },
           {
             q: 'The Provider choice will not change after I save. Why?',
@@ -1382,7 +1382,7 @@ export const PLATFORM_DOCS: DocArticle[] = [
               'Buka WhatsApp dina menu Sistem.',
               'Dina kartu Pesen 24 jam ka tukang, tingali jumlah pesen nurutkeun status: Antri, Kakirim, Gagal, Dilewatan. Jumlah Gagal nu naék terus hartina aya masalah.',
               'Dina kartu Akun WhatsApp sakola, tingali jumlah akun nurutkeun status sambungan: Nyambung, Nungguan pamindaian, Nyambungkeun, Gagal, Pegat.',
-              'Dina kartu Status worker, pastikeun aya tulisan Chrome kadeteksi jeung laporanna teu lami. Worker nyaéta program dina server nu sabenerna ngirim pesen.',
+              'Dina kartu Status worker, pastikeun laporanna teu lami (waktu pamariksaan panungtungan). Worker nyaéta program dina server nu sabenerna ngirim pesen.',
             ],
             href: '/platform/messaging',
             tip: 'Lamun laporan dina Status worker lami, program pangirim pesen kamungkinan eureun. Hubungi tim téknis.',
@@ -1423,8 +1423,8 @@ export const PLATFORM_DOCS: DocArticle[] = [
             a: 'Kahiji, pastikeun Aktipkeun pangiriman pesen hurung jeung Panyadia nyaéta WhatsApp. Kadua, tingali dina Akun WhatsApp sakola naha akun sakola eta Nyambung. Katilu, pariksa jumlah Gagal jeung Antri. Lamun akunna Nungguan pamindaian atawa Pegat, pénta admin sakola mindai deui kode QR.',
           },
           {
-            q: 'Status worker nulis Chrome can kadeteksi. Kumaha?',
-            a: 'Ieu kudu dibérésan ku tim téknis dina server sabab pangaturanana aya di server, lain di konsol. Sampaikeun tulisan statusna sakumaha aslina ka maranéhna.',
+            q: 'Sanggeus pembaruan, akun WhatsApp sakola jadi Ngadagoan pamindaian. Naha?',
+            a: 'Ti rilis 0.6.0 pangiriman WhatsApp maké Baileys tanpa Chrome. Sési heubeul teu bisa dipindahkeun, jadi unggal sakola nu geus ditautkeun kudu mindai deui kode QR sakali di kaca Béwara WhatsApp. Sanggeusna sési disimpen énkripsi dina database jeung awét waktu worker dihurungkeun deui.',
           },
           {
             q: 'Pilihan Panyadia teu robah sanggeus abdi simpen. Naha?',

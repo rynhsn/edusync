@@ -94,7 +94,7 @@ pnpm dev
 
 Bila ada perubahan tabel sejak terakhir, jalankan `pnpm db:migrate` sebelum langkah 4. Bila port 3000 atau 4000 bentrok, cari prosesnya di PowerShell: `Get-NetTCPConnection -LocalPort 3000 | Select OwningProcess`.
 
-Pengiriman WhatsApp sungguhan butuh `MESSAGING_PROVIDER=whatsapp` dan `WA_CHROME_PATH` di `.env`; tanpa itu worker hanya mencatat pesan ke log. Rinciannya di bagian [Modul dan layar penting](#modul-dan-layar-penting).
+Pengiriman WhatsApp sungguhan butuh `MESSAGING_PROVIDER=whatsapp` di `.env` (tanpa Chrome; pustaka Baileys); tanpa itu worker hanya mencatat pesan ke log. Rinciannya di bagian [Modul dan layar penting](#modul-dan-layar-penting).
 
 ## Perintah lain
 
@@ -142,6 +142,6 @@ Bawaan: penyedia `dev` (tanpa uang, hanya lokal). Midtrans sandbox: isi `PAYMENT
 
 - **Kiosk absensi:** buka `/kiosk` di tablet/PC gerbang, tempel kunci perangkat dari Pengaturan absensi › Perangkat. Pembaca RFID USB cukup dicolok. Satu perangkat bisa melayani beberapa unit di lembaga yang sama: di Pengaturan absensi › Perangkat, pilih "Jangkauan perangkat" (kartu tiap siswa tercatat di unitnya sendiri; kartu dengan kode sama di dua unit ditolak).
 - **Absen cadangan lewat QR:** saat kiosk RFID mati, guru membuka Absen datang & pulang › tab Pindai QR dan memindai QR di kartu siswa dengan kamera ponsel (butuh HTTPS atau localhost). QR adalah kode identitas siswa `ES1.<kode acak>` (satu per siswa, tabel `student_identity_code`, tidak terikat modul) yang dibuat otomatis saat data cetak kartu dimuat (`GET /v1/cards/students`) dan tampil di kartu siswa bawaan; templat lama perlu menambah elemen QR dengan kolom "QR identitas siswa". Kode hanya menunjuk siswa; menu pemindai yang menentukan tindakan, dan pemindai wajib login + izin fiturnya. Endpoint: `POST /v1/gate/scan` (absensi), `GET /v1/students/{id}/identity-code`, `POST /v1/students/{id}/identity-code/rotate` (buat ulang bila kartu hilang; mencabut kode untuk semua fitur). Kiosk RFID tetap cara utama dan tidak menerima kode QR.
-- **WhatsApp:** jalankan worker dengan `MESSAGING_PROVIDER=log` (bawaan di dev) untuk uji tanpa mengirim. Untuk kirim sungguhan: `MESSAGING_PROVIDER=whatsapp`, `WA_CHROME_PATH` (jalur Chrome/Chromium), lalu hubungkan nomor lewat halaman Notifikasi WhatsApp (pindai QR). Gunakan nomor khusus sekolah.
+- **WhatsApp:** jalankan worker dengan `MESSAGING_PROVIDER=log` (bawaan di dev) untuk uji tanpa mengirim. Untuk kirim sungguhan: `MESSAGING_PROVIDER=whatsapp`, lalu hubungkan nomor lewat halaman Notifikasi WhatsApp (pindai QR; sesi tersimpan terenkripsi di database). Gunakan nomor khusus sekolah.
 - **Seed contoh:** `pnpm --filter @edusync/api seed:dev` memberi sekolah contoh semua modul, jenis biaya dan tarif, serta pengaturan rapor.
 - **Tahfidz, administrasi, PKL, SPMB:** menu "Pembinaan" dan "Administrasi" (butuh entitlement modul). Pendaftaran murid baru publik di `/apply`, verifikasi surat di `/verify/{token}`, tautan pembimbing PKL di `/pkl/{token}`. Data contoh: `pnpm --filter @edusync/api seed:dev` (kode pelacakan SPMB demo `DEMO2SPMB1..`).

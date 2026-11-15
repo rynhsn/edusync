@@ -1,5 +1,5 @@
 import { EventEmitter } from 'node:events';
-import { eq, waAccount } from '@edusync/db';
+import { eq, waAccount, waAuthState } from '@edusync/db';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { AccountSync, type PlatformMessagingSettings } from './account-sync';
 import { createFixture } from './test-helpers';
@@ -229,11 +229,26 @@ describe('WhatsAppManager (klien tiruan)', () => {
     });
   });
 
-  it('tanpa WA_CHROME_PATH: failed dengan pesan yang jelas', async () => {
+  it('tanpa AUTH_SECRET (dan tanpa factory): failed dengan pesan yang jelas', async () => {
     const sid = await fx.newSchool({ account: { desiredState: 'on', status: 'disconnected' } });
     const manager = new WhatsAppManager(fx.db, {});
     await manager.connect(sid);
-    expect(await account(sid)).toMatchObject({ status: 'failed', lastError: 'WA_CHROME_PATH belum diatur' });
+    expect(await account(sid)).toMatchObject({ status: 'failed', lastError: 'AUTH_SECRET belum diatur' });
+  });
+});
+
+describe('WhatsAppManager.disconnect', () => {
+  it('putus sengaja membuang kredensial tersimpan sekolah itu saja', async () => {
+    const a = await fx.newSchool({ account: { desiredState: 'off', status: 'ready' } });
+    const b = await fx.newSchool({ account: { desiredState: 'on', status: 'ready' } });
+    await fx.db.insert(waAuthState).values([
+      { schoolId: a, key: 'creds', value: 'v1.x.y.z' },
+      { schoolId: b, key: 'creds', value: 'v1.x.y.z' },
+    ]);
+    const manager = new WhatsAppManager(fx.db, { factory: async () => new FakeClient() });
+    await manager.disconnect(a);
+    expect(await fx.db.select().from(waAuthState).where(eq(waAuthState.schoolId, a))).toEqual([]);
+    expect(await fx.db.select().from(waAuthState).where(eq(waAuthState.schoolId, b))).toHaveLength(1);
   });
 });
 

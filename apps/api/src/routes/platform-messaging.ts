@@ -50,10 +50,14 @@ const retrySchema = z.object({
 
 const runtimeSchema = z
   .object({
-    chrome: z.object({
-      status: z.enum(['detected', 'not_configured', 'not_found']),
-      path: z.string().nullable(),
-    }),
+    /** Usang: worker berbasis Baileys tidak memakai Chrome dan tidak lagi mengisinya; laporan lama masih terbaca. */
+    chrome: z
+      .object({
+        status: z.enum(['detected', 'not_configured', 'not_found']),
+        path: z.string().nullable(),
+      })
+      .optional()
+      .describe('Usang (tanpa Chrome sejak Baileys); hanya ada pada laporan worker versi lama'),
     provider: z.enum(['whatsapp', 'log']),
     checkedAt: z.string(),
   })
@@ -150,8 +154,7 @@ export async function platformMessagingRoutes(instance: FastifyInstance, options
           '500 pesan antre per sekolah. Variabel lingkungan `MESSAGING_PROVIDER` pada worker menimpa `provider`. ' +
           'Statistik: pesan dibuat dalam 24 jam terakhir (status `sending` dihitung `queued`) dan jumlah sambungan ' +
           'per status. `retry` mengatur kirim ulang (jeda, percobaan maksimum, kedaluwarsa pesan, batas usia tap). ' +
-          '`runtime` memuat status Chrome yang dilaporkan worker (jalur Chrome tetap di variabel lingkungan ' +
-          '`WA_CHROME_PATH` pada worker).',
+          '`runtime` memuat penyedia dan waktu laporan terakhir worker (`chrome` usang: Baileys tidak memakai Chrome).',
         response: { 200: viewSchema, 401: errorSchema, 403: errorSchema },
       },
     },

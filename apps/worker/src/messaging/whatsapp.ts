@@ -1,9 +1,9 @@
-import { type Db, eq, waAccount } from '@edusync/db';
+import { type Db, eq, waAccount, waAuthState } from '@edusync/db';
 import type { MessageSender, SendResult } from './sender';
 
-/** Bagian klien whatsapp-web.js yang dipakai; memudahkan peniruan di tes. */
+/** Kontrak klien WhatsApp (diisi adaptor Baileys); memudahkan peniruan di tes. */
 export interface WaClient {
-  // biome-ignore lint/suspicious/noExplicitAny: pendengar peristiwa whatsapp-web.js bertanda tangan beragam
+  // biome-ignore lint/suspicious/noExplicitAny: pendengar peristiwa bertanda tangan beragam
   on(event: string, listener: (...args: any[]) => void): unknown;
   initialize(): Promise<void>;
   getNumberId(phone: string): Promise<{ _serialized: string } | null>;
@@ -16,11 +16,11 @@ export interface WaClient {
 export type WaClientFactory = (schoolId: string) => Promise<WaClient>;
 
 export interface WhatsAppOptions {
-  sessionDir?: string | undefined;
-  chromePath?: string | undefined;
+  /** Kunci enkripsi kredensial sesi (AUTH_SECRET); wajib kecuali tes memakai factory. */
+  authSecret?: string | undefined;
   /** Batas klien yang berjalan bersamaan; sambungan baru di atas batas ditolak dengan status 'failed'. */
   maxClients?: number | undefined;
-  /** Untuk tes: ganti pembuatan klien tanpa memuat whatsapp-web.js. */
+  /** Untuk tes: ganti pembuatan klien tanpa memuat Baileys. */
   factory?: WaClientFactory;
   log?: Pick<Console, 'log' | 'error'>;
 }
@@ -30,7 +30,7 @@ interface Entry {
   ready: boolean;
 }
 
-/** Satu klien WhatsApp Web per sekolah; status ditulis ke wa_account lewat peran platform. */
+/** Satu klien WhatsApp (Baileys) per sekolah; status ditulis ke wa_account lewat peran platform. */
 export class WhatsAppManager implements MessageSender {
   private readonly clients = new Map<string, Entry>();
   private readonly connecting = new Set<string>();
@@ -78,40 +78,16 @@ export class WhatsAppManager implements MessageSender {
 
   private async createClient(schoolId: string): Promise<WaClient> {
     if (this.options.factory) return this.options.factory(schoolId);
-    // Dinamis agar tes/CI tanpa Chromium tidak memuat puppeteer.
-    const mod = await import('whatsapp-web.js');
-    const wweb = ((mod as { default?: unknown }).default ?? mod) as typeof mod;
-    const { Client, LocalAuth } = wweb;
-    return new Client({
-      authStrategy: new LocalAuth({
-        clientId: schoolId,
-        dataPath: this.options.sessionDir ?? './.wa-sessions',
-      }),
-      puppeteer: {
-        headless: true,
-        executablePath: this.options.chromePath as string,
-        // Profil per sekolah tidak perlu cache besar, pembaruan komponen, ekstensi, atau suara.
-        args: [
-          '--no-sandbox',
-          '--disable-setuid-sandbox',
-          '--disk-cache-size=1',
-          '--media-cache-size=1',
-          '--disable-component-update',
-          '--disable-extensions',
-          '--disable-background-networking',
-          '--disable-sync',
-          '--no-first-run',
-          '--mute-audio',
-        ],
-      },
-    }) as unknown as WaClient;
+    // Dinamis agar tes tanpa klien sungguhan tidak memuat Baileys.
+    const { createBaileysClient } = await import('./baileys-client');
+    return createBaileysClient(this.db, schoolId, this.options.authSecret as string, this.log);
   }
 
   /** Mulai (atau abaikan bila sudah jalan) klien sebuah sekolah. */
   async connect(schoolId: string): Promise<void> {
     if (this.has(schoolId)) return;
-    if (!this.options.factory && !this.options.chromePath) {
-      await this.write(schoolId, { status: 'failed', qr: null, lastError: 'WA_CHROME_PATH belum diatur' });
+    if (!this.options.factory && !this.options.authSecret) {
+      await this.write(schoolId, { status: 'failed', qr: null, lastError: 'AUTH_SECRET belum diatur' });
       return;
     }
     const max = this.options.maxClients;
@@ -139,7 +115,9 @@ export class WhatsAppManager implements MessageSender {
         if (current()) safe(() => this.write(schoolId, { status: 'qr', qr, lastError: null }));
       });
       const connecting = () => {
-        if (current()) safe(() => this.write(schoolId, { status: 'connecting', qr: null }));
+        if (!current()) return;
+        entry.ready = false; // sambung ulang/pemulihan: belum boleh kirim sampai 'ready' lagi
+        safe(() => this.write(schoolId, { status: 'connecting', qr: null }));
       };
       client.on('loading_screen', connecting);
       client.on('authenticated', connecting);
@@ -162,7 +140,7 @@ export class WhatsAppManager implements MessageSender {
         safe(() => this.write(schoolId, { status: 'disconnected', qr: null }));
       });
 
-      // initialize menunggu browser siap; galatnya (mis. Chrome tak ditemukan) dicatat sebagai 'failed'.
+      // initialize memuat sesi dan membuka soket; galatnya (mis. DB tak terjangkau) dicatat sebagai 'failed'.
       client.initialize().catch((error) => {
         if (!current()) return;
         this.clients.delete(schoolId);
@@ -187,7 +165,7 @@ export class WhatsAppManager implements MessageSender {
     }
   }
 
-  /** Putus: keluar dari perangkat tertaut (sesi tersimpan dihapus) lalu tutup browser. */
+  /** Putus: keluar dari perangkat tertaut (sesi tersimpan dihapus) lalu tutup soket. */
   async disconnect(schoolId: string): Promise<void> {
     const entry = this.clients.get(schoolId);
     this.clients.delete(schoolId);
@@ -196,6 +174,8 @@ export class WhatsAppManager implements MessageSender {
       await entry.client.logout().catch(() => undefined);
       await entry.client.destroy().catch(() => undefined);
     }
+    // Putus sengaja = sesi dibuang, juga bila worker baru menyala dan belum memegang klien.
+    await this.db.delete(waAuthState).where(eq(waAuthState.schoolId, schoolId));
     await this.write(schoolId, { status: 'disconnected', qr: null });
   }
 
@@ -209,7 +189,7 @@ export class WhatsAppManager implements MessageSender {
     }
   }
 
-  /** Tutup semua browser tanpa logout, agar sesi tersimpan bisa dipakai lagi saat worker menyala. */
+  /** Tutup semua soket tanpa logout, agar sesi tersimpan bisa dipakai lagi saat worker menyala. */
   async shutdown(): Promise<void> {
     const entries = [...this.clients.values()];
     this.clients.clear();

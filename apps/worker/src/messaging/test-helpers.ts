@@ -19,6 +19,7 @@ import {
   student,
   studentGuardian,
   waAccount,
+  waAuthState,
 } from '@edusync/db';
 
 /** Fixture tes pesan: pool platform, pembuatan sekolah/siswa/wali, dan pembersihan lengkap. */
@@ -186,6 +187,7 @@ export function createFixture(prefix: string) {
       await db.delete(msgMessage).where(eq(msgMessage.schoolId, id));
       await db.delete(msgTemplate).where(eq(msgTemplate.schoolId, id));
       await db.delete(msgSetting).where(eq(msgSetting.schoolId, id));
+      await db.delete(waAuthState).where(eq(waAuthState.schoolId, id));
       await db.delete(waAccount).where(eq(waAccount.schoolId, id));
       await db.delete(finPaymentItem).where(eq(finPaymentItem.schoolId, id));
       await db.delete(finPayment).where(eq(finPayment.schoolId, id));

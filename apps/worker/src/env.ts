@@ -19,13 +19,9 @@ const schema = z.object({
   SMTP_USER: z.string().optional(),
   SMTP_PASSWORD: z.string().optional(),
   EMAIL_FROM: z.string().default('Edusync <noreply@edusync.test>'),
-  /** Mengunci pengirim pesan wali murid: 'log' hanya mencatat, 'whatsapp' memakai whatsapp-web.js. Kosong = ikut pilihan di konsol platform. */
+  /** Mengunci pengirim pesan wali murid: 'log' hanya mencatat, 'whatsapp' memakai Baileys. Kosong = ikut pilihan di konsol platform. */
   MESSAGING_PROVIDER: z.enum(['log', 'whatsapp']).optional(),
-  /** Jalur Chrome/Chromium untuk whatsapp-web.js; wajib bila provider whatsapp. */
-  WA_CHROME_PATH: z.string().optional(),
-  /** Folder sesi WhatsApp (satu subfolder per sekolah). */
-  WA_SESSION_DIR: z.string().default('./.wa-sessions'),
-  /** Batas klien WhatsApp (satu Chrome per sekolah, sekitar 300 MB RAM) yang berjalan bersamaan. */
+  /** Batas klien WhatsApp (satu soket Baileys per sekolah, beberapa puluh MB RAM) yang berjalan bersamaan. */
   WA_MAX_CLIENTS: z.coerce.number().int().positive().default(20),
 });
 

@@ -4,15 +4,14 @@ import { Dispatcher } from './dispatcher';
 import { startRuntimeStatus } from './runtime-status';
 import { MessagingSchedulers } from './schedulers';
 import { LogSender, type MessageSender } from './sender';
-import { startSessionPrune } from './session-prune';
 import { WhatsAppManager } from './whatsapp';
 
 export interface MessagingEnv {
   /** Kosong = ikut pilihan penyedia di konsol platform. */
   MESSAGING_PROVIDER?: 'log' | 'whatsapp' | undefined;
-  WA_CHROME_PATH?: string | undefined;
-  WA_SESSION_DIR: string;
-  /** Batas klien WhatsApp (Chrome) yang berjalan bersamaan di server ini. */
+  /** Kunci enkripsi kredensial sesi WhatsApp di database (sama dengan AUTH_SECRET API). */
+  AUTH_SECRET: string;
+  /** Batas klien WhatsApp (Baileys) yang berjalan bersamaan di server ini. */
   WA_MAX_CLIENTS?: number | undefined;
 }
 
@@ -26,8 +25,7 @@ export function startMessaging(db: Db, env: MessagingEnv) {
     return platform;
   };
   const manager = new WhatsAppManager(db, {
-    sessionDir: env.WA_SESSION_DIR,
-    chromePath: env.WA_CHROME_PATH,
+    authSecret: env.AUTH_SECRET,
     maxClients: env.WA_MAX_CLIENTS,
   });
   const log = new LogSender();
@@ -39,21 +37,19 @@ export function startMessaging(db: Db, env: MessagingEnv) {
   const sync = new AccountSync(db, { mode: env.MESSAGING_PROVIDER, manager, getPlatform });
   const dispatcher = new Dispatcher(db, sender, { getPlatform });
   const schedulers = new MessagingSchedulers(db, { getPlatform });
-  // Status Chrome untuk konsol platform (jalur Chrome tetap dari env).
+  // Status worker untuk konsol platform.
   const runtime = startRuntimeStatus(
     db,
-    { chromePath: env.WA_CHROME_PATH, provider: env.MESSAGING_PROVIDER ?? defaultMessagingProvider() },
+    { provider: env.MESSAGING_PROVIDER ?? defaultMessagingProvider() },
     {},
   );
-  // Sekolah yang dihapus (mis. sekolah uji) meninggalkan profil Chrome puluhan MB; buang berkala.
-  const prune = startSessionPrune(db, env.WA_SESSION_DIR);
   sync.start();
   dispatcher.start();
   schedulers.start();
 
   return {
     stop: async () => {
-      await Promise.all([sync.stop(), dispatcher.stop(), schedulers.stop(), runtime.stop(), prune.stop()]);
+      await Promise.all([sync.stop(), dispatcher.stop(), schedulers.stop(), runtime.stop()]);
       await manager.shutdown();
     },
   };

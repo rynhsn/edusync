@@ -5189,6 +5189,7 @@
     "qrStep2": "Ketuk Perangkat tertaut.",
     "qrStep3": "Ketuk Tautkan perangkat.",
     "qrStep4": "Arahkan kamera ke kode QR ini.",
+    "qrRelink": "Setelah pembaruan ke Baileys (0.6.0), sesi WhatsApp lama tidak bisa dipakai lagi. Pindai kode QR sekali lagi untuk menautkan ulang nomor sekolah.",
     "qrRefresh": "Kode diperbarui otomatis; halaman memeriksa setiap 3 detik.",
     "connect": "Hubungkan WhatsApp",
     "disconnect": "Putuskan",
@@ -5282,16 +5283,11 @@
     "staleTapHoursHint": "Tap kiosk yang lebih tua dari ini tidak lagi diberitahukan ke wali (1 sampai 72).",
     "runtimeTitle": "Status worker",
     "runtimeHint": "Dilaporkan sendiri oleh worker pesan saat start dan tiap beberapa menit.",
-    "chrome": "Chrome untuk WhatsApp",
-    "chromeStatus": {
-      "detected": "Chrome terdeteksi",
-      "not_configured": "WA_CHROME_PATH belum diatur",
-      "not_found": "Berkas Chrome tidak ditemukan",
-      "unknown": "Belum ada laporan"
-    },
+    "chrome": "Pustaka WhatsApp",
+    "libraryValue": "Baileys (tanpa Chrome)",
+    "libraryUnknown": "Belum ada laporan",
     "checkedAt": "Dicek {time}",
     "runtimeStale": "laporan lama, worker mungkin berhenti",
-    "chromeFix": "Isi WA_CHROME_PATH di .env worker dengan jalur chrome.exe (atau Chromium), lalu restart worker.",
     "runtimeNone": "Worker belum melapor. Pastikan worker berjalan dengan penyedia WhatsApp.",
     "providerLocked": "Dikunci oleh env server (MESSAGING_PROVIDER={provider}); pilihan ini tidak berlaku sampai env dikosongkan."
   },

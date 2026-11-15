@@ -1,7 +1,7 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { CircleAlert, CircleCheck, CircleHelp, Send } from 'lucide-react';
+import { CircleCheck, CircleHelp, Send } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -39,12 +39,7 @@ function parseBackoff(text: string): number[] | null {
 
 const inRange = (n: number, min: number, max: number) => Number.isInteger(n) && n >= min && n <= max;
 
-const CHROME_ICON = { detected: CircleCheck, not_configured: CircleHelp, not_found: CircleAlert } as const;
-const CHROME_TONE = {
-  detected: 'text-emerald-600 dark:text-emerald-400',
-  not_configured: 'text-amber-600 dark:text-amber-400',
-  not_found: 'text-destructive',
-} as const;
+const CHROME_OK = 'text-emerald-600 dark:text-emerald-400';
 
 const STAT_TONE: Record<string, Tone> = {
   queued: 'sky',
@@ -135,8 +130,6 @@ export function PlatformMessagingView() {
   if (settings.isPending) return <Skeleton className="h-64 w-full rounded-2xl" />;
   if (!settings.data) return <QueryError error={settings.error} onRetry={() => settings.refetch()} />;
   const s = settings.data;
-  const chrome = s.runtime?.chrome.status;
-  const ChromeIcon = chrome ? CHROME_ICON[chrome] : CircleHelp;
   // Laporan worker lebih tua dari ini (menit) dianggap basi: worker mungkin mati.
   const stale = s.runtime ? Date.now() - new Date(s.runtime.checkedAt).getTime() > 15 * 60_000 : false;
 
@@ -309,9 +302,13 @@ export function PlatformMessagingView() {
         <CardContent className="grid gap-3">
           <div className="flex flex-wrap items-center gap-3">
             <span className="text-sm font-medium">{t('chrome')}</span>
-            <Badge variant="outline" className={chrome ? CHROME_TONE[chrome] : undefined}>
-              <ChromeIcon className="size-3.5" aria-hidden="true" />
-              {chrome ? t(`chromeStatus.${chrome}`) : t('chromeStatus.unknown')}
+            <Badge variant="outline" className={s.runtime ? CHROME_OK : undefined}>
+              {s.runtime ? (
+                <CircleCheck className="size-3.5" aria-hidden="true" />
+              ) : (
+                <CircleHelp className="size-3.5" aria-hidden="true" />
+              )}
+              {s.runtime ? t('libraryValue') : t('libraryUnknown')}
             </Badge>
             {s.runtime && (
               <span className="text-muted-foreground text-xs">
@@ -320,17 +317,6 @@ export function PlatformMessagingView() {
               </span>
             )}
           </div>
-          {chrome === 'detected' && s.runtime?.chrome.path && (
-            <p className="text-muted-foreground font-mono text-xs break-all">{s.runtime.chrome.path}</p>
-          )}
-          {(chrome === 'not_configured' || chrome === 'not_found') && (
-            <Alert role="status">
-              <AlertDescription>{t('chromeFix')}</AlertDescription>
-            </Alert>
-          )}
-          {chrome === 'not_found' && s.runtime?.chrome.path && (
-            <p className="text-muted-foreground font-mono text-xs break-all">{s.runtime.chrome.path}</p>
-          )}
           {!s.runtime && <p className="text-muted-foreground text-xs">{t('runtimeNone')}</p>}
         </CardContent>
       </Card>

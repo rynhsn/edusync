@@ -5189,6 +5189,7 @@
     "qrStep2": "Ketok Parabot nu numbu.",
     "qrStep3": "Ketok Numbukeun parabot.",
     "qrStep4": "Arahkeun kaméra ka kode QR ieu.",
+    "qrRelink": "Sanggeus pindah ka Baileys (0.6.0), sési WhatsApp heubeul teu bisa dipaké deui. Pindai kode QR sakali deui pikeun nautkeun deui nomer sakola.",
     "qrRefresh": "Kode diganti otomatis; kaca mariksa unggal 3 detik.",
     "connect": "Sambungkeun WhatsApp",
     "disconnect": "Peuntaskeun",
@@ -5282,16 +5283,11 @@
     "staleTapHoursHint": "Tap kiosk nu leuwih heubeul ti ieu teu dibéjakeun deui ka wali (1 nepi ka 72).",
     "runtimeTitle": "Status worker",
     "runtimeHint": "Dilaporkeun ku worker pesen sorangan nalika ngamimitian jeung unggal sababaraha menit.",
-    "chrome": "Chrome pikeun WhatsApp",
-    "chromeStatus": {
-      "detected": "Chrome kapanggih",
-      "not_configured": "WA_CHROME_PATH can diatur",
-      "not_found": "Berkas Chrome teu kapanggih",
-      "unknown": "Can aya laporan"
-    },
+    "chrome": "Pustaka WhatsApp",
+    "libraryValue": "Baileys (tanpa Chrome)",
+    "libraryUnknown": "Can aya laporan",
     "checkedAt": "Dipariksa {time}",
     "runtimeStale": "laporan heubeul, worker meureun eureun",
-    "chromeFix": "Eusian WA_CHROME_PATH di .env worker ku jalur chrome.exe (atawa Chromium), tuluy mimitian deui worker.",
     "runtimeNone": "Worker can ngalaporkeun. Pastikeun worker jalan maké panyadia WhatsApp.",
     "providerLocked": "Dikonci ku env server (MESSAGING_PROVIDER={provider}); pilihan ieu teu laku nepi ka env dikosongkeun."
   },

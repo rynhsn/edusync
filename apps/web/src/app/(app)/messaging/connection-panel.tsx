@@ -171,7 +171,7 @@ export function ConnectionPanel() {
   const style = STATUS_STYLE[status];
   const canConnect = status === 'disconnected' || status === 'failed';
   const canDisconnect = status !== 'disconnected' || a.desiredState === 'on';
-  // Perintah sudah diterima API tetapi worker belum selesai (menutup Chrome / membuka sesi): kunci tombol sampai status berubah.
+  // Perintah sudah diterima API tetapi worker belum selesai (menutup soket / membuka sesi): kunci tombol sampai status berubah.
   const live = a.provider === 'whatsapp';
   const starting = live && a.desiredState === 'on' && status === 'disconnected';
   const closing = live && a.desiredState === 'off' && status !== 'disconnected' && status !== 'failed';
@@ -230,6 +230,7 @@ export function ConnectionPanel() {
                   <li>{t('qrStep4')}</li>
                 </ol>
                 <p className="text-muted-foreground text-xs">{t('qrRefresh')}</p>
+                <p className="text-muted-foreground text-xs">{t('qrRelink')}</p>
               </div>
             </div>
           )}

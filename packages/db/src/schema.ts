@@ -2839,6 +2839,23 @@ export const waAccount = pgTable('wa_account', {
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
+/**
+ * Kredensial sesi Baileys per sekolah (migrasi 0113). Satu baris per kunci; `value` terenkripsi (AES-256-GCM, kunci
+ * turunan AUTH_SECRET). Hanya worker (peran platform) yang membaca/menulis; peran aplikasi tidak punya akses.
+ */
+export const waAuthState = pgTable(
+  'wa_auth_state',
+  {
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    key: text('key').notNull(),
+    value: text('value').notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.schoolId, t.key] })],
+);
+
 /** Antrean dan riwayat pesan keluar. Satu baris per penerima per peristiwa. */
 export const msgMessage = pgTable(
   'msg_message',

@@ -7,6 +7,41 @@ memutus kompatibilitas. Produksi hanya berubah saat tag `vX.Y.Z` dikirim; tulis 
 Cara merilis: tulis bagian baru di bawah "Belum dirilis" lalu ganti judulnya menjadi `## [x.y.z] - tanggal`, kemudian
 `pnpm release x.y.z` dan `git push edusync HEAD:main vx.y.z`.
 
+## Belum dirilis
+
+Pengiriman WhatsApp pindah dari whatsapp-web.js (Chromium) ke Baileys (WebSocket, tanpa browser). Antarmuka, antrean kirim,
+jeda acak, status/QR di halaman Notifikasi WhatsApp, dan pengaturan platform tidak berubah.
+
+### Diubah
+
+- **Pustaka WhatsApp di worker: Baileys** (`@whiskeysockets/baileys`, versi 7.0.0-rc14 dikunci persis). Tanpa Chrome/Chromium dan
+  puppeteer: memori per sekolah turun dari sekitar 300 MB menjadi beberapa puluh MB, dan Dockerfile/server tidak perlu memasang
+  Chrome. Batas `WA_MAX_CLIENTS` tetap berlaku (bawaan 20). Sambung ulang untuk putus sementara otomatis (jeda bertahap); bila
+  dikeluarkan dari ponsel (logout) kredensial dibuang dan status menjadi Terputus; sesi yang diambil perangkat lain tidak
+  direbut kembali. Pembatasan laju WhatsApp muncul sebagai galat kirim biasa dan dicoba ulang oleh aturan kirim ulang.
+- **Sesi WhatsApp disimpan di database**, tabel baru `wa_auth_state` (migrasi 0113, aditif): satu baris per kunci, nilai
+  terenkripsi AES-256-GCM dari `AUTH_SECRET`, RLS dipaksa, dan peran aplikasi (API) tidak punya akses baca sama sekali. Sesi
+  bertahan saat worker dimulai ulang, ikut cadangan database, dan tidak lagi bergantung pada folder `.wa-sessions`.
+  Kredensial tidak dicatat ke log maupun audit. Mengganti `AUTH_SECRET` membuat sesi tersimpan tak terbaca; sekolah perlu
+  menautkan ulang.
+- Kartu Status worker di konsol platform tidak lagi menampilkan Chrome: kini menampilkan pustaka (Baileys) dan waktu laporan
+  terakhir. Pada API, `runtime.chrome` menjadi opsional dan usang (laporan worker lama masih terbaca).
+
+### Dihapus
+
+- Variabel `WA_CHROME_PATH` dan `WA_SESSION_DIR` (diabaikan bila masih ada di `.env`), dependensi whatsapp-web.js, serta
+  pembersih folder sesi lama.
+
+### Perlu tindakan saat memperbarui
+
+- **Semua sekolah yang sudah tertaut WhatsApp harus memindai ulang kode QR satu kali.** Sesi whatsapp-web.js tidak bisa
+  dipindahkan ke Baileys. Setelah worker baru berjalan, akun sekolah yang sebelumnya Terhubung kembali ke Menunggu pemindaian;
+  pesan tetap antre dan terkirim setelah tertaut ulang (pesan yang melewati masa kedaluwarsa sesuai aturan yang ada tetap
+  dibuang). Di ponsel: Perangkat tertaut > Tautkan perangkat. Halaman Notifikasi WhatsApp menampilkan pengingat ini di bawah
+  kode QR.
+- Folder `.wa-sessions` lama (profil Chrome) boleh dihapus dari server setelah semua sekolah tertaut ulang. Hapus juga
+  `WA_CHROME_PATH` dan `WA_SESSION_DIR` dari `.env` bila ada.
+
 ## [0.5.0] - 2026-11-15
 
 Revisi kurikulum selesai (Fase 3 sampai 5). Nomor rilis sebelumnya (1.0.0 sampai 1.4.0) diubah menjadi 0.0.0 sampai 0.4.0;

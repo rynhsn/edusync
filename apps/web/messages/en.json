@@ -5189,6 +5189,7 @@
     "qrStep2": "Tap Linked devices.",
     "qrStep3": "Tap Link a device.",
     "qrStep4": "Point the camera at this QR code.",
+    "qrRelink": "After the move to Baileys (0.6.0), old WhatsApp sessions can no longer be used. Scan the QR code once more to link the school number again.",
     "qrRefresh": "The code refreshes automatically; this page checks every 3 seconds.",
     "connect": "Connect WhatsApp",
     "disconnect": "Disconnect",
@@ -5282,16 +5283,11 @@
     "staleTapHoursHint": "Kiosk taps older than this are no longer notified to guardians (1 to 72).",
     "runtimeTitle": "Worker status",
     "runtimeHint": "Reported by the messaging worker itself at start and every few minutes.",
-    "chrome": "Chrome for WhatsApp",
-    "chromeStatus": {
-      "detected": "Chrome detected",
-      "not_configured": "WA_CHROME_PATH not set",
-      "not_found": "Chrome file not found",
-      "unknown": "No report yet"
-    },
+    "chrome": "WhatsApp library",
+    "libraryValue": "Baileys (no Chrome)",
+    "libraryUnknown": "No report yet",
     "checkedAt": "Checked {time}",
     "runtimeStale": "old report, the worker may have stopped",
-    "chromeFix": "Set WA_CHROME_PATH in the worker .env to the chrome.exe (or Chromium) path, then restart the worker.",
     "runtimeNone": "The worker has not reported yet. Make sure it runs with the WhatsApp provider.",
     "providerLocked": "Locked by the server env (MESSAGING_PROVIDER={provider}); this choice has no effect until the env is cleared."
   },
