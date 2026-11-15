@@ -7,7 +7,7 @@ memutus kompatibilitas. Produksi hanya berubah saat tag `vX.Y.Z` dikirim; tulis 
 Cara merilis: tulis bagian baru di bawah "Belum dirilis" lalu ganti judulnya menjadi `## [x.y.z] - tanggal`, kemudian
 `pnpm release x.y.z` dan `git push edusync HEAD:main vx.y.z`.
 
-## Belum dirilis
+## [0.6.0] - 2026-11-15
 
 Pengiriman WhatsApp pindah dari whatsapp-web.js (Chromium) ke Baileys (WebSocket, tanpa browser). Antarmuka, antrean kirim,
 jeda acak, status/QR di halaman Notifikasi WhatsApp, dan pengaturan platform tidak berubah.
@@ -43,11 +43,11 @@ jeda acak, status/QR di halaman Notifikasi WhatsApp, dan pengaturan platform tid
   - Tanpa migrasi: `msg_attachment` tidak diberi `letter_id` (rujukan surat tercatat di audit `letter.whatsapp`; `letter` memang tidak punya UNIQUE `(school_id, id)`).
   - Panduan Notifikasi WhatsApp di Dokumentasi diperluas (id, en, su).
 
-- **Header dan footer pesan WhatsApp**: tiap sekolah dapat mengisi teks pembuka dan penutup (beberapa baris, format *tebal* dst., pengganti `{{school}}`, maks 300 karakter) di Notifikasi WhatsApp > Pengaturan, lengkap dengan pratinjau gelembung. Dipasang saat kirim (header + isi + footer): berlaku juga untuk pesan yang masih antre dan pesan uji, sedangkan isi pesan di riwayat tetap asli. Kosong = persis seperti sebelumnya. Kolom baru `header_text`/`footer_text` di `msg_setting` (migrasi 0114, aditif); `PUT /v1/messaging/settings` menerima `headerText`/`footerText` (opsional; dihilangkan = tidak diubah).
+- **Header dan footer pesan WhatsApp**: tiap sekolah dapat mengisi teks pembuka dan penutup (beberapa baris, format `*tebal*` dst., pengganti `{{school}}`, maks 300 karakter) di Notifikasi WhatsApp > Pengaturan, lengkap dengan pratinjau gelembung. Dipasang saat kirim (header + isi + footer): berlaku juga untuk pesan yang masih antre dan pesan uji, sedangkan isi pesan di riwayat tetap asli. Kosong = persis seperti sebelumnya. Kolom baru `header_text`/`footer_text` di `msg_setting` (migrasi 0114, aditif); `PUT /v1/messaging/settings` menerima `headerText`/`footerText` (opsional; dihilangkan = tidak diubah).
 
 ### Diubah
 
-- **Templat pesan WhatsApp**: kolom isi lebih tinggi untuk pesan beberapa baris, dan pratinjau tampil sebagai gelembung obrolan WhatsApp dengan format *tebal*, _miring_, ~coret~, `kode`, dan ```blok kode```. Teks yang dikirim tidak berubah.
+- **Templat pesan WhatsApp**: kolom isi lebih tinggi untuk pesan beberapa baris, dan pratinjau tampil sebagai gelembung obrolan WhatsApp dengan format `*tebal*`, `_miring_`, `~coret~`, dan kode. Teks yang dikirim tidak berubah.
 
 - **Pesan uji tetap terkirim walau pengiriman otomatis sekolah dimatikan** (sebelumnya langsung berstatus "dilewati"). Pesan lain tetap dilewati.
 
