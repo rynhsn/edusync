@@ -7,6 +7,14 @@ memutus kompatibilitas. Produksi hanya berubah saat tag `vX.Y.Z` dikirim; tulis 
 Cara merilis: tulis bagian baru di bawah "Belum dirilis" lalu ganti judulnya menjadi `## [x.y.z] - tanggal`, kemudian
 `pnpm release x.y.z` dan `git push edusync HEAD:main vx.y.z`.
 
+## [0.6.1] - 2026-11-15
+
+### Diubah
+
+- **Penyedia pesan WhatsApp di produksi tidak lagi dikunci file `.env`.** `MESSAGING_PROVIDER` kini hanya berlaku di pengembangan dan uji;
+  di produksi diabaikan dan penyedia ditentukan pengaturan di konsol platform (bawaan `whatsapp`). Sebelumnya, nilai `log` di `.env`
+  server membuat pesan hanya dicatat dan tidak pernah dikirim, dan pilihan di platform tidak berlaku.
+
 ## [0.6.0] - 2026-11-15
 
 Pengiriman WhatsApp pindah dari whatsapp-web.js (Chromium) ke Baileys (WebSocket, tanpa browser). Antarmuka, antrean kirim,

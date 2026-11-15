@@ -68,5 +68,7 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
     const fields = parsed.error.issues.map((i) => i.path.join('.')).join(', ');
     throw new Error(`Konfigurasi tidak valid: ${fields}`);
   }
+  // Di produksi penyedia pesan hanya ditentukan pengaturan platform; env itu hanya untuk pengembangan dan uji.
+  if (parsed.data.NODE_ENV === 'production') return { ...parsed.data, MESSAGING_PROVIDER: undefined };
   return parsed.data;
 }
