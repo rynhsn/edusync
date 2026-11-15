@@ -5201,6 +5201,7 @@
     "templateDefault": "Bawaan",
     "templateBody": "Eusi pesen",
     "insertPlaceholder": "Selapkeun",
+    "formatHint": "Pencét Enter pikeun baris anyar. Format WhatsApp lumaku: *kandel*, _miring_, ~coret~, ```kode```.",
     "preview": "Pratayang (data conto)",
     "save": "Simpen",
     "resetDefault": "Balikkeun ka bawaan",

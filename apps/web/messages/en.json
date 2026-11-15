@@ -5201,6 +5201,7 @@
     "templateDefault": "Default",
     "templateBody": "Message text",
     "insertPlaceholder": "Insert",
+    "formatHint": "Press Enter for a new line. WhatsApp formatting applies: *bold*, _italic_, ~strikethrough~, ```code```.",
     "preview": "Preview (sample data)",
     "save": "Save",
     "resetDefault": "Reset to default",

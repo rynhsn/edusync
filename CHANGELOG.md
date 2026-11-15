@@ -14,6 +14,8 @@ jeda acak, status/QR di halaman Notifikasi WhatsApp, dan pengaturan platform tid
 
 ### Diubah
 
+- **Templat pesan WhatsApp**: kolom isi lebih tinggi untuk pesan beberapa baris, dan pratinjau tampil sebagai gelembung obrolan WhatsApp dengan format *tebal*, _miring_, ~coret~, `kode`, dan ```blok kode```. Teks yang dikirim tidak berubah.
+
 - **Pesan uji tetap terkirim walau pengiriman otomatis sekolah dimatikan** (sebelumnya langsung berstatus "dilewati"). Pesan lain tetap dilewati.
 
 - **Pustaka WhatsApp di worker: Baileys** (`@whiskeysockets/baileys`, versi 7.0.0-rc14 dikunci persis). Tanpa Chrome/Chromium dan

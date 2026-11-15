@@ -16,6 +16,7 @@ import { TimeField } from '@/components/ui/time-field';
 import { api, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
 import { useMessagingCtx } from './shared';
+import { WaBubble } from './wa-bubble';
 
 /** Data contoh untuk pratinjau templat; hanya tampilan, tidak dikirim ke mana pun. */
 const SAMPLE: Record<string, string> = {
@@ -127,13 +128,14 @@ function TemplateCard({
         <textarea
           id={`tpl-${tpl.eventKey}`}
           ref={area}
-          rows={4}
+          rows={7}
           maxLength={1000}
           disabled={!canManage}
           value={body}
           onChange={(e) => setBody(e.target.value)}
           className="border-input placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 dark:bg-input/30 min-h-24 w-full rounded-lg border bg-transparent px-2.5 py-2 text-base outline-none focus-visible:ring-3 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
         />
+        <p className="text-muted-foreground text-xs">{t('formatHint')}</p>
         <div className="flex flex-wrap items-center gap-1.5">
           <span className="text-muted-foreground text-xs">{t('insertPlaceholder')}:</span>
           {tpl.placeholders.map((p) => (
@@ -154,9 +156,7 @@ function TemplateCard({
 
       <div className="grid content-start gap-1">
         <p className="text-muted-foreground text-xs font-medium">{t('preview')}</p>
-        <p className="bg-muted/50 rounded-lg border p-3 text-sm whitespace-pre-wrap">
-          {preview(body, school.schoolName)}
-        </p>
+        <WaBubble body={preview(body, school.schoolName)} />
       </div>
 
       {error && (
