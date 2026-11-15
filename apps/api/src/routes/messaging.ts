@@ -1,4 +1,5 @@
 import {
+  DEFAULT_DAILY_LIMIT,
   DEFAULT_TEMPLATES,
   EVENT_KEYS,
   EVENT_PLACEHOLDERS,
@@ -52,6 +53,7 @@ const DEFAULT_SETTINGS = {
   absentNoticeAt: '09:00' as string | null,
   headerText: null as string | null,
   footerText: null as string | null,
+  dailyLimit: DEFAULT_DAILY_LIMIT,
 };
 
 const settingsSchema = z.object({
@@ -63,6 +65,12 @@ const settingsSchema = z.object({
   absentNoticeAt: hhmm.nullable().describe('Jam pengingat "belum tiba"; null = nonaktif'),
   headerText: z.string().nullable().describe('Teks pembuka semua pesan sekolah; null = tanpa'),
   footerText: z.string().nullable().describe('Teks penutup semua pesan sekolah; null = tanpa'),
+  dailyLimit: z
+    .number()
+    .int()
+    .min(0)
+    .max(2000)
+    .describe('Batas pesan langsung/siaran per hari (00:00 waktu sekolah); tidak mengatur pesan otomatis'),
 });
 
 const frameText = (what: string) =>
@@ -77,6 +85,11 @@ const frameText = (what: string) =>
 const settingsBodySchema = settingsSchema.extend({
   headerText: frameText('Teks pembuka'),
   footerText: frameText('Teks penutup'),
+  dailyLimit: settingsSchema.shape.dailyLimit
+    .optional()
+    .describe(
+      'Batas pesan langsung/siaran per hari; tidak diisi = tidak diubah (bawaan 200). Di atas batas platform: 400 `invalid_daily_limit`',
+    ),
 });
 
 const templateSchema = z.object({
@@ -155,6 +168,7 @@ export async function messagingRoutes(instance: FastifyInstance, options: { env:
               absentNoticeAt: row.absentNoticeAt,
               headerText: row.headerText,
               footerText: row.footerText,
+              dailyLimit: row.dailyLimit,
             }
           : DEFAULT_SETTINGS;
       }),
@@ -200,6 +214,20 @@ export async function messagingRoutes(instance: FastifyInstance, options: { env:
           );
         }
       }
+      // Nilai yang tidak berubah lolos (mis. platform menurunkan batas setelah sekolah menyimpan nilai lebih tinggi).
+      const [current] = await tenant(request, (tx) =>
+        tx.select({ n: msgSetting.dailyLimit }).from(msgSetting),
+      );
+      if (b.dailyLimit !== undefined && b.dailyLimit !== (current?.n ?? DEFAULT_DAILY_LIMIT)) {
+        const { dailyLimitMax } = await loadPlatformMessaging(app.platformDb);
+        if (b.dailyLimit > dailyLimitMax) {
+          throw new HttpError(
+            400,
+            'invalid_daily_limit',
+            `Batas harian maksimal ${dailyLimitMax} pesan (ditetapkan platform).`,
+          );
+        }
+      }
       const values = { ...b, ...frame };
       return tenant(request, async (tx) => {
         await tx
@@ -221,7 +249,12 @@ export async function messagingRoutes(instance: FastifyInstance, options: { env:
         }
         await audit(tx, ctx, 'messaging.settings', 'msg_setting', ctx.schoolId, values);
         const [row] = await tx.select().from(msgSetting);
-        return { ...b, headerText: row?.headerText ?? null, footerText: row?.footerText ?? null };
+        return {
+          ...b,
+          headerText: row?.headerText ?? null,
+          footerText: row?.footerText ?? null,
+          dailyLimit: row?.dailyLimit ?? DEFAULT_DAILY_LIMIT,
+        };
       });
     },
   );

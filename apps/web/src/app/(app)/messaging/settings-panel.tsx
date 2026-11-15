@@ -213,6 +213,7 @@ function GeneralSettings() {
             windowStart: value.windowStart,
             windowEnd: value.windowEnd,
             absentNoticeAt: value.absentNoticeAt,
+            dailyLimit: value.dailyLimit,
           },
         }),
       );
@@ -298,6 +299,19 @@ function GeneralSettings() {
           </div>
         </div>
         <p className="text-muted-foreground -mt-3 text-xs">{t('delayHint')}</p>
+        <div className="grid content-start gap-2 sm:w-1/2">
+          <Label htmlFor="msg-daily-limit">{t('dailyLimit')}</Label>
+          <Input
+            id="msg-daily-limit"
+            type="number"
+            min={0}
+            max={2000}
+            disabled={!canManage}
+            value={value.dailyLimit}
+            onChange={(e) => set({ dailyLimit: Number(e.target.value) })}
+          />
+          <p className="text-muted-foreground text-xs">{t('dailyLimitHint')}</p>
+        </div>
         {badDelay && (
           <Alert variant="destructive">
             <AlertDescription>{t('delayInvalid')}</AlertDescription>

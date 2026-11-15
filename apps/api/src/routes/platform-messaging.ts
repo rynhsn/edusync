@@ -68,6 +68,15 @@ const settingsBody = z.object({
   enabled: z.boolean().describe('Saklar global: mati = tak ada pesan dibuat atau dikirim di semua sekolah'),
   provider: z.enum(['whatsapp', 'log']).describe('`log` hanya mencatat pesan (pengembangan/uji)'),
   maxQueuedPerSchool: z.number().int().min(1).max(100_000).describe('Batas pesan antre per sekolah'),
+  dailyLimitMax: z
+    .number()
+    .int()
+    .min(0)
+    .max(2000)
+    .optional()
+    .describe(
+      'Batas atas `dailyLimit` sekolah (pesan langsung/siaran per hari, bawaan 500); tidak diisi = pertahankan yang tersimpan',
+    ),
   retry: retrySchema
     .optional()
     .describe(
@@ -81,6 +90,7 @@ const viewSchema = settingsBody.extend({
     .nullable()
     .describe('Penyedia yang dikunci env (MESSAGING_PROVIDER); null = ikut pilihan di atas'),
   retry: retrySchema,
+  dailyLimitMax: z.number().int(),
   runtime: runtimeSchema,
   messages24h: z.object({
     queued: z.number().int(),
@@ -180,8 +190,10 @@ export async function platformMessagingRoutes(instance: FastifyInstance, options
       if (env.NODE_ENV === 'production' && request.body.provider === 'log') {
         throw new HttpError(400, 'invalid_provider', 'Penyedia log tidak boleh dipakai di produksi.');
       }
-      const retry = request.body.retry ?? (await loadPlatformMessaging(app.platformDb)).retry;
-      const value = { ...request.body, retry } as unknown as Record<string, unknown>;
+      const current = await loadPlatformMessaging(app.platformDb);
+      const retry = request.body.retry ?? current.retry;
+      const dailyLimitMax = request.body.dailyLimitMax ?? current.dailyLimitMax;
+      const value = { ...request.body, retry, dailyLimitMax } as unknown as Record<string, unknown>;
       await app.platformDb
         .insert(platformSetting)
         .values({ key: PLATFORM_MESSAGING_KEY, value, updatedBy: staffId })

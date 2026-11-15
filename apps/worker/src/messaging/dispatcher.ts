@@ -179,7 +179,7 @@ export class Dispatcher {
 
     if ((this.nextAllowed.get(schoolId) ?? 0) > now.getTime()) return 0;
 
-    // Klaim atomik: hanya satu pemanggil yang mendapat baris yang sama (SKIP LOCKED untuk dispatcher paralel).
+    // Klaim atomik, prioritas lebih kecil dulu (0 peristiwa/uji, 1 pesan langsung, 2 siaran): hanya satu pemanggil yang mendapat baris yang sama (SKIP LOCKED untuk dispatcher paralel).
     const claimed = await this.db.execute<{
       id: string;
       to_phone: string;
@@ -190,7 +190,7 @@ export class Dispatcher {
       where id = (
         select id from msg_message
         where school_id = ${schoolId}::uuid and status = 'queued' and not_before <= ${now.toISOString()}::timestamptz
-        order by created_at, id
+        order by priority, created_at, id
         limit 1
         for update skip locked
       ) and status = 'queued'

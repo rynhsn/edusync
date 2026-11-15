@@ -68,6 +68,7 @@ import { liveRoutes } from './routes/live';
 import { meRoutes } from './routes/me';
 import { memberRoutes } from './routes/members';
 import { messagingRoutes } from './routes/messaging';
+import { messagingBatchRoutes } from './routes/messaging-batches';
 import { passwordHelpRoutes } from './routes/password-help';
 import { peopleRoutes } from './routes/people';
 import { pklRoutes } from './routes/pkl';
@@ -332,6 +333,7 @@ export async function buildApp(env: Env, deps: { dns?: DomainDns } = {}) {
   await app.register(pklRoutes);
   await app.register(pklPublicRoutes);
   await app.register(messagingRoutes, { env });
+  await app.register(messagingBatchRoutes);
   await app.register(platformMessagingRoutes, { env });
   await app.register(platformUserRoutes);
   await app.register(schoolSettingsRoutes);

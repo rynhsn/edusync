@@ -12,6 +12,9 @@ import {
   cocurricularRubricLevel,
   createDb,
   foundation,
+  msgBatch,
+  msgDirectTemplate,
+  msgMessage,
   pklPartner,
   pklPeriod,
   pklPlacement,
@@ -876,6 +879,84 @@ describe('tabel tenant UKK (tahap 5.5, migrasi 0112)', () => {
         await platform.db.delete(vocationalProgram).where(eq(vocationalProgram.schoolId, sid));
         await platform.db.delete(vocationalField).where(eq(vocationalField.schoolId, sid));
         await platform.db.delete(semester).where(eq(semester.schoolId, sid));
+      }
+    }
+  });
+});
+
+describe('tabel tenant pesan langsung (migrasi 0115)', () => {
+  it('msg_batch dan msg_direct_template terisolasi; tulis lintas sekolah dan FK komposit ditolak', async () => {
+    const batchOf = (sid: string, n: number) =>
+      platform.db
+        .insert(msgBatch)
+        .values({
+          schoolId: sid,
+          kind: 'direct',
+          title: `batch ${n}`,
+          bodyTemplate: 'x',
+          selection: {},
+          recipientCount: 0,
+          createdBy: 'uji',
+        })
+        .returning();
+    const [a] = await batchOf(schoolA1, 1);
+    const [b] = await batchOf(schoolB, 2);
+    try {
+      for (const sid of [schoolA1, schoolB]) {
+        await platform.db
+          .insert(msgDirectTemplate)
+          .values({ schoolId: sid, name: 'Panggilan', body: 'Halo' });
+      }
+      for (const t of [msgBatch, msgDirectTemplate] as const) {
+        const rows = await withTenant(app.db, [schoolA1], (tx) => tx.select().from(t));
+        expect(rows.map((r) => r.schoolId)).toEqual([schoolA1]);
+        expect(await app.db.select().from(t)).toHaveLength(0);
+      }
+      // Tulis lintas sekolah ditolak RLS.
+      await expect(
+        withTenant(app.db, [schoolA1], (tx) =>
+          tx.insert(msgDirectTemplate).values({ schoolId: schoolB, name: 'Lain', body: 'x' }),
+        ),
+      ).rejects.toThrow();
+      // Nama templat unik per sekolah.
+      await expect(
+        platform.db.insert(msgDirectTemplate).values({ schoolId: schoolA1, name: 'Panggilan', body: 'y' }),
+      ).rejects.toThrow();
+      // FK komposit: pesan sekolah A tidak boleh menunjuk batch sekolah B.
+      await expect(
+        platform.db.insert(msgMessage).values({
+          schoolId: schoolA1,
+          eventKey: 'direct',
+          toPhone: '6281200000001',
+          body: 'x',
+          batchId: b!.id,
+        }),
+      ).rejects.toThrow();
+      await platform.db.insert(msgMessage).values({
+        schoolId: schoolA1,
+        eventKey: 'direct',
+        toPhone: '6281200000001',
+        body: 'x',
+        batchId: a!.id,
+      });
+      // Prioritas di luar 0..2 dan batas harian di luar 0..2000 ditolak CHECK.
+      await expect(
+        platform.db.insert(msgMessage).values({
+          schoolId: schoolA1,
+          eventKey: 'direct',
+          toPhone: '6281200000002',
+          body: 'x',
+          priority: 3,
+        }),
+      ).rejects.toThrow();
+      await expect(
+        platform.db.execute(sql`insert into msg_setting (school_id, daily_limit) values (${schoolA1}, 2001)`),
+      ).rejects.toThrow();
+    } finally {
+      for (const sid of [schoolA1, schoolB]) {
+        await platform.db.delete(msgMessage).where(eq(msgMessage.schoolId, sid));
+        await platform.db.delete(msgBatch).where(eq(msgBatch.schoolId, sid));
+        await platform.db.delete(msgDirectTemplate).where(eq(msgDirectTemplate.schoolId, sid));
       }
     }
   });

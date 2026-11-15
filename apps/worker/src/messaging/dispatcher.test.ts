@@ -1,3 +1,4 @@
+import { msgBatch } from '@edusync/db';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { BACKOFF_MS, Dispatcher, sendWindow } from './dispatcher';
 import { FakeSender } from './sender';
@@ -312,5 +313,91 @@ describe('header dan footer pesan', () => {
     const sender = new FakeSender();
     await make(sender, { now: NOW }).tick();
     expect(sender.calls.map((c) => c.text)).toEqual(['Halo']);
+  });
+});
+
+describe('prioritas antrean (pesan langsung dan siaran)', () => {
+  const addBatch = async (sid: string, kind: 'direct' | 'broadcast') => {
+    const [b] = await fx.db
+      .insert(msgBatch)
+      .values({
+        schoolId: sid,
+        kind,
+        title: 'uji',
+        bodyTemplate: 'x',
+        selection: {},
+        recipientCount: 1,
+        createdBy: 'tes',
+      })
+      .returning();
+    return b?.id as string;
+  };
+
+  it('peristiwa (0) didahulukan atas pesan langsung (1) dan siaran (2) walau lebih baru; sisanya menurut waktu', async () => {
+    const sid = await fx.newSchool();
+    const direct = await addBatch(sid, 'direct');
+    const bcast = await addBatch(sid, 'broadcast');
+    const t0 = Date.now() - 60_000;
+    const at = (n: number) => new Date(t0 + n * 1000);
+    // Dibuat lebih dulu = antre lebih dulu; semua sudah jatuh tempo.
+    await fx.addMessage(sid, {
+      eventKey: 'broadcast',
+      body: 'siaran-1',
+      priority: 2,
+      batchId: bcast,
+      createdAt: at(1),
+    });
+    await fx.addMessage(sid, {
+      eventKey: 'broadcast',
+      body: 'siaran-2',
+      priority: 2,
+      batchId: bcast,
+      createdAt: at(2),
+    });
+    await fx.addMessage(sid, {
+      eventKey: 'direct',
+      body: 'langsung-1',
+      priority: 1,
+      batchId: direct,
+      createdAt: at(3),
+    });
+    await fx.addMessage(sid, { eventKey: 'arrival', body: 'tiba', createdAt: at(4) });
+    await fx.addMessage(sid, {
+      eventKey: 'direct',
+      body: 'langsung-2',
+      priority: 1,
+      batchId: direct,
+      createdAt: at(5),
+    });
+    const sender = new FakeSender();
+    for (let i = 0; i < 5; i++) await make(sender, { now: NOW }).tick();
+    expect(sender.calls.map((c) => c.text)).toEqual([
+      'tiba',
+      'langsung-1',
+      'langsung-2',
+      'siaran-1',
+      'siaran-2',
+    ]);
+  });
+
+  it('header/footer sekolah dipasang juga pada pesan langsung; pesan yang dibatalkan tidak dikirim', async () => {
+    const sid = await fx.newSchool({
+      name: 'SMP Contoh',
+      setting: { headerText: '*{{school}}*', footerText: 'Salam hangat' },
+    });
+    const direct = await addBatch(sid, 'direct');
+    await fx.addMessage(sid, { eventKey: 'direct', body: 'Yth. Bu Sari', priority: 1, batchId: direct });
+    await fx.addMessage(sid, {
+      eventKey: 'direct',
+      body: 'batal',
+      priority: 1,
+      batchId: direct,
+      status: 'skipped',
+      detail: 'cancelled',
+    });
+    const sender = new FakeSender();
+    expect(await make(sender, { now: NOW }).tick()).toBe(1);
+    expect(await make(sender, { now: NOW }).tick()).toBe(0);
+    expect(sender.calls.map((c) => c.text)).toEqual(['*SMP Contoh*\n\nYth. Bu Sari\n\nSalam hangat']);
   });
 });

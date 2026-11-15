@@ -18,10 +18,16 @@ export type EventKey = (typeof EVENT_KEYS)[number];
 export const STATUSES = ['queued', 'sending', 'sent', 'failed', 'skipped'] as const;
 export type MessageStatus = (typeof STATUSES)[number];
 
-/** Konteks sekolah aktif + hak ubah (message:manage). message:read hanya boleh melihat. */
+/** Konteks sekolah aktif + hak ubah (message:manage), kirim (message:send), dan siaran. message:read hanya boleh melihat. */
 export function useMessagingCtx() {
   const { school, can } = useSchool();
-  return { school, header: { header: schoolHeader(school.schoolId) }, canManage: can('message:manage') };
+  return {
+    school,
+    header: { header: schoolHeader(school.schoolId) },
+    canManage: can('message:manage'),
+    canSend: can('message:send'),
+    canBroadcast: can('message:broadcast'),
+  };
 }
 
 /** Warna lencana status yang tidak ada di varian bawaan Badge. */

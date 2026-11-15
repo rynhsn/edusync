@@ -12,6 +12,7 @@ import {
   finPaymentItem,
   foundation,
   guardian,
+  msgBatch,
   msgMessage,
   msgSetting,
   msgTemplate,
@@ -185,6 +186,7 @@ export function createFixture(prefix: string) {
   async function cleanup() {
     for (const id of schoolIds) {
       await db.delete(msgMessage).where(eq(msgMessage.schoolId, id));
+      await db.delete(msgBatch).where(eq(msgBatch.schoolId, id));
       await db.delete(msgTemplate).where(eq(msgTemplate.schoolId, id));
       await db.delete(msgSetting).where(eq(msgSetting.schoolId, id));
       await db.delete(waAuthState).where(eq(waAuthState.schoolId, id));

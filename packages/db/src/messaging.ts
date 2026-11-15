@@ -1,4 +1,4 @@
-import { type EventKey, normalizePhone, renderTemplate } from '@edusync/contracts';
+import { DEFAULT_DAILY_LIMIT_MAX, type EventKey, normalizePhone, renderTemplate } from '@edusync/contracts';
 import { and, asc, eq, sql } from 'drizzle-orm';
 import type { Db, Tx } from './client';
 import { guardian, msgMessage, msgSetting, msgTemplate, platformSetting, studentGuardian } from './schema';
@@ -70,6 +70,8 @@ export interface PlatformMessaging {
   maxQueuedPerSchool: number;
   /** Aturan kirim ulang dan kedaluwarsa. */
   retry: MessagingRetry;
+  /** Batas atas `msg_setting.daily_limit` sekolah (pesan langsung/siaran per hari). */
+  dailyLimitMax: number;
 }
 
 /** Penyedia bawaan: `whatsapp` di produksi, `log` di tempat lain. */
@@ -85,6 +87,7 @@ export function defaultPlatformMessaging(): PlatformMessaging {
     provider: defaultMessagingProvider(),
     maxQueuedPerSchool: 500,
     retry: parseMessagingRetry(null),
+    dailyLimitMax: DEFAULT_DAILY_LIMIT_MAX,
   };
 }
 
@@ -100,6 +103,10 @@ export function parsePlatformMessaging(raw: unknown): PlatformMessaging {
     maxQueuedPerSchool:
       typeof max === 'number' && Number.isInteger(max) && max >= 1 ? max : base.maxQueuedPerSchool,
     retry: parseMessagingRetry(v.retry),
+    dailyLimitMax:
+      typeof v.dailyLimitMax === 'number' && Number.isInteger(v.dailyLimitMax) && v.dailyLimitMax >= 0
+        ? v.dailyLimitMax
+        : base.dailyLimitMax,
   };
 }
 

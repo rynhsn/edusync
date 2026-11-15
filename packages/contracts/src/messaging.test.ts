@@ -2,11 +2,19 @@ import { describe, expect, it } from 'vitest';
 import {
   composeMessage,
   DEFAULT_TEMPLATES,
+  DIRECT_TEMPLATES,
   EVENT_KEYS,
   EVENT_PLACEHOLDERS,
+  hasSensitiveNumber,
+  joinNames,
   MESSAGE_TOTAL_MAX,
   normalizePhone,
+  recipientSelectionSchema,
+  renderDirect,
   renderTemplate,
+  selectionIsBroad,
+  selectionIsEmpty,
+  unknownDirectPlaceholders,
   unknownFramePlaceholders,
   unknownPlaceholders,
 } from './messaging';
@@ -102,5 +110,57 @@ describe('composeMessage', () => {
   });
   it('unknownFramePlaceholders', () => {
     expect(unknownFramePlaceholders('{{school}} {{student}}')).toEqual(['student']);
+  });
+});
+
+describe('pesan langsung', () => {
+  it('pengganti dikenal: guardian, student, class, school, date, teacher; selain itu ditolak', () => {
+    expect(
+      unknownDirectPlaceholders('{{guardian}} {{student}} {{class}} {{school}} {{date}} {{teacher}}'),
+    ).toEqual([]);
+    expect(unknownDirectPlaceholders('{{amount}} {{nik}} {{student}}')).toEqual(['amount', 'nik']);
+    for (const t of DIRECT_TEMPLATES) expect(unknownDirectPlaceholders(t.body), t.key).toEqual([]);
+  });
+
+  it('deteksi deret 16 digit (NIK), termasuk yang dipisah spasi atau tanda hubung', () => {
+    expect(hasSensitiveNumber('NIK 3201234567890123 tolong')).toBe(true);
+    expect(hasSensitiveNumber('NIK 3201 2345 6789 0123')).toBe(true);
+    expect(hasSensitiveNumber('NIK 3201-2345-6789-0123')).toBe(true);
+    expect(hasSensitiveNumber('nomor 081234567890 dan 12345')).toBe(false);
+    expect(hasSensitiveNumber('123456789012345')).toBe(false);
+  });
+
+  it('joinNames dan renderDirect memakai kakak-adik, header/footer tetap berlaku lewat composeMessage', () => {
+    expect(joinNames([])).toBe('');
+    expect(joinNames(['A'])).toBe('A');
+    expect(joinNames(['A', 'B'])).toBe('A dan B');
+    expect(joinNames(['A', 'B', 'C'])).toBe('A, B dan C');
+    const body = renderDirect(
+      'Yth. {{guardian}}, {{student}} ({{class}}) di {{school}}, {{date}}.',
+      { guardianName: 'Bu Sari', studentNames: ['Ani', 'Budi'], classNames: ['7A', '9B'] },
+      { school: 'SMP Satu', date: '15 November 2026' },
+    );
+    expect(body).toBe('Yth. Bu Sari, Ani dan Budi (7A dan 9B) di SMP Satu, 15 November 2026.');
+    const frame = { headerText: '*{{school}}*', footerText: 'Terima kasih', schoolName: 'SMP Satu' };
+    expect(composeMessage(body, frame)).toBe(['*SMP Satu*', body, 'Terima kasih'].join('\n\n'));
+    const staff = { teacherName: 'Pak Eko', studentNames: [], classNames: [] };
+    expect(renderDirect('{{teacher}}|{{guardian}}|{{student}}', staff, { school: 's', date: 'd' })).toBe(
+      'Pak Eko||',
+    );
+  });
+
+  it('pemilih penerima: skema membatasi larik 500 dan mengenali pemilih luas/kosong', () => {
+    const id = '0198f7c0-0000-7000-8000-000000000001';
+    expect(recipientSelectionSchema.safeParse({ students: [id] }).success).toBe(true);
+    expect(recipientSelectionSchema.safeParse({ students: ['x'] }).success).toBe(false);
+    expect(recipientSelectionSchema.safeParse({ students: Array(501).fill(id) }).success).toBe(false);
+    expect(recipientSelectionSchema.safeParse({ wholeSchool: false }).success).toBe(false);
+    expect(selectionIsEmpty({})).toBe(true);
+    expect(selectionIsEmpty({ students: [] })).toBe(true);
+    expect(selectionIsEmpty({ teachers: [id] })).toBe(false);
+    expect(selectionIsBroad({ students: [id], guardians: [id], teachers: [id] })).toBe(false);
+    expect(selectionIsBroad({ classes: [id] })).toBe(true);
+    expect(selectionIsBroad({ wholeSchool: true })).toBe(true);
+    expect(selectionIsBroad({ allStaff: true })).toBe(true);
   });
 });

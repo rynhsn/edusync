@@ -75,6 +75,24 @@ describe('izin pesan', () => {
   });
 });
 
+describe('izin kirim pesan langsung dan siaran', () => {
+  const has = (role: keyof typeof SYSTEM_ROLES, p: string) =>
+    (SYSTEM_ROLES[role].permissions as readonly string[]).includes(p);
+  it('message:send untuk admin, kepala sekolah, operator; message:broadcast hanya admin dan operator', () => {
+    expect(isPermission('message:send')).toBe(true);
+    expect(isPermission('message:broadcast')).toBe(true);
+    for (const role of ['school_admin', 'principal', 'operator'] as const)
+      expect(has(role, 'message:send')).toBe(true);
+    for (const role of ['school_admin', 'operator'] as const)
+      expect(has(role, 'message:broadcast')).toBe(true);
+    expect(has('principal', 'message:broadcast')).toBe(false);
+    for (const role of ['curriculum', 'treasurer', 'teacher', 'guardian', 'student'] as const) {
+      expect(has(role, 'message:send')).toBe(false);
+      expect(has(role, 'message:broadcast')).toBe(false);
+    }
+  });
+});
+
 describe('izin tanggapan portal', () => {
   const has = (role: keyof typeof SYSTEM_ROLES, p: string) =>
     (SYSTEM_ROLES[role].permissions as readonly string[]).includes(p);

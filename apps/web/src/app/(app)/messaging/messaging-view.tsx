@@ -7,11 +7,12 @@ import { PageBody, PageHeader } from '@/components/page-header';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { ConnectionPanel } from './connection-panel';
+import { DirectTab } from './direct-tab';
 import { HistoryPanel } from './history-panel';
 import { SettingsPanel } from './settings-panel';
 
-type Tab = 'connection' | 'settings' | 'history';
-const TABS: Tab[] = ['connection', 'settings', 'history'];
+type Tab = 'connection' | 'settings' | 'history' | 'direct';
+const TABS: Tab[] = ['connection', 'settings', 'direct', 'history'];
 
 export function MessagingView() {
   const t = useTranslations('messaging');
@@ -50,6 +51,7 @@ export function MessagingView() {
       </div>
       {tab === 'connection' && <ConnectionPanel />}
       {tab === 'settings' && <SettingsPanel />}
+      {tab === 'direct' && <DirectTab />}
       {tab === 'history' && <HistoryPanel />}
     </PageBody>
   );

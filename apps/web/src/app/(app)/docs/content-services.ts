@@ -1276,7 +1276,8 @@ export const SERVICE_DOCS: DocArticle[] = [
         title: 'Notifikasi WhatsApp',
         summary:
           'Panduan menghubungkan WhatsApp sekolah dan mengatur pesan otomatis ke wali tentang kehadiran, pembayaran, dan rapor.',
-        forWho: 'Admin sekolah dan Operator. Kepala sekolah dapat melihat riwayat pesan.',
+        forWho:
+          'Admin sekolah dan Operator. Kepala sekolah dapat melihat riwayat pesan dan mengirim pesan langsung.',
         sections: [
           {
             heading: 'Menghubungkan WhatsApp sekolah',
@@ -1324,6 +1325,22 @@ export const SERVICE_DOCS: DocArticle[] = [
               'Kirim ulang benar-benar mengirim pesan itu lagi ke wali. Pastikan penyebab kegagalannya sudah diperbaiki.',
             href: '/messaging',
           },
+          {
+            heading: 'Mengirim pesan langsung ke wali atau staf',
+            body: 'Tab Pesan langsung dipakai untuk memanggil orang tua murid tertentu, atau mengabari beberapa wali dan staf, tanpa menunggu peristiwa otomatis. Pesan masuk antrean yang sama dengan pesan otomatis, dengan jeda acak dan jam kirim yang sama, dan header serta footer sekolah ikut dipasang. Pesan otomatis (kehadiran, pembayaran) selalu didahulukan.',
+            steps: [
+              'Buka tab Pesan langsung. Pada Penerima, pilih Murid, Rombel, Wali, atau Staf, cari nama, lalu klik untuk menambahkannya. Cip yang terpilih bisa dihapus dengan tanda X.',
+              'Pada Pesan, pilih templat (misalnya Pemanggilan orang tua) atau tulis sendiri. Klik nama pengganti seperti Nama wali atau Nama murid untuk menyisipkannya; pesan tiap penerima akan berisi namanya sendiri.',
+              'Lihat Pratinjau gelembung WhatsApp di sampingnya. Pemilik izin kelola dapat menyimpan pesan sebagai templat sekolah.',
+              'Pada Tinjau dan kirim, periksa jumlah penerima, nomor yang tidak dikirim (tanpa nomor, tidak valid, ganda), sisa batas harian, dan perkiraan lama pengiriman.',
+              'Klik Kirim pesan, lalu konfirmasi. Bila penerima lebih dari 30, ketik jumlah penerima untuk mengonfirmasi.',
+              'Buka Riwayat batch untuk melihat bilah status, rincian per penerima, Batalkan yang antre, dan Kirim ulang yang gagal.',
+            ],
+            warning:
+              'Wali yang punya dua anak di pilihan Anda hanya menerima satu pesan. Pesan tidak boleh memuat deret 16 digit (mirip NIK), dan jangan menulis nilai atau data pribadi anak. Mengirim ke rombel, seluruh sekolah, atau lebih dari 30 penerima butuh izin siaran. WhatsApp dapat memblokir nomor yang mengirim banyak pesan; batas harian dan jeda acak mengurangi, tetapi tidak menghilangkan, risikonya.',
+            tip: 'Batas pesan langsung per hari diatur di tab Pengaturan (bawaan 200; nomor yang belum 7 hari dipakai dibatasi 50). Pesan yang dibatalkan tidak dihitung ke batas.',
+            href: '/messaging',
+          },
         ],
         faq: [
           {
@@ -1346,13 +1363,22 @@ export const SERVICE_DOCS: DocArticle[] = [
             q: 'Muncul tulisan "Mode uji". Apa artinya?',
             a: 'Pada mode uji, pesan hanya dicatat dan tidak dikirim ke WhatsApp. Bila tulisan lain menyebut pengiriman dinonaktifkan oleh pengelola platform, hubungi pengelola Edusync.',
           },
+          {
+            q: 'Muncul "Jumlah penerima berubah sejak pratinjau". Apa yang harus dilakukan?',
+            a: 'Data murid atau wali berubah sejak Anda melihat pratinjau. Tutup dialog, periksa jumlah penerima yang baru di bagian Tinjau, lalu kirim lagi.',
+          },
+          {
+            q: 'Pesan langsung tidak terkirim. Apa yang diperiksa?',
+            a: 'Periksa berurutan: Aktifkan notifikasi menyala di tab Pengaturan, status Koneksi Terhubung, jam kirim, dan sisa batas harian di bagian Tinjau. Di Riwayat batch, lihat kolom Detail penerima yang Gagal atau Dilewati, lalu klik Kirim ulang yang gagal. Nomor yang bukan WhatsApp tidak diulang.',
+          },
         ],
       },
       en: {
         title: 'WhatsApp notifications',
         summary:
           'A guide to connecting the school WhatsApp and setting up automatic messages to guardians about attendance, payments, and report cards.',
-        forWho: 'School admin and Operator. The Principal can view the message history.',
+        forWho:
+          'School admin and Operator. The Principal can view the message history and send direct messages.',
         sections: [
           {
             heading: 'Connecting the school WhatsApp',
@@ -1400,6 +1426,22 @@ export const SERVICE_DOCS: DocArticle[] = [
               'Resend really sends that message to the guardian again. Make sure the cause of the failure has been fixed.',
             href: '/messaging',
           },
+          {
+            heading: 'Sending direct messages to guardians or staff',
+            body: 'The Direct messages tab is for calling in the parents of certain students, or notifying a few guardians and staff, without waiting for an automatic event. Messages join the same queue as automatic messages, with the same random delay and sending hours, and the school header and footer are added. Automatic messages (attendance, payments) always go first.',
+            steps: [
+              'Open the Direct messages tab. Under Recipients, choose Students, Classes, Guardians, or Staff, search for a name, then click to add it. A selected chip can be removed with its X.',
+              "Under Message, pick a template (for example Parent summons) or write your own. Click a placeholder such as Guardian name or Student name to insert it; each recipient's message then carries their own name.",
+              'Check the WhatsApp bubble Preview beside it. People with the manage permission can save the message as a school template.',
+              'Under Review and send, check the number of recipients, the numbers that will not be sent (no number, invalid, duplicate), the daily limit left, and the estimated sending time.',
+              'Click Send message, then confirm. With more than 30 recipients, type the number of recipients to confirm.',
+              'Open Batch history to see the status bar, the details per recipient, Cancel queued, and Resend failed.',
+            ],
+            warning:
+              "A guardian with two children in your selection receives one message only. A message must not contain a 16-digit number (like a national ID), and do not write grades or a child's personal data. Sending to classes, the whole school, or more than 30 recipients needs the broadcast permission. WhatsApp can block a number that sends many messages; the daily limit and random delay reduce, but do not remove, that risk.",
+            tip: 'The direct message limit per day is set in the Settings tab (default 200; a number used for less than 7 days is capped at 50). Cancelled messages do not count toward the limit.',
+            href: '/messaging',
+          },
         ],
         faq: [
           {
@@ -1422,13 +1464,22 @@ export const SERVICE_DOCS: DocArticle[] = [
             q: 'A "Test mode" note appears. What does it mean?',
             a: 'In test mode, messages are only recorded and not sent to WhatsApp. If another note says sending is switched off by the platform operator, contact the Edusync operator.',
           },
+          {
+            q: 'It says "The number of recipients changed since the preview". What should I do?',
+            a: 'Student or guardian data changed after you saw the preview. Close the dialog, check the new number of recipients under Review, then send again.',
+          },
+          {
+            q: 'A direct message was not sent. What should I check?',
+            a: 'Check in order: Enable notifications is on in the Settings tab, the Connection status is Connected, the sending hours, and the daily limit left under Review. In Batch history, read the Detail column of recipients that Failed or were Skipped, then click Resend failed. Numbers that are not on WhatsApp are not retried.',
+          },
         ],
       },
       su: {
         title: 'Béwara WhatsApp',
         summary:
           'Pituduh nyambungkeun WhatsApp sakola jeung ngatur pesen otomatis ka wali ngeunaan kahadiran, pambayaran, jeung rapor.',
-        forWho: 'Admin sakola jeung Operator. Kepala sakola tiasa ningali riwayat pesen.',
+        forWho:
+          'Admin sakola jeung Operator. Kepala sakola tiasa ningali riwayat pesen jeung ngirim pesen langsung.',
         sections: [
           {
             heading: 'Nyambungkeun WhatsApp sakola',
@@ -1476,6 +1527,22 @@ export const SERVICE_DOCS: DocArticle[] = [
               'Kirim deui sabenerna ngirim pesen eta ka wali sakali deui. Pastikeun sabab gagalna parantos dibenerkeun.',
             href: '/messaging',
           },
+          {
+            heading: 'Ngirim pesen langsung ka wali atawa staf',
+            body: 'Tab Pesen langsung dipaké pikeun nyauran kolot murid tangtu, atawa ngabéjaan sababaraha wali jeung staf, tanpa ngadagoan kajadian otomatis. Pesen asup antrian nu sarua jeung pesen otomatis, jeung jeda acak sarta jam ngirim nu sarua, sarta header jeung footer sakola ditambahkeun. Pesen otomatis (kahadiran, pambayaran) salawasna didahulukeun.',
+            steps: [
+              'Buka tab Pesen langsung. Dina Panampi, pilih Murid, Rombongan, Wali, atawa Staf, pilari ngaran, tuluy klik pikeun nambahkeunana. Cip nu dipilih tiasa dipiceun ku tanda X.',
+              'Dina Pesen, pilih citakan (contona Nyauran kolot) atawa tulis sorangan. Klik ngaran gaganti saperti Ngaran wali atawa Ngaran murid pikeun nyisipkeunana; pesen unggal panampi bakal ngandung ngaranna sorangan.',
+              'Tingali Pratayang gelembung WhatsApp di sisina. Anu gaduh idin ngatur tiasa nyimpen pesen jadi citakan sakola.',
+              'Dina Tinjau jeung kirim, pariksa jumlah panampi, nomer nu teu dikirim (tanpa nomer, teu valid, ganda), sésa wates poéan, jeung kira-kira lilana ngirim.',
+              'Klik Kirim pesen, tuluy pastikeun. Upami panampi langkung ti 30, ketik jumlah panampi pikeun mastikeun.',
+              'Buka Riwayat bets pikeun ningali bilah status, rincian per panampi, Batalkeun nu ngantri, jeung Kirim deui anu gagal.',
+            ],
+            warning:
+              'Wali nu gaduh dua murangkalih dina pilihan anjeun ngan narima hiji pesen. Pesen teu meunang ngandung deret 16 angka (siga NIK), sarta entong nuliskeun nilai atawa data pribadi murangkalih. Ngirim ka rombongan, sakabéh sakola, atawa langkung ti 30 panampi merlukeun idin siaran. WhatsApp tiasa meungpeuk nomer nu ngirim loba pesen; wates poéan jeung jeda acak ngirangan, tapi teu ngaleungitkeun, résikona.',
+            tip: 'Wates pesen langsung per poé diatur dina tab Pangaturan (bawaan 200; nomer nu can 7 poé dipaké diwatesan 50). Pesen nu dibatalkeun teu diitung kana wates.',
+            href: '/messaging',
+          },
         ],
         faq: [
           {
@@ -1497,6 +1564,14 @@ export const SERVICE_DOCS: DocArticle[] = [
           {
             q: 'Aya tulisan "Mode uji". Naon hartosna?',
             a: 'Dina mode uji, pesen ngan dicatet sarta teu dikirim ka WhatsApp. Upami aya tulisan sanes nu nyebatkeun pangiriman dipareuman ku pangurus platform, hubungi pangurus Edusync.',
+          },
+          {
+            q: 'Aya tulisan "Jumlah panampi robah ti saprak pratayang". Naon nu kedah dilakukeun?',
+            a: 'Data murid atawa wali robah sanggeus anjeun ningali pratayang. Tutup dialog, pariksa jumlah panampi nu anyar dina bagian Tinjau, tuluy kirim deui.',
+          },
+          {
+            q: 'Pesen langsung teu kakirim. Naon nu kedah dipariksa?',
+            a: 'Pariksa sacara berurutan: Hurungkeun béwara hurung dina tab Pangaturan, status Sambungan Nyambung, jam ngirim, jeung sésa wates poéan dina bagian Tinjau. Dina Riwayat bets, tingali kolom Rincian panampi nu Gagal atawa Dileueut, tuluy klik Kirim deui anu gagal. Nomer nu lain WhatsApp teu diulang.',
           },
         ],
       },

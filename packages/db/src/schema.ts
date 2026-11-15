@@ -2801,6 +2801,8 @@ export const msgSetting = pgTable('msg_setting', {
   /** Teks pembuka/penutup semua pesan sekolah (beberapa baris, boleh format WhatsApp); null = tanpa. Dipasang saat kirim. */
   headerText: text('header_text'),
   footerText: text('footer_text'),
+  /** Batas pesan langsung/siaran per hari (00:00 waktu sekolah); dibatasi `dailyLimitMax` platform (migrasi 0115). */
+  dailyLimit: integer('daily_limit').notNull().default(200),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -2880,6 +2882,12 @@ export const msgMessage = pgTable(
     attempts: integer('attempts').notNull().default(0),
     /** Mencegah pesan ganda untuk peristiwa yang sama (mis. arrival:{student}:{tanggal}:{guardian}). */
     dedupeKey: text('dedupe_key'),
+    /** Batch asal (pesan langsung/siaran); null = pesan peristiwa/uji. FK komposit di SQL tangan 0115. */
+    batchId: uuid('batch_id'),
+    /** Penerima staf (guru); guardianId untuk wali. FK komposit di SQL tangan 0115. */
+    teacherId: uuid('teacher_id'),
+    /** Urutan klaim dispatcher: 0 peristiwa/uji, 1 pesan langsung, 2 siaran. */
+    priority: smallint('priority').notNull().default(0),
     notBefore: timestamp('not_before', { withTimezone: true }).notNull().defaultNow(),
     sentAt: timestamp('sent_at', { withTimezone: true }),
     createdAt: createdAt(),
@@ -2888,6 +2896,54 @@ export const msgMessage = pgTable(
     unique('msg_message_dedupe_uq').on(t.schoolId, t.dedupeKey),
     index('msg_message_queue_idx').on(t.status, t.notBefore),
     index('msg_message_school_created_idx').on(t.schoolId, t.createdAt),
+    index('msg_message_batch_idx').on(t.batchId, t.status),
+  ],
+);
+
+/** Satu pengiriman ke banyak penerima (migrasi 0115). `selection` = pemilih penerima apa adanya, untuk audit. */
+export const msgBatch = pgTable(
+  'msg_batch',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    kind: text('kind', { enum: ['direct', 'broadcast'] }).notNull(),
+    title: text('title').notNull(),
+    bodyTemplate: text('body_template').notNull(),
+    selection: jsonb('selection').$type<Record<string, unknown>>().notNull(),
+    recipientCount: integer('recipient_count').notNull(),
+    excluded: jsonb('excluded')
+      .$type<{ noPhone: number; invalid: number; duplicate: number; optedOut: number }>()
+      .notNull()
+      .default({ noPhone: 0, invalid: 0, duplicate: 0, optedOut: 0 }),
+    createdBy: text('created_by').notNull(),
+    createdAt: createdAt(),
+    cancelledAt: timestamp('cancelled_at', { withTimezone: true }),
+    cancelledBy: text('cancelled_by'),
+  },
+  (t) => [
+    unique('msg_batch_school_id_uq').on(t.schoolId, t.id),
+    index('msg_batch_school_created_idx').on(t.schoolId, t.createdAt),
+  ],
+);
+
+/** Templat pesan langsung milik sekolah (yang bawaan ada di packages/contracts). */
+export const msgDirectTemplate = pgTable(
+  'msg_direct_template',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    name: text('name').notNull(),
+    body: text('body').notNull(),
+    createdAt: createdAt(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique('msg_direct_template_school_id_uq').on(t.schoolId, t.id),
+    unique('msg_direct_template_name_uq').on(t.schoolId, t.name),
   ],
 );
 

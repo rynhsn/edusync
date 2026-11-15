@@ -25,5 +25,6 @@ export * from './finance-generate';
 export * from './grading-backfill';
 export * from './grading-freeze';
 export * from './messaging';
+export * from './messaging-batch';
 export * from './roles';
 export * from './schema';
