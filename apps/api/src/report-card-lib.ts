@@ -64,7 +64,7 @@ import { type EffectiveGradingConfig, loadGradingConfig, remedialContextFor } fr
 import { assessedSubjects, computeGrades, notCountedComponentIds, type StudentGrade } from './grading-lib';
 import { HttpError } from './http-error';
 import { pklThresholds, pklWeights } from './pkl-lib';
-import { resolvePrincipal } from './principal-lib';
+import { principalSigner } from './principal-lib';
 import { isNarrativeStale, loadObjectiveNarratives, type ObjectiveNarratives } from './report-narrative-lib';
 import { semesterRosterOf } from './student-mobility-lib';
 import { type SubjectTakers, takersOf, takes } from './subject-roster-lib';
@@ -131,10 +131,15 @@ export async function loadReportSettings(tx: Tx): Promise<ReportSettings> {
   };
 }
 
-/** Pengaturan rapor dengan kepala sekolah dari sumber tunggal (`resolvePrincipal`); dipakai dokumen, bukan layar pengaturan. */
+/** Pengaturan rapor dengan kepala sekolah dari sumber tunggal (`principalSigner`); dipakai dokumen, bukan layar pengaturan. */
 export async function loadEffectiveReportSettings(tx: Tx, schoolId: string): Promise<ReportSettings> {
-  const [settings, principal] = await Promise.all([loadReportSettings(tx), resolvePrincipal(tx, schoolId)]);
-  return { ...settings, principalName: principal?.name ?? null, principalNip: principal?.nip ?? null };
+  const [settings, signer] = await Promise.all([loadReportSettings(tx), principalSigner(tx, schoolId)]);
+  // Cadangan memakai pengaturan yang sudah dimuat (tanpa kueri kedua); sama dengan `principalSigner`.
+  return {
+    ...settings,
+    principalName: signer?.name ?? settings.principalName,
+    principalNip: signer ? signer.nip : settings.principalNip,
+  };
 }
 
 /**

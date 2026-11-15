@@ -787,8 +787,8 @@ describe('jumlah kueri dan sumber pemuat', () => {
       const nFrozen = await count(frozen);
       // Salinan: 1 kueri menggantikan pengaturan, komponen, kriteria, dan level (4 kueri, pada sekolah dengan kriteria).
       expect(nFrozen).toBeLessThanOrEqual(nLive - 3);
-      // Ambang tetap supaya N+1 tidak menyusup: konteks satu kelas tidak bergantung pada jumlah siswa.
-      expect(nFrozen).toBeLessThanOrEqual(17);
+      // Ambang tetap supaya N+1 tidak menyusup: konteks satu kelas tidak bergantung pada jumlah siswa (+1 kueri tetap: penandatangan kepala sekolah).
+      expect(nFrozen).toBeLessThanOrEqual(18);
       // Frozen tetap sama walau siswa bertambah.
       await db()
         .insert(student)

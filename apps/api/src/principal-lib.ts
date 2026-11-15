@@ -13,6 +13,17 @@ export interface Principal {
  * Tenant: `tx` sudah dibatasi RLS; saring `school_id` eksplisit sebagai pagar kedua.
  */
 export async function resolvePrincipal(tx: Tx, schoolId: string): Promise<Principal | null> {
+  const signer = await principalSigner(tx, schoolId);
+  if (signer) return signer;
+  const [r] = await tx
+    .select({ name: reportSetting.principalName, nip: reportSetting.principalNip })
+    .from(reportSetting)
+    .where(eq(reportSetting.schoolId, schoolId));
+  return r?.name ? { name: r.name, nip: r.nip, source: 'report_setting' } : null;
+}
+
+/** Hanya sumber utama (penandatangan ber-`is_principal`); dipakai pemanggil yang sudah memuat `report_setting` sendiri. */
+export async function principalSigner(tx: Tx, schoolId: string): Promise<Principal | null> {
   const [s] = await tx
     .select({ name: signerCredential.name, nip: signerCredential.nip })
     .from(signerCredential)
@@ -23,10 +34,5 @@ export async function resolvePrincipal(tx: Tx, schoolId: string): Promise<Princi
         eq(signerCredential.active, true),
       ),
     );
-  if (s) return { name: s.name, nip: s.nip, source: 'signer' };
-  const [r] = await tx
-    .select({ name: reportSetting.principalName, nip: reportSetting.principalNip })
-    .from(reportSetting)
-    .where(eq(reportSetting.schoolId, schoolId));
-  return r?.name ? { name: r.name, nip: r.nip, source: 'report_setting' } : null;
+  return s ? { name: s.name, nip: s.nip, source: 'signer' } : null;
 }
