@@ -1,11 +1,18 @@
 'use client';
 
-import { Menu } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 
 /**
@@ -55,6 +62,7 @@ export function AppHeader({
  */
 export function MobileNavDrawer({ children }: { children: React.ReactNode }) {
   const t = useTranslations('nav');
+  const tc = useTranslations('common');
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
@@ -70,8 +78,17 @@ export function MobileNavDrawer({ children }: { children: React.ReactNode }) {
       >
         <Menu className="size-5" aria-hidden />
       </DialogTrigger>
-      <DialogContent className="bg-sidebar text-sidebar-foreground data-closed:slide-out-to-left data-open:slide-in-from-left top-0 left-0 h-dvh w-80 max-w-[85vw] translate-x-0 translate-y-0 content-start gap-0 overflow-y-auto rounded-none p-0 data-closed:zoom-out-100 data-open:zoom-in-100 sm:max-w-80">
-        <DialogTitle className="sr-only">{t('menu')}</DialogTitle>
+      <DialogContent
+        showCloseButton={false}
+        className="bg-sidebar text-sidebar-foreground data-closed:slide-out-to-left data-open:slide-in-from-left top-0 left-0 h-dvh w-80 max-w-[85vw] translate-x-0 translate-y-0 content-start gap-0 overflow-y-auto rounded-none p-0 data-closed:zoom-out-100 data-open:zoom-in-100 sm:max-w-80"
+      >
+        {/* Baris sendiri: tombol tutup tidak menimpa pemilih sekolah di bawahnya. */}
+        <div className="flex items-center justify-between gap-2 border-b py-1 pr-1 pl-4">
+          <DialogTitle className="text-sm font-medium">{t('menu')}</DialogTitle>
+          <DialogClose render={<Button variant="ghost" className="size-11" aria-label={tc('close')} />}>
+            <X className="size-5" aria-hidden />
+          </DialogClose>
+        </div>
         <DialogDescription className="sr-only">{t('menu')}</DialogDescription>
         {children}
       </DialogContent>

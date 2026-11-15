@@ -44,6 +44,26 @@ describe('terjemahan', () => {
       for (const p of PERMISSIONS) expect(catalog[`permissions.${p.replace(':', '_')}`], p).toBeTruthy();
     }
   });
+
+  it('setiap modul dan aksi izin punya label rapi di tiga bahasa', async () => {
+    const { PERMISSIONS } = await import('@edusync/contracts');
+    const resources = new Set(PERMISSIONS.map((p) => p.split(':')[0] as string));
+    const actions = new Set(PERMISSIONS.map((p) => p.split(':')[1] as string));
+    for (const [lang, catalog] of Object.entries(catalogs)) {
+      for (const [kind, keys] of [
+        ['resource', resources],
+        ['action', actions],
+      ] as const) {
+        for (const k of keys) {
+          const text = catalog[`rolesPage.${kind}.${k}`];
+          expect(text, `${lang} ${kind} ${k}`).toBeTruthy();
+          // bukan kode mentah dan diawali huruf kapital
+          expect(text, `${lang} ${kind} ${k}`).not.toMatch(/_/);
+          expect(text, `${lang} ${kind} ${k}`).toMatch(/^\p{Lu}/u);
+        }
+      }
+    }
+  });
 });
 
 describe('pemilihan bahasa', () => {

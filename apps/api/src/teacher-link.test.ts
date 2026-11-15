@@ -121,6 +121,19 @@ describe('tautan akun guru', () => {
     expect((await call('PUT', `/v1/teachers/${b}/account`, adminCookie, { memberId })).statusCode).toBe(200);
   });
 
+  it('setelah ditautkan, daftar guru (tanpa dan dengan q) memuat memberId dan hanya satu guru yang memegangnya', async () => {
+    const guruAkun = await makeUser('guru-daftar');
+    const memberId = await join(guruAkun.id, ['teacher']);
+    const id = await newTeacher('Guru Daftar');
+    expect((await call('PUT', `/v1/teachers/${id}/account`, adminCookie, { memberId })).statusCode).toBe(200);
+
+    for (const url of ['/v1/teachers', `/v1/teachers?q=${encodeURIComponent('Guru Daftar')}`]) {
+      const rows = (await call('GET', url, adminCookie)).json() as { id: string; memberId: string | null }[];
+      expect(rows.find((r) => r.id === id)?.memberId).toBe(memberId);
+      expect(rows.filter((r) => r.memberId === memberId)).toHaveLength(1);
+    }
+  });
+
   it('menolak anggota nonaktif, anggota yang tidak ada, dan pemanggil tanpa izin kelola anggota', async () => {
     const nonaktif = await makeUser('nonaktif-tautan');
     const memberId = await join(nonaktif.id, ['teacher']);

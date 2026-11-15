@@ -62,13 +62,18 @@ function allGroups(): { resource: string; actions: string[] }[] {
   return groupPermissions(PERMISSIONS);
 }
 
-/** Nama sumber daya / aksi dengan cadangan ke kunci mentah bila terjemahan belum ada. */
+function humanize(key: string) {
+  const text = key.replace(/_/g, ' ');
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
+/** Nama sumber daya / aksi dengan cadangan berupa kata berhuruf awal kapital (bukan kode mentah); tes i18n menjamin terjemahannya ada. */
 function useLabels() {
   const t = useTranslations('rolesPage');
   const tp = useTranslations('permissions');
   return {
-    resource: (r: string) => (t.has(`resource.${r}` as never) ? t(`resource.${r}` as never) : r),
-    action: (a: string) => (t.has(`action.${a}` as never) ? t(`action.${a}` as never) : a),
+    resource: (r: string) => (t.has(`resource.${r}` as never) ? t(`resource.${r}` as never) : humanize(r)),
+    action: (a: string) => (t.has(`action.${a}` as never) ? t(`action.${a}` as never) : humanize(a)),
     full: (p: string) => (tp.has(p.replace(':', '_') as never) ? tp(p.replace(':', '_') as never) : p),
   };
 }
