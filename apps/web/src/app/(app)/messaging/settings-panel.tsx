@@ -123,40 +123,42 @@ function TemplateCard({
         {t(`eventHint.${tpl.eventKey}` as 'eventHint.arrival')}
       </p>
 
-      <div className="grid content-start gap-2">
-        <Label htmlFor={`tpl-${tpl.eventKey}`}>{t('templateBody')}</Label>
-        <textarea
-          id={`tpl-${tpl.eventKey}`}
-          ref={area}
-          rows={7}
-          maxLength={1000}
-          disabled={!canManage}
-          value={body}
-          onChange={(e) => setBody(e.target.value)}
-          className="border-input placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 dark:bg-input/30 min-h-24 w-full rounded-lg border bg-transparent px-2.5 py-2 text-base outline-none focus-visible:ring-3 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
-        />
-        <p className="text-muted-foreground text-xs">{t('formatHint')}</p>
-        <div className="flex flex-wrap items-center gap-1.5">
-          <span className="text-muted-foreground text-xs">{t('insertPlaceholder')}:</span>
-          {tpl.placeholders.map((p) => (
-            <Button
-              key={p}
-              type="button"
-              size="xs"
-              variant="outline"
-              disabled={!canManage}
-              onClick={() => insert(p)}
-              title={`{{${p}}}`}
-            >
-              {t.has(`placeholder.${p}` as never) ? t(`placeholder.${p}` as never) : p}
-            </Button>
-          ))}
+      <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid content-start gap-2">
+          <Label htmlFor={`tpl-${tpl.eventKey}`}>{t('templateBody')}</Label>
+          <textarea
+            id={`tpl-${tpl.eventKey}`}
+            ref={area}
+            rows={7}
+            maxLength={1000}
+            disabled={!canManage}
+            value={body}
+            onChange={(e) => setBody(e.target.value)}
+            className="border-input placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 dark:bg-input/30 min-h-24 w-full rounded-lg border bg-transparent px-2.5 py-2 text-base outline-none focus-visible:ring-3 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+          />
+          <p className="text-muted-foreground text-xs">{t('formatHint')}</p>
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="text-muted-foreground text-xs">{t('insertPlaceholder')}:</span>
+            {tpl.placeholders.map((p) => (
+              <Button
+                key={p}
+                type="button"
+                size="xs"
+                variant="outline"
+                disabled={!canManage}
+                onClick={() => insert(p)}
+                title={`{{${p}}}`}
+              >
+                {t.has(`placeholder.${p}` as never) ? t(`placeholder.${p}` as never) : p}
+              </Button>
+            ))}
+          </div>
         </div>
-      </div>
 
-      <div className="grid content-start gap-1">
-        <p className="text-muted-foreground text-xs font-medium">{t('preview')}</p>
-        <WaBubble body={preview(body, school.schoolName)} />
+        <div className="grid content-start gap-1">
+          <p className="text-muted-foreground text-xs font-medium">{t('preview')}</p>
+          <WaBubble body={preview(body, school.schoolName)} />
+        </div>
       </div>
 
       {error && (
