@@ -1,6 +1,6 @@
 import { randomBytes } from 'node:crypto';
 import { checkCustomHostname, DOMAIN_VERIFY_LABEL, MAX_SCHOOL_DOMAINS } from '@edusync/contracts';
-import { asc, count, type Db, eq, schoolDomain, sql, type Tx, withTenant } from '@edusync/db';
+import { asc, count, type Db, eq, school, schoolDomain, sql, type Tx, withTenant } from '@edusync/db';
 import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
@@ -12,6 +12,7 @@ import type { HostResolver } from '../origins';
 import { audit, conflictAs409, guarded, idParams, ok, schoolHeader } from './helpers';
 
 const tags = ['School'];
+const SLUG = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 const gate = [requirePermission('school:manage'), requireModule('website')];
 
 const recordSchema = z.object({
@@ -242,6 +243,33 @@ export async function schoolDomainRoutes(instance: FastifyInstance, opts: School
       if (!slug) throw new HttpError(404, 'not_found', 'Host tidak dikenal.');
       reply.header('cache-control', 'public, max-age=60');
       return { schoolSlug: slug };
+    },
+  );
+
+  app.get(
+    '/v1/public/school-exists',
+    {
+      config: { rateLimit: { max: 120, timeWindow: '1 minute' } },
+      schema: {
+        tags: ['Situs sekolah (publik)'],
+        summary: 'Cek apakah alamat sekolah punya sekolah (publik)',
+        description:
+          'Tanpa login. `exists` true bila ada sekolah dengan `slug` itu (aktif maupun ditangguhkan, karena sekolah ' +
+          'ditangguhkan tetap menampilkan layar penangguhan sendiri). Slug yang tak berformat sah, tak pernah ada, ' +
+          'atau sudah dihapus sama-sama `false`: jawabannya tidak membedakan. Tidak memuat info lain.',
+        querystring: z.object({ slug: z.string().trim().min(1).max(63) }),
+        response: { 200: z.object({ exists: z.boolean() }), 429: errorSchema },
+      },
+    },
+    async (request, reply) => {
+      const slug = request.query.slug.toLowerCase();
+      reply.header('cache-control', 'public, max-age=60');
+      if (!SLUG.test(slug)) return { exists: false };
+      const [row] = await request.server.platformDb
+        .select({ id: school.id })
+        .from(school)
+        .where(eq(school.slug, slug));
+      return { exists: !!row };
     },
   );
 }

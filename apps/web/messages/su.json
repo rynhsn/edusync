@@ -270,6 +270,11 @@
     "since": "Ditangguhkeun ti {date}",
     "payError": "Portal nu gaduh teu bisa dibuka. Cobian deui."
   },
+  "schoolNotFound": {
+    "title": "Sakola teu kapanggih",
+    "body": "Alamat ieu teu nyambung ka sakola mana waé. Mangga pariksa deui alamat nu diketik atawa hubungi sakola anu dimaksud.",
+    "action": "Ka situs Edusync"
+  },
   "common": {
     "appName": "Edusync",
     "retry": "Cobian deui",

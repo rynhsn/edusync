@@ -29,3 +29,17 @@ export function safeNextPath(next: string | null | undefined): string {
   if (!next?.startsWith('/') || next.startsWith('//') || next.includes('\\')) return '/';
   return next;
 }
+
+/**
+ * Keputusan penjaga alamat sekolah. Hanya subdomain sekolah yang dicek ke API; alamat utama dan domain
+ * sendiri tidak berubah. Bila pengecekan gagal (exists tak diketahui) halaman tetap dibuka agar API yang
+ * sedang gangguan tidak menutup sekolah yang ada.
+ */
+export function schoolGate(
+  host: HostKind | null,
+  check: { pending: boolean; exists?: boolean },
+): 'ok' | 'checking' | 'missing' {
+  if (host?.kind !== 'school') return 'ok';
+  if (check.pending) return 'checking';
+  return check.exists === false ? 'missing' : 'ok';
+}

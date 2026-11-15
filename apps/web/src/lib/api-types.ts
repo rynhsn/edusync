@@ -64869,6 +64869,63 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/public/school-exists": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Cek apakah alamat sekolah punya sekolah (publik)
+         * @description Tanpa login. `exists` true bila ada sekolah dengan `slug` itu (aktif maupun ditangguhkan, karena sekolah ditangguhkan tetap menampilkan layar penangguhan sendiri). Slug yang tak berformat sah, tak pernah ada, atau sudah dihapus sama-sama `false`: jawabannya tidak membedakan. Tidak memuat info lain.
+         */
+        get: {
+            parameters: {
+                query: {
+                    slug: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            exists: boolean;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/semesters": {
         parameters: {
             query?: never;

@@ -7,6 +7,16 @@ memutus kompatibilitas. Produksi hanya berubah saat tag `vX.Y.Z` dikirim; tulis 
 Cara merilis: tulis bagian baru di bawah "Belum dirilis" lalu ganti judulnya menjadi `## [x.y.z] - tanggal`, kemudian
 `pnpm release x.y.z` dan `git push edusync HEAD:main vx.y.z`.
 
+## [0.6.4] - 2026-11-15
+
+### Diperbaiki
+
+- Alamat sekolah (`<slug>.<domain>`) yang sekolahnya sudah dihapus atau tidak pernah ada kini menampilkan halaman
+  "Sekolah tidak ditemukan" dengan tombol ke situs utama, bukan lagi halaman login. Jawabannya sama untuk "dihapus" dan
+  "tidak pernah ada". Sekolah yang ada (termasuk yang ditangguhkan), domain sendiri sekolah, alamat utama, dan konsol
+  platform tidak berubah. API: `GET /v1/public/school-exists?slug=` (publik, dibatasi 120 per menit per IP, hanya
+  mengembalikan `exists`).
+
 ## [0.6.3] - 2026-11-15
 
 ### Diubah

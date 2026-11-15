@@ -270,6 +270,11 @@
     "since": "Suspended since {date}",
     "payError": "The owner portal could not be opened. Try again."
   },
+  "schoolNotFound": {
+    "title": "School not found",
+    "body": "This address is not linked to any school. Check the address you typed or contact the school.",
+    "action": "Go to the Edusync site"
+  },
   "common": {
     "appName": "Edusync",
     "retry": "Try again",

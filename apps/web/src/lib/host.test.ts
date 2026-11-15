@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseHost, safeNextPath, siteUrl } from './host';
+import { parseHost, safeNextPath, schoolGate, siteUrl } from './host';
 
 describe('parseHost', () => {
   it('alamat utama dikenali, dengan atau tanpa port', () => {
@@ -58,5 +58,20 @@ describe('safeNextPath', () => {
     ]) {
       expect(safeNextPath(bad as string | null | undefined), String(bad)).toBe('/');
     }
+  });
+});
+
+describe('schoolGate', () => {
+  const school = { kind: 'school', slug: 'x' } as const;
+  it('alamat utama, domain sendiri, dan host belum diketahui selalu lolos', () => {
+    expect(schoolGate({ kind: 'main' }, { pending: true })).toBe('ok');
+    expect(schoolGate({ kind: 'main' }, { pending: false, exists: false })).toBe('ok');
+    expect(schoolGate(null, { pending: true })).toBe('ok');
+  });
+  it('subdomain sekolah: menunggu, ada, tidak ada, dan gagal dicek (tetap dibuka)', () => {
+    expect(schoolGate(school, { pending: true })).toBe('checking');
+    expect(schoolGate(school, { pending: false, exists: true })).toBe('ok');
+    expect(schoolGate(school, { pending: false, exists: false })).toBe('missing');
+    expect(schoolGate(school, { pending: false })).toBe('ok');
   });
 });

@@ -322,6 +322,56 @@ describe('domain sendiri: verifikasi DNS dan resolusi host', () => {
   });
 });
 
+describe('GET /v1/public/school-exists', () => {
+  const exists = (
+    s: string,
+    remoteAddress = `10.9.${Math.floor(Math.random() * 250)}.${Math.floor(Math.random() * 250)}`,
+  ) =>
+    app.inject({
+      method: 'GET',
+      url: `/v1/public/school-exists?slug=${encodeURIComponent(s)}`,
+      remoteAddress,
+    });
+
+  it('sekolah ada (huruf besar dinormalkan) → true, hanya satu kunci di jawaban', async () => {
+    for (const s of [slug, slug.toUpperCase()]) {
+      const res = await exists(s);
+      expect(res.statusCode).toBe(200);
+      expect(res.json()).toEqual({ exists: true });
+    }
+  });
+
+  it('tak pernah ada, format tak valid, dan sekolah dihapus: jawaban sama persis (tanpa kebocoran)', async () => {
+    const [gone] = await app.platformDb
+      .insert(school)
+      .values({ foundationId, slug: `gone-${run}`, name: 'Sementara' })
+      .returning();
+    await app.platformDb.delete(school).where(eq(school.id, gone!.id));
+    for (const s of [`gone-${run}`, `tidak-ada-${run}`, '-x', 'a--b', 'a.b', 'a b', "x';--"]) {
+      const res = await exists(s);
+      expect(res.statusCode).toBe(200);
+      expect(res.json()).toEqual({ exists: false });
+    }
+  });
+
+  it('sekolah ditangguhkan tetap ada (layar penangguhan tidak berubah)', async () => {
+    await app.platformDb.update(school).set({ status: 'suspended' }).where(eq(school.id, schoolId));
+    expect((await exists(slug)).json()).toEqual({ exists: true });
+    await app.platformDb.update(school).set({ status: 'active' }).where(eq(school.id, schoolId));
+  });
+
+  it('slug kosong atau terlalu panjang ditolak validasi (400)', async () => {
+    expect((await exists('')).statusCode).toBe(400);
+    expect((await exists('a'.repeat(64))).statusCode).toBe(400);
+  });
+
+  it('dibatasi laju: permintaan ke-121 per menit per IP → 429', async () => {
+    const ip = '10.200.1.1';
+    for (let i = 0; i < 120; i++) expect((await exists(slug, ip)).statusCode).toBe(200);
+    expect((await exists(slug, ip)).statusCode).toBe(429);
+  });
+});
+
 describe('cache host', () => {
   it('menyimpan hasil 60 detik lalu mencari ulang', async () => {
     let calls = 0;

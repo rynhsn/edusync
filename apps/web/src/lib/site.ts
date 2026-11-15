@@ -3,7 +3,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { api, unwrap } from './api';
-import { type HostKind, parseHost, siteUrl } from './host';
+import { type HostKind, parseHost, schoolGate, siteUrl } from './host';
 
 /** Pengaturan publik dari API (domain dasar). Tidak berubah selama aplikasi berjalan. */
 export function useConfig() {
@@ -59,6 +59,33 @@ export function useSite(): Site {
     custom: customHost !== null,
     ...(customHost ?? parsed),
     urlFor: (slug, path = '/') => siteUrl(where.protocol, baseDomain, slug, path),
+  };
+}
+
+/**
+ * Penjaga alamat sekolah: subdomain yang slug-nya tidak punya sekolah dijawab "missing" (satu pertanyaan ke
+ * API, di-cache). Domain sendiri sekolah (host di luar domain dasar) tidak dicek di sini.
+ * `mainUrl` = alamat utama untuk tombol keluar.
+ */
+export function useSchoolGate(): { state: 'ok' | 'checking' | 'missing'; mainUrl: string } {
+  const config = useConfig();
+  const [where, setWhere] = useState<{ host: string; protocol: string } | null>(null);
+  useEffect(() => setWhere({ host: window.location.host, protocol: window.location.protocol }), []);
+  const baseDomain = config.data?.baseDomain;
+  const parsed = where && baseDomain ? parseHost(where.host, baseDomain) : null;
+  const slug = parsed?.kind === 'school' ? parsed.slug : null;
+  const check = useQuery({
+    queryKey: ['school-exists', slug],
+    enabled: !!slug,
+    staleTime: 5 * 60_000,
+    retry: false,
+    queryFn: async () =>
+      (await api.GET('/v1/public/school-exists', { params: { query: { slug: slug as string } } })).data
+        ?.exists,
+  });
+  return {
+    state: schoolGate(parsed, { pending: check.isPending, exists: check.data }),
+    mainUrl: where && baseDomain ? siteUrl(where.protocol, baseDomain, null) : '/',
   };
 }
 

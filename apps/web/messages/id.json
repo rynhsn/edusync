@@ -270,6 +270,11 @@
     "since": "Ditangguhkan sejak {date}",
     "payError": "Portal pemilik tidak dapat dibuka. Coba lagi."
   },
+  "schoolNotFound": {
+    "title": "Sekolah tidak ditemukan",
+    "body": "Alamat ini tidak terhubung ke sekolah mana pun. Periksa kembali alamat yang Anda ketik atau hubungi sekolah yang bersangkutan.",
+    "action": "Ke situs Edusync"
+  },
   "common": {
     "appName": "Edusync",
     "retry": "Coba lagi",
