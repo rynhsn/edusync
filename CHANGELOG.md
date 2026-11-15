@@ -9,7 +9,6 @@ Cara merilis: tulis bagian baru di bawah "Belum dirilis" lalu ganti judulnya men
 
 ## [0.6.3] - 2026-11-15
 
-
 ### Diubah
 
 - Satu sumber data kepala sekolah untuk dokumen. Menu Surat > Penandatangan kini punya penanda **Kepala Sekolah**
