@@ -73,7 +73,7 @@ export function WaBubble({
               </div>
             </div>
           ))}
-        <p className="break-words whitespace-pre-wrap">{render(parseWhatsApp(body))}</p>
+        <p className="whitespace-pre-wrap [overflow-wrap:anywhere]">{render(parseWhatsApp(body))}</p>
         <p
           className="mt-1 text-right text-[11px] leading-none text-[#667781] dark:text-[#8696a0]"
           aria-hidden

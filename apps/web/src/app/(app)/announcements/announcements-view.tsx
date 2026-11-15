@@ -10,6 +10,7 @@ import {
   Globe,
   Layers,
   Megaphone,
+  MessageCircle,
   Pencil,
   Pin,
   PinOff,
@@ -46,6 +47,7 @@ import { errorKey } from '@/lib/errors';
 import { formatCalendarDate } from '@/lib/format-date';
 import { cn } from '@/lib/utils';
 import { AnnouncementEditor, type Draft, EMPTY_DRAFT, toBody } from './announcement-editor';
+import { BroadcastDialog, type BroadcastTarget } from './broadcast-dialog';
 import '../../site/site.css';
 
 interface Row {
@@ -84,6 +86,8 @@ export function AnnouncementsView() {
   const queryClient = useQueryClient();
   const header = { header: schoolHeader(school.schoolId) };
   const manage = can('announcement:manage');
+  const canBroadcast = manage && can('message:broadcast') && hasModule('messaging');
+  const tb = useTranslations('announcements.broadcast');
 
   const [q, setQ] = useState('');
   const [filter, setFilter] = useState<StatusFilter>('all');
@@ -92,6 +96,7 @@ export function AnnouncementsView() {
   const [editor, setEditor] = useState<{ id: string | null; draft: Draft } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<Row | null>(null);
+  const [broadcasting, setBroadcasting] = useState<BroadcastTarget | null>(null);
 
   const list = useQuery({
     queryKey: ['announcements', school.schoolId],
@@ -129,7 +134,16 @@ export function AnnouncementsView() {
         ),
       ),
     onSuccess: (_d, r) => {
-      toast.success(r.status === 'published' ? t('unpublished') : t('published'));
+      const publishedNow = r.status !== 'published';
+      // Siaran WhatsApp ditawarkan, tidak pernah otomatis (selalu lewat pratinjau dan konfirmasi).
+      if (publishedNow && canBroadcast) {
+        toast.success(t('published'), {
+          description: tb('offer'),
+          action: { label: tb('offerAction'), onClick: () => setBroadcasting({ id: r.id, title: r.title }) },
+        });
+      } else {
+        toast.success(publishedNow ? t('published') : t('unpublished'));
+      }
       refresh();
     },
     onError: (e) => toast.error(te(errorKey(e))),
@@ -386,6 +400,15 @@ export function AnnouncementsView() {
                       )}
                       {r.status === 'published' ? t('unpublish') : t('publish')}
                     </Button>
+                    {canBroadcast && status === 'published' && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setBroadcasting({ id: r.id, title: r.title })}
+                      >
+                        <MessageCircle className="size-4" aria-hidden /> {t('broadcastButton')}
+                      </Button>
+                    )}
                     <Button
                       size="icon-sm"
                       variant="ghost"
@@ -435,6 +458,8 @@ export function AnnouncementsView() {
           onSubmit={() => save.mutateAsync(editor)}
         />
       )}
+
+      <BroadcastDialog target={broadcasting} onOpenChange={(o) => !o && setBroadcasting(null)} />
 
       <ConfirmDialog
         open={!!deleting}

@@ -2,6 +2,7 @@ import { eq, sql } from 'drizzle-orm';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
   academicYear,
+  announcement,
   classRoom,
   cocurricularAssessment,
   cocurricularEvidence,
@@ -12,10 +13,12 @@ import {
   cocurricularRubricLevel,
   createDb,
   foundation,
+  guardian,
   msgAttachment,
   msgBatch,
   msgDirectTemplate,
   msgMessage,
+  msgOptOut,
   pklPartner,
   pklPeriod,
   pklPlacement,
@@ -1020,6 +1023,96 @@ describe('tabel tenant lampiran pesan (migrasi 0116)', () => {
       for (const sid of [schoolA1, schoolB]) {
         await platform.db.delete(msgBatch).where(eq(msgBatch.schoolId, sid));
         await platform.db.delete(msgAttachment).where(eq(msgAttachment.schoolId, sid));
+      }
+    }
+  });
+});
+
+describe('tabel tenant siaran pengumuman (migrasi 0117)', () => {
+  it('msg_opt_out terisolasi; PK per nomor, FK komposit wali/pengumuman, dan siaran unik per pengumuman', async () => {
+    const guardianOf = async (sid: string) =>
+      (
+        await platform.db
+          .insert(guardian)
+          .values({ schoolId: sid, name: 'Wali Uji', phone: '081200000009' })
+          .returning()
+      )[0]!;
+    const annOf = async (sid: string) =>
+      (
+        await platform.db
+          .insert(announcement)
+          .values({ schoolId: sid, title: 'T', body: 'b', createdBy: 'uji' })
+          .returning()
+      )[0]!;
+    const batchOf = (sid: string, announcementId: string, kind: 'direct' | 'broadcast' = 'broadcast') =>
+      platform.db.insert(msgBatch).values({
+        schoolId: sid,
+        kind,
+        title: 'b',
+        bodyTemplate: 'x',
+        selection: {},
+        recipientCount: 0,
+        createdBy: 'uji',
+        announcementId,
+      });
+    const gA = await guardianOf(schoolA1);
+    const gB = await guardianOf(schoolB);
+    const aA = await annOf(schoolA1);
+    const aB = await annOf(schoolB);
+    try {
+      for (const [sid, g] of [
+        [schoolA1, gA],
+        [schoolB, gB],
+      ] as const) {
+        await platform.db
+          .insert(msgOptOut)
+          .values({ schoolId: sid, phone: '6281200000009', guardianId: g.id, createdBy: 'uji' });
+      }
+      const rows = await withTenant(app.db, [schoolA1], (tx) => tx.select().from(msgOptOut));
+      expect(rows.map((r) => r.schoolId)).toEqual([schoolA1]);
+      expect(await app.db.select().from(msgOptOut)).toHaveLength(0);
+      // Tulis lintas sekolah ditolak RLS; satu nomor satu baris per sekolah; sumber di luar staff/portal ditolak.
+      await expect(
+        withTenant(app.db, [schoolA1], (tx) =>
+          tx.insert(msgOptOut).values({ schoolId: schoolB, phone: '6281200000010', createdBy: 'uji' }),
+        ),
+      ).rejects.toThrow();
+      await expect(
+        platform.db
+          .insert(msgOptOut)
+          .values({ schoolId: schoolA1, phone: '6281200000009', createdBy: 'uji' }),
+      ).rejects.toThrow();
+      await expect(
+        platform.db
+          .insert(msgOptOut)
+          .values({ schoolId: schoolA1, phone: '6281200000011', source: 'sms' as 'staff', createdBy: 'uji' }),
+      ).rejects.toThrow();
+      // FK komposit: opt-out sekolah A tidak boleh merujuk wali sekolah B.
+      await expect(
+        platform.db
+          .insert(msgOptOut)
+          .values({ schoolId: schoolA1, phone: '6281200000012', guardianId: gB.id, createdBy: 'uji' }),
+      ).rejects.toThrow();
+      // FK komposit batch -> pengumuman, dan paling banyak satu siaran per pengumuman (pesan langsung tidak dibatasi).
+      await expect(batchOf(schoolA1, aB.id)).rejects.toThrow();
+      await batchOf(schoolA1, aA.id);
+      await expect(batchOf(schoolA1, aA.id)).rejects.toThrow();
+      await batchOf(schoolA1, aA.id, 'direct');
+      // Hapus pengumuman: batch tetap, hanya announcement_id yang dikosongkan.
+      await platform.db.delete(announcement).where(eq(announcement.id, aA.id));
+      const left = await platform.db.select().from(msgBatch).where(eq(msgBatch.schoolId, schoolA1));
+      expect(left.length).toBeGreaterThanOrEqual(2);
+      expect(left.every((b) => b.announcementId === null)).toBe(true);
+      // Hapus wali: opt-out tetap (kunci nomor), guardian_id dikosongkan.
+      await platform.db.delete(guardian).where(eq(guardian.id, gA.id));
+      const [kept] = await platform.db.select().from(msgOptOut).where(eq(msgOptOut.schoolId, schoolA1));
+      expect(kept).toMatchObject({ phone: '6281200000009', guardianId: null });
+    } finally {
+      for (const sid of [schoolA1, schoolB]) {
+        await platform.db.delete(msgBatch).where(eq(msgBatch.schoolId, sid));
+        await platform.db.delete(msgOptOut).where(eq(msgOptOut.schoolId, sid));
+        await platform.db.delete(announcement).where(eq(announcement.schoolId, sid));
+        await platform.db.delete(guardian).where(eq(guardian.schoolId, sid));
       }
     }
   });

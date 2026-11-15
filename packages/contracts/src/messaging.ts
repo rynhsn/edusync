@@ -336,3 +336,38 @@ export const attachmentUploadSchema = z.object({
   // Sedikit di atas 2 MB (base64 = 4/3) agar berkas kelewat besar mendapat galat khusus dari rute, bukan "validation".
   dataBase64: z.string().min(1).max(2_900_000),
 });
+
+/* ---------- Siaran pengumuman lewat WhatsApp (tahap C) ---------- */
+
+/** Pengumuman yang lebih panjang dipotong sebegini karakter lalu diberi rujukan ke portal. */
+export const ANNOUNCEMENT_BROADCAST_MAX = 1000;
+export const ANNOUNCEMENT_MORE_NOTE = 'Selengkapnya di portal sekolah.';
+/** Jeda minimum antar pesan siaran (prioritas 2), di atas pengaturan sekolah bila pengaturan itu lebih kecil. */
+export const BROADCAST_DELAY_MIN_SECONDS = 10;
+
+export type AnnouncementAudience = 'public' | 'portal' | 'staff' | 'all';
+
+/**
+ * Staf sebagai sasaran siaran menurut audiens pengumuman: `staff` = staf saja (wali tidak), `portal` = wali saja,
+ * `all`/`public` = wali, staf hanya bila dicentang pengguna (`optional`).
+ */
+export function broadcastStaffMode(audience: AnnouncementAudience): 'forced' | 'optional' | 'none' {
+  if (audience === 'staff') return 'forced';
+  return audience === 'portal' ? 'none' : 'optional';
+}
+
+/** Isi siaran: `*{judul}*` + isi sebagai teks polos (tanpa pengganti), dipotong ANNOUNCEMENT_BROADCAST_MAX. */
+export function announcementBroadcastText(title: string, body: string): { text: string; truncated: boolean } {
+  const full = `*${title.replace(/\*/g, '').trim()}*\n\n${body.trim()}`;
+  if (full.length <= ANNOUNCEMENT_BROADCAST_MAX) return { text: full, truncated: false };
+  return {
+    text: `${full.slice(0, ANNOUNCEMENT_BROADCAST_MAX).trimEnd()}…\n\n${ANNOUNCEMENT_MORE_NOTE}`,
+    truncated: true,
+  };
+}
+
+/** Jeda acak siaran: batas bawah dinaikkan ke BROADCAST_DELAY_MIN_SECONDS, batas atas tak pernah di bawahnya. */
+export function broadcastDelay(minSeconds: number, maxSeconds: number): { min: number; max: number } {
+  const min = Math.max(minSeconds, BROADCAST_DELAY_MIN_SECONDS);
+  return { min, max: Math.max(maxSeconds, min) };
+}

@@ -2,6 +2,7 @@ import {
   DEFAULT_DAILY_LIMIT,
   directBodyIssue,
   formatDateId,
+  hasSensitiveNumber,
   localParts,
   MESSAGE_PRIORITY,
   NEW_NUMBER_DAILY_LIMIT,
@@ -23,6 +24,7 @@ import {
   guardian,
   msgBatch,
   msgMessage,
+  msgOptOut,
   msgSetting,
   school,
   student,
@@ -40,7 +42,7 @@ export interface ExcludedCounts {
   invalid: number;
   /** Nomor yang sama sudah ada di daftar (mis. wali dua anak, wali yang juga staf). */
   duplicate: number;
-  /** Nomor di daftar tolak siaran (tahap C; selalu 0 di tahap A). */
+  /** Nomor di daftar tolak siaran yang dibuang dari siaran (selalu 0 untuk pesan langsung). */
   optedOut: number;
 }
 
@@ -61,6 +63,8 @@ export interface ResolvedRecipient {
 export interface Resolution {
   recipients: ResolvedRecipient[];
   excluded: ExcludedCounts;
+  /** Penerima (yang tetap ada di `recipients`) yang nomornya di daftar tolak siaran: hanya peringatan untuk pesan langsung. */
+  optedOutWarning: number;
 }
 
 const uniquePush = (list: string[], items: readonly string[]) => {
@@ -72,12 +76,14 @@ type GuardianLink = { guardianId: string; name: string; phone: string | null };
 /**
  * Ubah pemilih menjadi daftar penerima unik per nomor. Murid/rombel hanya yang `active`, tidak dihapus, dan terdaftar di
  * tahun ajaran aktif; staf hanya guru `active`. Wali dipilih per `guardianScope` (bawaan `primary`: wali utama, jatuh ke
- * wali berikutnya bila nomornya tidak ada/tidak valid).
+ * wali berikutnya bila nomornya tidak ada/tidak valid). `dropOptedOut` (siaran): nomor di `msg_opt_out` dibuang dan
+ * dihitung di `excluded.optedOut`; tanpa itu (pesan langsung) tetap ada dan hanya dihitung di `optedOutWarning`.
  */
 export async function resolveRecipients(
   tx: Tx,
   schoolId: string,
   selection: RecipientSelection,
+  opts: { dropOptedOut?: boolean } = {},
 ): Promise<Resolution> {
   const excluded: ExcludedCounts = { noPhone: 0, invalid: 0, duplicate: 0, optedOut: 0 };
   const byPhone = new Map<string, ResolvedRecipient>();
@@ -266,7 +272,18 @@ export async function resolveRecipients(
       });
     }
   }
-  return { recipients: [...byPhone.values()], excluded };
+  const optedOut = new Set(
+    (await tx.select({ phone: msgOptOut.phone }).from(msgOptOut).where(eq(msgOptOut.schoolId, schoolId))).map(
+      (r) => r.phone,
+    ),
+  );
+  let recipients = [...byPhone.values()];
+  const hits = recipients.filter((r) => optedOut.has(r.phone)).length;
+  if (opts.dropOptedOut) {
+    recipients = recipients.filter((r) => !optedOut.has(r.phone));
+    excluded.optedOut = hits;
+  }
+  return { recipients, excluded, optedOutWarning: opts.dropOptedOut ? 0 : hits };
 }
 
 export interface SendLimits {
@@ -362,6 +379,10 @@ export interface EnqueueBatchInput {
   schoolName: string;
   /** Lampiran (msg_attachment) yang ikut dikirim ke tiap penerima; null/kosong = teks saja. */
   attachmentId?: string | null;
+  /** Pengumuman yang disiarkan (hanya `broadcast`); satu siaran per pengumuman dijaga indeks unik. */
+  announcementId?: string | null;
+  /** Isi dipakai apa adanya (teks polos): tanpa pemeriksaan/penggantian `{{...}}`. Untuk isi pengumuman. */
+  plain?: boolean;
   now?: Date;
 }
 
@@ -374,7 +395,11 @@ export async function enqueueBatch(
   tx: Tx,
   input: EnqueueBatchInput,
 ): Promise<{ batchId: string; total: number; excluded: ExcludedCounts }> {
-  const issue = directBodyIssue(input.body);
+  const issue = input.plain
+    ? hasSensitiveNumber(input.body)
+      ? { code: 'sensitive_content' as const, detail: '16 digit' }
+      : null
+    : directBodyIssue(input.body);
   if (issue) throw new BatchError(issue.code, `Isi pesan tidak layak: ${issue.detail}.`);
   await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${`msg_batch:${input.schoolId}`}, 0))`);
   const now = input.now ?? new Date();
@@ -382,7 +407,9 @@ export async function enqueueBatch(
   if (!limits.enabled) {
     throw new BatchError('messaging_disabled', 'Pengiriman pesan sedang dimatikan untuk sekolah ini.');
   }
-  const { recipients, excluded } = await resolveRecipients(tx, input.schoolId, input.selection);
+  const { recipients, excluded } = await resolveRecipients(tx, input.schoolId, input.selection, {
+    dropOptedOut: input.kind === 'broadcast',
+  });
   const total = recipients.length;
   if (selectionIsEmpty(input.selection) || total === 0) {
     throw new BatchError('no_recipients', 'Tidak ada penerima yang bisa dikirimi pesan.');
@@ -412,6 +439,7 @@ export async function enqueueBatch(
       excluded,
       createdBy: input.createdBy,
       attachmentId: input.attachmentId ?? null,
+      announcementId: input.announcementId ?? null,
     })
     .returning({ id: msgBatch.id });
   const batchId = (batch as { id: string }).id;
@@ -423,16 +451,18 @@ export async function enqueueBatch(
     guardianId: r.guardianId,
     teacherId: r.teacherId,
     toPhone: r.phone,
-    body: renderDirect(
-      input.body,
-      {
-        guardianName: r.kind === 'guardian' ? r.name : null,
-        teacherName: r.kind === 'teacher' ? r.name : null,
-        studentNames: r.studentNames,
-        classNames: r.classNames,
-      },
-      { school: input.schoolName, date },
-    ),
+    body: input.plain
+      ? input.body
+      : renderDirect(
+          input.body,
+          {
+            guardianName: r.kind === 'guardian' ? r.name : null,
+            teacherName: r.kind === 'teacher' ? r.name : null,
+            studentNames: r.studentNames,
+            classNames: r.classNames,
+          },
+          { school: input.schoolName, date },
+        ),
     priority,
     batchId,
     dedupeKey: `batch:${batchId}:${r.phone}`,
@@ -444,4 +474,33 @@ export async function enqueueBatch(
       .onConflictDoNothing({ target: [msgMessage.schoolId, msgMessage.dedupeKey] });
   }
   return { batchId, total, excluded };
+}
+
+/**
+ * Batalkan pesan antre siaran sebuah pengumuman (ditarik ke draf atau dihapus): `queued` menjadi `skipped/cancelled`,
+ * yang sudah `sending`/`sent` tidak disentuh. Mengembalikan jumlah yang dibatalkan; 0 bila tak pernah disiarkan.
+ */
+export async function cancelAnnouncementBroadcast(
+  tx: Tx,
+  announcementId: string,
+  cancelledBy: string,
+): Promise<number> {
+  const batches = await tx
+    .select({ id: msgBatch.id })
+    .from(msgBatch)
+    .where(and(eq(msgBatch.announcementId, announcementId), eq(msgBatch.kind, 'broadcast')));
+  if (batches.length === 0) return 0;
+  const ids = batches.map((b) => b.id);
+  const cancelled = await tx
+    .update(msgMessage)
+    .set({ status: 'skipped', detail: 'cancelled' })
+    .where(and(inArray(msgMessage.batchId, ids), eq(msgMessage.status, 'queued')))
+    .returning({ id: msgMessage.id });
+  if (cancelled.length > 0) {
+    await tx
+      .update(msgBatch)
+      .set({ cancelledAt: new Date(), cancelledBy })
+      .where(and(inArray(msgBatch.id, ids), isNull(msgBatch.cancelledAt)));
+  }
+  return cancelled.length;
 }

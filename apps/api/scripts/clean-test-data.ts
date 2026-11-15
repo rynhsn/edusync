@@ -36,6 +36,7 @@ const TEST_FOUNDATION_PREFIXES = [
   'yp',
   'ylangsung',
   'ypesan',
+  'ysiaran',
   'ypkl',
   'yps',
   'yr',

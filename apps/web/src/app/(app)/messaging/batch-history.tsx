@@ -28,7 +28,7 @@ const BAR: { key: keyof Counts; className: string }[] = [
 ];
 
 /** Bilah status terkirim/antre/gagal/dilewati; teks alternatif memuat angkanya. */
-function StatusBar({ counts, total }: { counts: Counts; total: number }) {
+export function StatusBar({ counts, total }: { counts: Counts; total: number }) {
   const t = useTranslations('messaging.direct');
   const denom = Math.max(total, counts.queued + counts.sent + counts.failed + counts.skipped, 1);
   return (

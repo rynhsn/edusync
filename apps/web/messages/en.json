@@ -1537,6 +1537,10 @@
     "attachment_expired": "The attachment content has been deleted (kept 7 days after the batch finishes).",
     "invalid_daily_limit": "The daily limit exceeds the limit set by the platform.",
     "batch_cancelled": "This batch has already been cancelled.",
+    "already_broadcast": "This announcement has already been broadcast on WhatsApp (once at most).",
+    "not_published": "Only published announcements can be broadcast.",
+    "announcement_expired": "This announcement has expired, so it cannot be broadcast.",
+    "broadcast_target": "The broadcast target does not match the announcement audience.",
     "invalid_range": "Invalid range: the start date must come before the end date and the range must not be too long.",
     "halaqah_conflict": "The student is already in another halaqah this academic year.",
     "invalid_scope": "Choose a single halaqah or class.",
@@ -5141,7 +5145,8 @@
       "connection": "Connection",
       "settings": "Settings",
       "history": "History",
-      "direct": "Direct messages"
+      "direct": "Direct messages",
+      "optout": "Broadcast opt-outs"
     },
     "event": {
       "arrival": "Student arrived",
@@ -5233,6 +5238,24 @@
     "delayHint": "The gap between messages is random within this range so it does not look automated.",
     "dailyLimit": "Direct message limit per day",
     "dailyLimitHint": "Maximum direct and broadcast messages per day (from 00:00 school time). Does not limit automatic messages. A newly used number is limited to 50 per day during its first 7 days.",
+    "optout": {
+      "title": "Guardians who opted out of broadcasts",
+      "intro": "Numbers on this list are skipped by announcement broadcasts. Direct messages and automatic messages (attendance, payments, report cards) are still sent; direct messages only show a warning.",
+      "searchLabel": "Search guardians (name or number, at least 2 characters)",
+      "noResults": "No matching guardians.",
+      "add": "Mark as opted out",
+      "added": "Guardian marked as opted out of broadcasts.",
+      "remove": "Remove",
+      "removed": "Opt-out removed.",
+      "listTitle": "Opt-out list ({total})",
+      "empty": "No guardian has opted out of broadcasts yet.",
+      "colGuardian": "Guardian",
+      "colSince": "Since",
+      "colBy": "Marked by",
+      "guardianDeleted": "(guardian deleted)",
+      "needSend": "Adding guardians through search needs the send message permission. You can still remove opt-outs.",
+      "shown": "Showing {shown} of {total}."
+    },
     "direct": {
       "intro": "Send a text message to selected guardians or staff, for example to call in the parents of certain students. Messages use the same queue as automatic messages, with the same random delay and sending hours; the school header and footer are added.",
       "view": {
@@ -5315,7 +5338,8 @@
         "queueFull": "The school message queue is almost full ({remaining} slots left for direct messages).",
         "newNumber": "This WhatsApp number was only recently put to use, so the daily limit is capped at {limit} messages.",
         "noVariation": "A message to many recipients should include the guardian or student name so it is not identical.",
-        "risk": "WhatsApp can block numbers that send many messages. Send only what is needed."
+        "risk": "WhatsApp can block numbers that send many messages. Send only what is needed.",
+        "optedOut": "{n} recipients opted out of broadcasts. Direct messages are still sent to them; make sure it is needed."
       },
       "send": "Send message",
       "sending": "Sending...",
@@ -6883,6 +6907,34 @@
     "pinnedBadge": "Pinned",
     "charCount": "{count} of {max}",
     "visibleOnSite": "Shown on the public website",
+    "broadcastButton": "Broadcast on WhatsApp",
+    "broadcast": {
+      "title": "Broadcast on WhatsApp",
+      "intro": "Send \"{title}\" to recipients on WhatsApp. This is separate from publishing: the announcement stays published whatever the result.",
+      "offer": "Announcement published. Broadcast it on WhatsApp too?",
+      "offerAction": "Broadcast",
+      "target": {
+        "public": "Target: student guardians (staff can be added).",
+        "all": "Target: student guardians (staff can be added).",
+        "portal": "Target: student guardians.",
+        "staff": "Target: staff."
+      },
+      "includeStaff": "Include staff too",
+      "messageLabel": "Message to be sent",
+      "truncated": "A long announcement is cut at 1,000 characters and ends with a pointer to the school portal.",
+      "excludedLine": "Skipped: {noPhone} without a number, {invalid} invalid numbers, {duplicate} duplicates, {optedOut} opted out.",
+      "pace": "Broadcasts go out at most one message every 10 seconds, after automatic and direct messages, and count toward the daily limit.",
+      "confirmButton": "Send to {total} recipients",
+      "sentToast": "Broadcast queued: {total} recipients.",
+      "alreadyTitle": "This announcement has been broadcast",
+      "state": {
+        "sending": "Sending",
+        "done": "Done"
+      },
+      "cancelledNote": "The broadcast was cancelled: messages not yet sent will not be sent.",
+      "oneOnly": "Each announcement can be broadcast only once.",
+      "openHistory": "Open message history"
+    },
     "loadError": "Announcements could not be loaded.",
     "openSite": "View website",
     "siteSettings": "Website settings",

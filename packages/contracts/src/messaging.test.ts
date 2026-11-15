@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import {
+  ANNOUNCEMENT_BROADCAST_MAX,
+  ANNOUNCEMENT_MORE_NOTE,
+  announcementBroadcastText,
   attachmentUploadSchema,
+  BROADCAST_DELAY_MIN_SECONDS,
+  broadcastDelay,
+  broadcastStaffMode,
   composeMessage,
   DEFAULT_TEMPLATES,
   DIRECT_TEMPLATES,
@@ -192,5 +198,30 @@ describe('lampiran pesan langsung', () => {
     expect(attachmentUploadSchema.safeParse({ ...ok, mime: 'text/html' }).success).toBe(false);
     const big = 'A'.repeat(2_900_001);
     expect(attachmentUploadSchema.safeParse({ ...ok, dataBase64: big }).success).toBe(false);
+  });
+});
+
+describe('siaran pengumuman', () => {
+  it('sasaran staf menurut audiens: staff wajib, portal tidak, all/public pilihan', () => {
+    expect(broadcastStaffMode('staff')).toBe('forced');
+    expect(broadcastStaffMode('portal')).toBe('none');
+    expect(broadcastStaffMode('all')).toBe('optional');
+    expect(broadcastStaffMode('public')).toBe('optional');
+  });
+  it('isi: judul tebal + isi polos; panjang dipotong dengan rujukan portal', () => {
+    expect(announcementBroadcastText('Libur *Nasional*', 'Sekolah libur {{x}}.')).toEqual({
+      text: '*Libur Nasional*\n\nSekolah libur {{x}}.',
+      truncated: false,
+    });
+    const long = announcementBroadcastText('T', 'a'.repeat(3000));
+    expect(long.truncated).toBe(true);
+    expect(long.text.endsWith(ANNOUNCEMENT_MORE_NOTE)).toBe(true);
+    expect(long.text.length).toBeLessThan(ANNOUNCEMENT_BROADCAST_MAX + 60);
+  });
+  it('jeda siaran minimal 10 detik dan batas atas tak di bawah batas bawah', () => {
+    expect(BROADCAST_DELAY_MIN_SECONDS).toBe(10);
+    expect(broadcastDelay(5, 15)).toEqual({ min: 10, max: 15 });
+    expect(broadcastDelay(5, 8)).toEqual({ min: 10, max: 10 });
+    expect(broadcastDelay(20, 30)).toEqual({ min: 20, max: 30 });
   });
 });

@@ -1537,6 +1537,10 @@
     "attachment_expired": "Eusi lampiran geus dihapus (disimpen 7 poé sanggeus bets réngsé).",
     "invalid_daily_limit": "Wates poéan ngaleuwihan wates anu ditetepkeun platform.",
     "batch_cancelled": "Bets ieu parantos dibatalkeun.",
+    "already_broadcast": "Pengumuman ieu parantos disiarkeun lewat WhatsApp (paling sakali).",
+    "not_published": "Ngan pengumuman anu geus ditayangkeun anu tiasa disiarkeun.",
+    "announcement_expired": "Pengumuman ieu parantos kadaluwarsa, ku kituna teu tiasa disiarkeun.",
+    "broadcast_target": "Sasaran siaran teu cocog jeung audiens pengumuman.",
     "invalid_range": "Rentang teu valid: tanggal awal kudu saméméh tanggal akhir sarta rentangna ulah panjang teuing.",
     "halaqah_conflict": "Siswa geus aya dina halaqah séjén dina taun ajaran ieu.",
     "invalid_scope": "Pilih hiji halaqah atawa kelas.",
@@ -5141,7 +5145,8 @@
       "connection": "Sambungan",
       "settings": "Pangaturan",
       "history": "Riwayat",
-      "direct": "Pesen langsung"
+      "direct": "Pesen langsung",
+      "optout": "Opt-out siaran"
     },
     "event": {
       "arrival": "Murid datang",
@@ -5233,6 +5238,24 @@
     "delayHint": "Jeda antar pesen dipilih acak dina rentang ieu supaya teu siga robot.",
     "dailyLimit": "Wates pesen langsung per poé",
     "dailyLimitHint": "Jumlah pangluhurna pesen langsung jeung siaran per poé (ti jam 00.00 waktu sakola). Teu ngawatesan pesen otomatis. Nomer anu anyar dipaké diwatesan 50 per poé salila 7 poé kahiji.",
+    "optout": {
+      "title": "Wali anu nolak siaran",
+      "intro": "Nomer dina daptar ieu dilewatan ku siaran pengumuman. Pesen langsung jeung pesen otomatis (kahadiran, pamayaran, rapor) tetep dikirim; pesen langsung ngan dibere peringatan.",
+      "searchLabel": "Milarian wali (ngaran atawa nomer, sahenteuna 2 hurup)",
+      "noResults": "Taya wali anu cocog.",
+      "add": "Tandaan nolak",
+      "added": "Wali ditandaan nolak siaran.",
+      "remove": "Cabut",
+      "removed": "Penolakan dicabut.",
+      "listTitle": "Daptar penolakan ({total})",
+      "empty": "Can aya wali anu nolak siaran.",
+      "colGuardian": "Wali",
+      "colSince": "Ti",
+      "colBy": "Ditandaan ku",
+      "guardianDeleted": "(wali parantos dihapus)",
+      "needSend": "Nambihan wali lewat panéangan peryogi idin ngirim pesen. Anjeun tetep tiasa nyabut penolakan.",
+      "shown": "Nembongkeun {shown} tina {total}."
+    },
     "direct": {
       "intro": "Kirim pesen téks ka wali atawa staf anu dipilih, upamana nyauran kolot murid tangtu. Pesen ngaliwatan antrian anu sarua jeung pesen otomatis, jeung jeda acak sarta jam kirim anu sarua; header jeung footer sakola ogé dipasang.",
       "view": {
@@ -5315,7 +5338,8 @@
         "queueFull": "Antrian pesen sakola ampir pinuh (sésa {remaining} slot pikeun pesen langsung).",
         "newNumber": "Nomer WhatsApp ieu nembé dipaké, jadi wates poéan diwatesan {limit} pesen.",
         "noVariation": "Pesen ka loba panampi sakuduna ngandung ngaran wali atawa murid supaya teu sarua.",
-        "risk": "WhatsApp tiasa meungpeuk nomer anu ngirim loba pesen. Kirim saperluna wungkul."
+        "risk": "WhatsApp tiasa meungpeuk nomer anu ngirim loba pesen. Kirim saperluna wungkul.",
+        "optedOut": "{n} panarima nolak siaran. Pesen langsung tetep dikirim ka maranehna; pastikeun memang perlu."
       },
       "send": "Kirim pesen",
       "sending": "Ngirim...",
@@ -6883,6 +6907,34 @@
     "pinnedBadge": "Disémat",
     "charCount": "{count} ti {max}",
     "visibleOnSite": "Muncul di situs umum",
+    "broadcastButton": "Siarkeun lewat WhatsApp",
+    "broadcast": {
+      "title": "Siarkeun lewat WhatsApp",
+      "intro": "Kirim \"{title}\" ka panarima lewat WhatsApp. Misah ti penayangan: pengumuman tetep ditayangkeun naon waé hasilna.",
+      "offer": "Pengumuman ditayangkeun. Siarkeun ogé lewat WhatsApp?",
+      "offerAction": "Siarkeun",
+      "target": {
+        "public": "Sasaran: wali murid (staf tiasa ditambih).",
+        "all": "Sasaran: wali murid (staf tiasa ditambih).",
+        "portal": "Sasaran: wali murid.",
+        "staff": "Sasaran: staf."
+      },
+      "includeStaff": "Sareng staf ogé",
+      "messageLabel": "Pesen anu bakal dikirim",
+      "truncated": "Pengumuman anu panjang dipotong 1.000 karakter tur ditungtungan rujukan ka portal sakola.",
+      "excludedLine": "Dilewatan: {noPhone} tanpa nomer, {invalid} nomer teu valid, {duplicate} ganda, {optedOut} nolak siaran.",
+      "pace": "Siaran dikirim paling gancang hiji pesen unggal 10 detik, sanggeus pesen otomatis jeung pesen langsung, tur ngitung wates poéan.",
+      "confirmButton": "Kirim ka {total} panarima",
+      "sentToast": "Siaran asup antrian: {total} panarima.",
+      "alreadyTitle": "Pengumuman ieu parantos disiarkeun",
+      "state": {
+        "sending": "Keur dikirim",
+        "done": "Réngsé"
+      },
+      "cancelledNote": "Siaran dibatalkeun: pesen anu can kakirim moal dikirim.",
+      "oneOnly": "Unggal pengumuman ngan tiasa disiarkeun sakali.",
+      "openHistory": "Buka riwayat pesen"
+    },
     "loadError": "Pengumuman teu tiasa dimuat.",
     "openSite": "Tingali situs",
     "siteSettings": "Pangaturan situs",

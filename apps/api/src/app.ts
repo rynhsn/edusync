@@ -27,6 +27,7 @@ import { achievementCriteriaRoutes } from './routes/achievement-criteria';
 import { admissionDocumentTypeRoutes } from './routes/admission-document-types';
 import { admissionRoutes } from './routes/admissions';
 import { admissionPublicRoutes } from './routes/admissions-public';
+import { announcementBroadcastRoutes } from './routes/announcement-broadcast';
 import { announcementRoutes } from './routes/announcements';
 import { attendanceReportRoutes } from './routes/attendance-report';
 import { registerAuthRoutes } from './routes/auth';
@@ -359,6 +360,7 @@ export async function buildApp(env: Env, deps: { dns?: DomainDns } = {}) {
   await app.register(passwordHelpRoutes, { env });
   await app.register(vocationalRoutes);
   await app.register(ukkRoutes);
+  await app.register(announcementBroadcastRoutes);
 
   return app;
 }

@@ -820,6 +820,13 @@
       "when": 1798335000000,
       "tag": "0116_msg_attachment",
       "breakpoints": true
+    },
+    {
+      "idx": 117,
+      "version": "7",
+      "when": 1798421400000,
+      "tag": "0117_msg_broadcast",
+      "breakpoints": true
     }
   ]
 }

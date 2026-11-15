@@ -2923,10 +2923,34 @@ export const msgBatch = pgTable(
     cancelledBy: text('cancelled_by'),
     /** Lampiran (migrasi 0116); null = pesan teks saja. FK komposit di SQL tangan 0116. */
     attachmentId: uuid('attachment_id'),
+    /** Pengumuman yang disiarkan (migrasi 0117); null untuk pesan langsung. FK komposit + unik parsial di SQL tangan 0117. */
+    announcementId: uuid('announcement_id'),
   },
   (t) => [
     unique('msg_batch_school_id_uq').on(t.schoolId, t.id),
     index('msg_batch_school_created_idx').on(t.schoolId, t.createdAt),
+  ],
+);
+
+/** Nomor wali yang menolak siaran (migrasi 0117). Kunci nomor ternormalisasi, sama dengan dedupe pesan. */
+export const msgOptOut = pgTable(
+  'msg_opt_out',
+  {
+    id: uuid('id').notNull().default(sql`uuidv7()`),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    phone: text('phone').notNull(),
+    guardianId: uuid('guardian_id'),
+    source: text('source', { enum: ['staff', 'portal'] })
+      .notNull()
+      .default('staff'),
+    createdBy: text('created_by').notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    primaryKey({ name: 'msg_opt_out_pk', columns: [t.schoolId, t.phone] }),
+    unique('msg_opt_out_id_uq').on(t.id),
   ],
 );
 
@@ -3627,7 +3651,10 @@ export const announcement = pgTable(
     createdAt: createdAt(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
-  (t) => [index('announcement_school_pub_idx').on(t.schoolId, t.status, t.publishedAt)],
+  (t) => [
+    index('announcement_school_pub_idx').on(t.schoolId, t.status, t.publishedAt),
+    unique('announcement_school_id_uq').on(t.schoolId, t.id),
+  ],
 );
 
 /** Profil situs publik sekolah (satu baris per sekolah). */

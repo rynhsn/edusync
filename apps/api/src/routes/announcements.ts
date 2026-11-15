@@ -3,6 +3,7 @@ import {
   and,
   announcement,
   asc,
+  cancelAnnouncementBroadcast,
   count,
   desc,
   entitlement,
@@ -280,6 +281,13 @@ export async function announcementRoutes(instance: FastifyInstance) {
     return { status: next, publishedAt: prev?.status === 'published' ? prev.publishedAt : new Date() };
   };
 
+  /** Pengumuman ditarik/dihapus: pesan siaran WhatsApp yang masih antre ikut dibatalkan (tak ada siaran = tak ada efek). */
+  const cancelBroadcast = async (tx: Tx, ctx: TenantContext, announcementId: string) => {
+    const cancelled = await cancelAnnouncementBroadcast(tx, announcementId, ctx.userId);
+    if (cancelled > 0)
+      await audit(tx, ctx, 'announcement.broadcast.cancel', 'announcement', announcementId, { cancelled });
+  };
+
   /* ---------- Admin ---------- */
 
   app.get(
@@ -460,6 +468,7 @@ export async function announcementRoutes(instance: FastifyInstance) {
           .where(eq(announcement.id, prev.id))
           .returning();
         await audit(tx, ctx, 'announcement.update', 'announcement', prev.id, { title: b.title });
+        if (prev.status === 'published' && b.status === 'draft') await cancelBroadcast(tx, ctx, prev.id);
         return view(updated!);
       });
     },
@@ -497,6 +506,7 @@ export async function announcementRoutes(instance: FastifyInstance) {
             .where(eq(announcement.id, prev.id))
             .returning();
           await audit(tx, ctx, `announcement.${action}`, 'announcement', prev.id, { title: prev.title });
+          if (!publishing) await cancelBroadcast(tx, ctx, prev.id);
           return view(updated!);
         });
       },
@@ -519,6 +529,7 @@ export async function announcementRoutes(instance: FastifyInstance) {
     async (request) => {
       const ctx = request.ctx as TenantContext;
       return tenant(request, async (tx) => {
+        await cancelBroadcast(tx, ctx, request.params.id);
         const [gone] = await tx
           .delete(announcement)
           .where(eq(announcement.id, request.params.id))

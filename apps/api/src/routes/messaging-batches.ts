@@ -10,6 +10,7 @@ import {
   directBodyIssue,
   formatDateId,
   localParts,
+  normalizePhone,
   recipientSelectionSchema,
   renderDirect,
   safeAttachmentName,
@@ -37,6 +38,7 @@ import {
   msgBatch,
   msgDirectTemplate,
   msgMessage,
+  msgOptOut,
   msgSetting,
   notInArray,
   or,
@@ -64,13 +66,13 @@ const readGate = [requirePermission('message:read'), requireModule(MODULE)];
 const manageGate = [requirePermission('message:manage'), requireModule(MODULE)];
 const sendGate = [requirePermission('message:send'), requireModule(MODULE)];
 
-const excludedSchema = z.object({
+export const excludedSchema = z.object({
   noPhone: z.number().int().describe('Wali/staf tanpa nomor'),
   invalid: z.number().int().describe('Nomor tidak valid'),
   duplicate: z.number().int().describe('Nomor ganda (mis. wali dua anak) digabung jadi satu pesan'),
-  optedOut: z.number().int().describe('Menolak siaran (tahap siaran; selalu 0 untuk pesan langsung)'),
+  optedOut: z.number().int().describe('Menolak siaran, dibuang dari siaran (selalu 0 untuk pesan langsung)'),
 });
-const countsSchema = z.object({
+export const countsSchema = z.object({
   queued: z.number().int().describe('Termasuk `sending`'),
   sent: z.number().int(),
   failed: z.number().int(),
@@ -111,7 +113,7 @@ const bodyText = z.string().trim().min(1).max(DIRECT_BODY_MAX);
 /** `failed` dengan detail ini tidak berguna diulang: nomor memang bukan WhatsApp, atau lampiran sudah kedaluwarsa. */
 const NOT_RETRYABLE = ['not_on_whatsapp', 'attachment_expired', 'opted_out'];
 
-const batchErrorStatus: Record<BatchError['code'], number> = {
+export const batchErrorStatus: Record<BatchError['code'], number> = {
   unknown_placeholder: 400,
   sensitive_content: 400,
   no_recipients: 400,
@@ -258,7 +260,8 @@ export async function messagingBatchRoutes(instance: FastifyInstance) {
           '`requiresBroadcast` true bila pemilih luas (rombel/tingkat/seluruh sekolah/semua staf) atau penerima > ' +
           `${BATCH_CONFIRM_THRESHOLD}; \`canSend\` false bila pemanggil belum punya \`message:broadcast\`. ` +
           '`enabled` false bila saklar sekolah/platform mati (pembuatan batch 409 `messaging_disabled`). ' +
-          '`dailyRemaining` sisa batas harian (nomor yang belum 7 hari dipakai: maks 50).',
+          '`dailyRemaining` sisa batas harian (nomor yang belum 7 hari dipakai: maks 50). `optedOutWarning` = jumlah ' +
+          'penerima yang nomornya di daftar tolak siaran: hanya peringatan, pesan langsung tetap terkirim.',
         headers: schoolHeader,
         body: z.object({
           selection: recipientSelectionSchema,
@@ -284,6 +287,10 @@ export async function messagingBatchRoutes(instance: FastifyInstance) {
             queueRemaining: z.number().int(),
             accountReady: z.boolean(),
             enabled: z.boolean(),
+            optedOutWarning: z
+              .number()
+              .int()
+              .describe('Penerima yang menolak siaran: hanya peringatan, pesan langsung tetap boleh dikirim'),
             requiresBroadcast: z.boolean(),
             canSend: z.boolean(),
             confirmTyping: z.boolean().describe('Pengguna wajib mengetik jumlah penerima untuk konfirmasi'),
@@ -302,7 +309,11 @@ export async function messagingBatchRoutes(instance: FastifyInstance) {
       if (body) bodyIssue(body);
       return tenant(request, async (tx) => {
         const limits = await loadSendLimits(tx, ctx.schoolId);
-        const { recipients, excluded } = await resolveRecipients(tx, ctx.schoolId, selection);
+        const { recipients, excluded, optedOutWarning } = await resolveRecipients(
+          tx,
+          ctx.schoolId,
+          selection,
+        );
         const total = recipients.length;
         const render = body
           ? {
@@ -328,6 +339,7 @@ export async function messagingBatchRoutes(instance: FastifyInstance) {
           queueRemaining: limits.queueRemaining,
           accountReady: limits.accountReady,
           enabled: limits.enabled,
+          optedOutWarning,
           requiresBroadcast,
           canSend: !requiresBroadcast || ctx.permissions.has('message:broadcast'),
           confirmTyping: total > BATCH_CONFIRM_THRESHOLD,
@@ -841,6 +853,137 @@ export async function messagingBatchRoutes(instance: FastifyInstance) {
           requeued: requeued.length,
         });
         return { requeued: requeued.length };
+      });
+    },
+  );
+
+  /* ---------- Opt-out siaran ---------- */
+
+  const optOutSchema = z.object({
+    id: z.uuid(),
+    phone: z.string().describe('Disamarkan'),
+    guardianId: z.uuid().nullable(),
+    guardianName: z.string().nullable().describe('Null bila wali sudah dihapus'),
+    source: z.enum(['staff', 'portal']),
+    createdBy: z.string().nullable().describe('Nama staf yang menandai; null bila akunnya sudah dihapus'),
+    createdAt: z.iso.datetime({ offset: true }),
+  });
+  const optOutRows = (tx: Tx) =>
+    tx
+      .select({
+        id: msgOptOut.id,
+        phone: msgOptOut.phone,
+        guardianId: msgOptOut.guardianId,
+        guardianName: guardian.name,
+        source: msgOptOut.source,
+        createdBy: user.name,
+        createdAt: msgOptOut.createdAt,
+      })
+      .from(msgOptOut)
+      .leftJoin(
+        guardian,
+        and(eq(guardian.schoolId, msgOptOut.schoolId), eq(guardian.id, msgOptOut.guardianId)),
+      )
+      .leftJoin(user, eq(user.id, msgOptOut.createdBy));
+  const optOutView = (r: Awaited<ReturnType<typeof optOutRows>>[number]) => ({
+    ...r,
+    phone: maskPhone(r.phone),
+    createdAt: r.createdAt.toISOString(),
+  });
+
+  app.get(
+    '/v1/messaging/opt-outs',
+    {
+      onRequest: manageGate,
+      schema: {
+        tags: tag,
+        summary: 'Daftar wali yang menolak siaran',
+        description:
+          'Izin: `message:manage`; modul `messaging`. Nomor di daftar ini dilewati siaran pengumuman (`excluded.optedOut`); ' +
+          'pesan langsung tetap boleh dan hanya diberi peringatan di pratinjau. Nomor disamarkan. Terbaru dulu.',
+        headers: schoolHeader,
+        querystring: z.object({
+          limit: z.coerce.number().int().min(1).max(200).default(50),
+          offset: z.coerce.number().int().min(0).default(0),
+        }),
+        response: { 200: z.object({ items: z.array(optOutSchema), total: z.number().int() }), ...guarded },
+      },
+    },
+    async (request) =>
+      tenant(request, async (tx) => {
+        const [totalRow] = await tx.select({ n: count() }).from(msgOptOut);
+        const rows = await optOutRows(tx)
+          .orderBy(desc(msgOptOut.createdAt), desc(msgOptOut.id))
+          .limit(request.query.limit)
+          .offset(request.query.offset);
+        return { items: rows.map(optOutView), total: totalRow?.n ?? 0 };
+      }),
+  );
+
+  app.put(
+    '/v1/messaging/opt-outs',
+    {
+      onRequest: manageGate,
+      schema: {
+        tags: tag,
+        summary: 'Tandai wali menolak siaran',
+        description:
+          'Izin: `message:manage`; modul `messaging`. Staf menandai wali (`guardianId`); yang disimpan nomor wali itu ' +
+          'yang sudah dinormalisasi, jadi berlaku juga untuk wali lain dengan nomor sama. Aman diulang. Wali tidak ada: ' +
+          '404 `not_found`; wali tanpa nomor atau nomornya tidak valid: 400 `invalid_phone`.',
+        headers: schoolHeader,
+        body: z.object({ guardianId: z.uuid() }),
+        response: { 200: optOutSchema, 400: errorSchema, 404: errorSchema, ...guarded },
+      },
+    },
+    async (request) => {
+      const ctx = request.ctx as TenantContext;
+      return tenant(request, async (tx) => {
+        const [g] = await tx
+          .select({ id: guardian.id, phone: guardian.phone })
+          .from(guardian)
+          .where(eq(guardian.id, request.body.guardianId));
+        if (!g) throw new HttpError(404, 'not_found', 'Wali tidak ditemukan.');
+        const phone = normalizePhone(g.phone);
+        if (!phone)
+          throw new HttpError(400, 'invalid_phone', 'Wali ini tidak punya nomor WhatsApp yang valid.');
+        await tx
+          .insert(msgOptOut)
+          .values({ schoolId: ctx.schoolId, phone, guardianId: g.id, source: 'staff', createdBy: ctx.userId })
+          .onConflictDoNothing();
+        const [row] = await optOutRows(tx).where(eq(msgOptOut.phone, phone));
+        await audit(tx, ctx, 'messaging.opt_out.set', 'msg_opt_out', (row as { id: string }).id, {
+          guardianId: g.id,
+        });
+        return optOutView(row as Awaited<ReturnType<typeof optOutRows>>[number]);
+      });
+    },
+  );
+
+  app.delete(
+    '/v1/messaging/opt-outs/:id',
+    {
+      onRequest: manageGate,
+      schema: {
+        tags: tag,
+        summary: 'Cabut penolakan siaran',
+        description:
+          'Izin: `message:manage`; modul `messaging`. Nomor kembali menerima siaran berikutnya. Tidak ada: 404 `not_found`.',
+        headers: schoolHeader,
+        params: idParams,
+        response: { 200: ok, 404: errorSchema, ...guarded },
+      },
+    },
+    async (request) => {
+      const ctx = request.ctx as TenantContext;
+      return tenant(request, async (tx) => {
+        const rows = await tx
+          .delete(msgOptOut)
+          .where(eq(msgOptOut.id, request.params.id))
+          .returning({ id: msgOptOut.id });
+        if (rows.length === 0) throw new HttpError(404, 'not_found', 'Data tidak ditemukan.');
+        await audit(tx, ctx, 'messaging.opt_out.remove', 'msg_opt_out', request.params.id);
+        return { ok: true as const };
       });
     },
   );

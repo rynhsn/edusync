@@ -277,6 +277,33 @@ describe('Dispatcher', () => {
     expect(sender.calls.map((c) => c.text)).toEqual(['satu', 'dua']);
   });
 
+  it('siaran (prioritas 2) berjeda minimal 10 detik walau pengaturan sekolah lebih kecil; pesan lain tidak', async () => {
+    const sid = await fx.newSchool({ setting: { delayMinSeconds: 2, delayMaxSeconds: 4 } });
+    await fx.addMessage(sid, { eventKey: 'broadcast', body: 'siar 1', priority: 2 });
+    await fx.addMessage(sid, { eventKey: 'broadcast', body: 'siar 2', priority: 2 });
+    const sender = new FakeSender();
+    const clock = { now: NOW };
+    const d = make(sender, clock, { random: () => 0 }); // jeda terkecil yang diizinkan
+    await d.tick();
+    clock.now = new Date(NOW.getTime() + 9_000);
+    await d.tick();
+    expect(sender.calls.map((c) => c.text)).toEqual(['siar 1']);
+    clock.now = new Date(NOW.getTime() + 10_000);
+    await d.tick();
+    expect(sender.calls.map((c) => c.text)).toEqual(['siar 1', 'siar 2']);
+    // Pesan prioritas 0 tetap memakai jeda sekolah (2 detik).
+    const other = await fx.newSchool({ setting: { delayMinSeconds: 2, delayMaxSeconds: 4 } });
+    await fx.addMessage(other, { body: 'a' });
+    await fx.addMessage(other, { body: 'b' });
+    const s2 = new FakeSender();
+    const c2 = { now: NOW };
+    const d2 = make(s2, c2, { random: () => 0 });
+    await d2.tick();
+    c2.now = new Date(NOW.getTime() + 2_000);
+    await d2.tick();
+    expect(s2.calls.map((c) => c.text)).toEqual(['a', 'b']);
+  });
+
   it('sekolah dibagi adil: tiap sekolah mendapat satu pesan per putaran', async () => {
     const a = await fx.newSchool();
     const b = await fx.newSchool();

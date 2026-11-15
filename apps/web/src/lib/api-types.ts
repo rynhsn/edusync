@@ -56777,7 +56777,7 @@ export interface paths {
         put?: never;
         /**
          * Pratinjau penerima pesan langsung
-         * @description Izin: `message:send`; modul `messaging`. Tanpa efek: tidak membuat pesan. `selection` memilih `students`/`classes`/`gradeLevels`/`wholeSchool` (menuju wali; `guardianScope` `primary` = wali utama, jatuh ke wali lain bila tidak bernomor, `all` = semua wali), `guardians`, `teachers`, `allStaff` (maks 500 id per larik). Murid/rombel hanya yang aktif dan terdaftar di tahun ajaran aktif; staf hanya guru aktif. Nomor dinormalisasi dan digabung per nomor. `body` (opsional) dirender untuk `sample` (maks 10 penerima, nomor disamarkan); pengganti tidak dikenal 400 `unknown_placeholder`, deret 16 digit 400 `sensitive_content`. `requiresBroadcast` true bila pemilih luas (rombel/tingkat/seluruh sekolah/semua staf) atau penerima > 30; `canSend` false bila pemanggil belum punya `message:broadcast`. `enabled` false bila saklar sekolah/platform mati (pembuatan batch 409 `messaging_disabled`). `dailyRemaining` sisa batas harian (nomor yang belum 7 hari dipakai: maks 50).
+         * @description Izin: `message:send`; modul `messaging`. Tanpa efek: tidak membuat pesan. `selection` memilih `students`/`classes`/`gradeLevels`/`wholeSchool` (menuju wali; `guardianScope` `primary` = wali utama, jatuh ke wali lain bila tidak bernomor, `all` = semua wali), `guardians`, `teachers`, `allStaff` (maks 500 id per larik). Murid/rombel hanya yang aktif dan terdaftar di tahun ajaran aktif; staf hanya guru aktif. Nomor dinormalisasi dan digabung per nomor. `body` (opsional) dirender untuk `sample` (maks 10 penerima, nomor disamarkan); pengganti tidak dikenal 400 `unknown_placeholder`, deret 16 digit 400 `sensitive_content`. `requiresBroadcast` true bila pemilih luas (rombel/tingkat/seluruh sekolah/semua staf) atau penerima > 30; `canSend` false bila pemanggil belum punya `message:broadcast`. `enabled` false bila saklar sekolah/platform mati (pembuatan batch 409 `messaging_disabled`). `dailyRemaining` sisa batas harian (nomor yang belum 7 hari dipakai: maks 50). `optedOutWarning` = jumlah penerima yang nomornya di daftar tolak siaran: hanya peringatan, pesan langsung tetap terkirim.
          */
         post: {
             parameters: {
@@ -56830,7 +56830,7 @@ export interface paths {
                                 invalid: number;
                                 /** @description Nomor ganda (mis. wali dua anak) digabung jadi satu pesan */
                                 duplicate: number;
-                                /** @description Menolak siaran (tahap siaran; selalu 0 untuk pesan langsung) */
+                                /** @description Menolak siaran, dibuang dari siaran (selalu 0 untuk pesan langsung) */
                                 optedOut: number;
                             };
                             sample: {
@@ -56849,6 +56849,8 @@ export interface paths {
                             queueRemaining: number;
                             accountReady: boolean;
                             enabled: boolean;
+                            /** @description Penerima yang menolak siaran: hanya peringatan, pesan langsung tetap boleh dikirim */
+                            optedOutWarning: number;
                             requiresBroadcast: boolean;
                             canSend: boolean;
                             /** @description Pengguna wajib mengetik jumlah penerima untuk konfirmasi */
@@ -56959,7 +56961,7 @@ export interface paths {
                                     invalid: number;
                                     /** @description Nomor ganda (mis. wali dua anak) digabung jadi satu pesan */
                                     duplicate: number;
-                                    /** @description Menolak siaran (tahap siaran; selalu 0 untuk pesan langsung) */
+                                    /** @description Menolak siaran, dibuang dari siaran (selalu 0 untuk pesan langsung) */
                                     optedOut: number;
                                 };
                                 counts: {
@@ -57080,7 +57082,7 @@ export interface paths {
                                 invalid: number;
                                 /** @description Nomor ganda (mis. wali dua anak) digabung jadi satu pesan */
                                 duplicate: number;
-                                /** @description Menolak siaran (tahap siaran; selalu 0 untuk pesan langsung) */
+                                /** @description Menolak siaran, dibuang dari siaran (selalu 0 untuk pesan langsung) */
                                 optedOut: number;
                             };
                         };
@@ -57405,7 +57407,7 @@ export interface paths {
                                 invalid: number;
                                 /** @description Nomor ganda (mis. wali dua anak) digabung jadi satu pesan */
                                 duplicate: number;
-                                /** @description Menolak siaran (tahap siaran; selalu 0 untuk pesan langsung) */
+                                /** @description Menolak siaran, dibuang dari siaran (selalu 0 untuk pesan langsung) */
                                 optedOut: number;
                             };
                             counts: {
@@ -57693,6 +57695,290 @@ export interface paths {
             };
         };
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/messaging/opt-outs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Daftar wali yang menolak siaran
+         * @description Izin: `message:manage`; modul `messaging`. Nomor di daftar ini dilewati siaran pengumuman (`excluded.optedOut`); pesan langsung tetap boleh dan hanya diberi peringatan di pratinjau. Nomor disamarkan. Terbaru dulu.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    limit?: number;
+                    offset?: number;
+                };
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            items: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @description Disamarkan */
+                                phone: string;
+                                /** Format: uuid */
+                                guardianId: string | null;
+                                /** @description Null bila wali sudah dihapus */
+                                guardianName: string | null;
+                                /** @enum {string} */
+                                source: "staff" | "portal";
+                                /** @description Nama staf yang menandai; null bila akunnya sudah dihapus */
+                                createdBy: string | null;
+                                /** Format: date-time */
+                                createdAt: string;
+                            }[];
+                            total: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        /**
+         * Tandai wali menolak siaran
+         * @description Izin: `message:manage`; modul `messaging`. Staf menandai wali (`guardianId`); yang disimpan nomor wali itu yang sudah dinormalisasi, jadi berlaku juga untuk wali lain dengan nomor sama. Aman diulang. Wali tidak ada: 404 `not_found`; wali tanpa nomor atau nomornya tidak valid: 400 `invalid_phone`.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        guardianId: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** @description Disamarkan */
+                            phone: string;
+                            /** Format: uuid */
+                            guardianId: string | null;
+                            /** @description Null bila wali sudah dihapus */
+                            guardianName: string | null;
+                            /** @enum {string} */
+                            source: "staff" | "portal";
+                            /** @description Nama staf yang menandai; null bila akunnya sudah dihapus */
+                            createdBy: string | null;
+                            /** Format: date-time */
+                            createdAt: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/messaging/opt-outs/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Cabut penolakan siaran
+         * @description Izin: `message:manage`; modul `messaging`. Nomor kembali menerima siaran berikutnya. Tidak ada: 404 `not_found`.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: true;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
         options?: never;
         head?: never;
         patch?: never;
@@ -77177,6 +77463,411 @@ export interface paths {
             };
         };
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/announcements/{id}/broadcast/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Pratinjau siaran pengumuman lewat WhatsApp
+         * @description Izin: `announcement:manage` dan `message:broadcast`; modul `announcements` dan `messaging`. Tanpa efek. Pengumuman harus terbit dan belum kedaluwarsa (409 `not_published`, `announcement_expired`). Sasaran mengikuti `audience`: `portal` = wali, `staff` = staf, `all`/`public` = wali (staf bila `includeStaff`); murid tidak pernah jadi sasaran. Wali dipersempit dengan `classes`/`gradeLevels`. Nomor dinormalisasi, digabung per nomor, dan yang di daftar tolak siaran dilewati (`excluded.optedOut`). `message` = isi yang dikirim (`*judul*` + isi sebagai teks polos, dipotong 1.000 karakter dengan rujukan ke portal; `truncated`). `existingBatchId` terisi bila pengumuman sudah pernah disiarkan (paling banyak satu siaran per pengumuman).
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @description Ikut kirim ke staf aktif; hanya untuk audiens `all`/`public` (bawaan: wali saja) */
+                        includeStaff?: boolean;
+                        /** @description Persempit wali ke rombel ini */
+                        classes?: string[];
+                        /** @description Persempit wali ke tingkat ini */
+                        gradeLevels?: string[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            total: number;
+                            excluded: {
+                                /** @description Wali/staf tanpa nomor */
+                                noPhone: number;
+                                /** @description Nomor tidak valid */
+                                invalid: number;
+                                /** @description Nomor ganda (mis. wali dua anak) digabung jadi satu pesan */
+                                duplicate: number;
+                                /** @description Menolak siaran, dibuang dari siaran (selalu 0 untuk pesan langsung) */
+                                optedOut: number;
+                            };
+                            sample: {
+                                name: string;
+                                /** @description Disamarkan */
+                                phone: string;
+                                /** @enum {string} */
+                                recipientType: "guardian" | "teacher";
+                            }[];
+                            message: string;
+                            truncated: boolean;
+                            /** @enum {string} */
+                            audience: "public" | "portal" | "staff" | "all";
+                            /** @enum {string} */
+                            staffMode: "forced" | "optional" | "none";
+                            /** Format: uuid */
+                            existingBatchId: string | null;
+                            dailyLimit: number;
+                            dailyUsed: number;
+                            dailyRemaining: number;
+                            newNumber: boolean;
+                            queueRemaining: number;
+                            accountReady: boolean;
+                            enabled: boolean;
+                            /** @description Pengguna wajib mengetik jumlah penerima untuk konfirmasi */
+                            confirmTyping: boolean;
+                            /** @description Rata-rata jeda antar pesan siaran, untuk perkiraan durasi */
+                            avgDelaySeconds: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/announcements/{id}/broadcast": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Status siaran WhatsApp sebuah pengumuman
+         * @description Izin: `announcement:read` dan `message:read`; modul `announcements` dan `messaging`. `batch` null bila pengumuman belum pernah disiarkan. `counts` per status pesan (`sending` dihitung `queued`); `status` dihitung: `sending` bila masih ada pesan antre/dikirim, selain itu `done`. Rincian per penerima ada di `GET /v1/messaging/batches/{id}`. 404 `not_found` bila pengumuman tidak ada.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            batch: {
+                                /** Format: uuid */
+                                id: string;
+                                /** Format: date-time */
+                                createdAt: string;
+                                recipientCount: number;
+                                excluded: {
+                                    /** @description Wali/staf tanpa nomor */
+                                    noPhone: number;
+                                    /** @description Nomor tidak valid */
+                                    invalid: number;
+                                    /** @description Nomor ganda (mis. wali dua anak) digabung jadi satu pesan */
+                                    duplicate: number;
+                                    /** @description Menolak siaran, dibuang dari siaran (selalu 0 untuk pesan langsung) */
+                                    optedOut: number;
+                                };
+                                counts: {
+                                    /** @description Termasuk `sending` */
+                                    queued: number;
+                                    sent: number;
+                                    failed: number;
+                                    skipped: number;
+                                };
+                                /** @enum {string} */
+                                status: "sending" | "done";
+                                /** Format: date-time */
+                                cancelledAt: string | null;
+                                attachment: boolean;
+                            } | null;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Siarkan pengumuman lewat WhatsApp
+         * @description Izin: `announcement:manage` dan `message:broadcast`; modul `announcements` dan `messaging`. Terpisah dari `publish`: penerbitan tidak pernah bergantung pada WhatsApp. Pengumuman harus terbit dan belum kedaluwarsa (409 `not_published`, `announcement_expired`); paling banyak satu siaran per pengumuman (409 `already_broadcast`, termasuk yang sudah dibatalkan). Sasaran, isi, dan pengurangan nomor sama dengan `/broadcast/preview`; `expectedTotal` = jumlah penerima dari pratinjau (409 `count_changed` bila berubah). Satu pesan per nomor masuk antrean prioritas 2 (setelah pesan peristiwa dan pesan langsung) dengan jeda minimal 10 detik, jendela kirim, dan batas harian sekolah; `attachmentId` (opsional, `POST /v1/messaging/attachments`) ikut sebagai lampiran dengan isi sebagai caption. Galat lain: 400 `broadcast_target`, `no_recipients`, `sensitive_content` (deret 16 digit), `attachment_invalid`; 409 `messaging_disabled`, `daily_limit`, `queue_full`. Pengumuman ditarik ke draf atau dihapus: pesan siaran yang masih antre dibatalkan (`skipped`/`cancelled`).
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @description Ikut kirim ke staf aktif; hanya untuk audiens `all`/`public` (bawaan: wali saja) */
+                        includeStaff?: boolean;
+                        /** @description Persempit wali ke rombel ini */
+                        classes?: string[];
+                        /** @description Persempit wali ke tingkat ini */
+                        gradeLevels?: string[];
+                        /** Format: uuid */
+                        attachmentId?: string;
+                        expectedTotal: number;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            total: number;
+                            excluded: {
+                                /** @description Wali/staf tanpa nomor */
+                                noPhone: number;
+                                /** @description Nomor tidak valid */
+                                invalid: number;
+                                /** @description Nomor ganda (mis. wali dua anak) digabung jadi satu pesan */
+                                duplicate: number;
+                                /** @description Menolak siaran, dibuang dari siaran (selalu 0 untuk pesan langsung) */
+                                optedOut: number;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
         delete?: never;
         options?: never;
         head?: never;

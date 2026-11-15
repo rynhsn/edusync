@@ -1537,6 +1537,10 @@
     "attachment_expired": "Isi lampiran sudah dihapus (disimpan 7 hari setelah batch selesai).",
     "invalid_daily_limit": "Batas harian melebihi batas yang ditetapkan platform.",
     "batch_cancelled": "Batch ini sudah dibatalkan.",
+    "already_broadcast": "Pengumuman ini sudah pernah disiarkan lewat WhatsApp (paling banyak satu kali).",
+    "not_published": "Hanya pengumuman yang sudah terbit yang bisa disiarkan.",
+    "announcement_expired": "Pengumuman ini sudah kedaluwarsa, jadi tidak bisa disiarkan.",
+    "broadcast_target": "Sasaran siaran tidak sesuai dengan audiens pengumuman.",
     "invalid_range": "Rentang tidak valid: pastikan tanggal awal sebelum tanggal akhir dan rentang tidak terlalu panjang.",
     "halaqah_conflict": "Siswa sudah berada di halaqah lain pada tahun ajaran ini.",
     "invalid_scope": "Pilih satu halaqah atau kelas.",
@@ -5141,7 +5145,8 @@
       "connection": "Koneksi",
       "settings": "Pengaturan",
       "history": "Riwayat",
-      "direct": "Pesan langsung"
+      "direct": "Pesan langsung",
+      "optout": "Opt-out siaran"
     },
     "event": {
       "arrival": "Siswa tiba",
@@ -5233,6 +5238,24 @@
     "delayHint": "Jeda antar-pesan dipilih acak di rentang ini agar tidak terlihat seperti robot.",
     "dailyLimit": "Batas pesan langsung per hari",
     "dailyLimitHint": "Jumlah maksimum pesan langsung dan siaran per hari (mulai 00.00 waktu sekolah). Tidak membatasi pesan otomatis. Nomor yang baru dipakai dibatasi 50 per hari selama 7 hari pertama.",
+    "optout": {
+      "title": "Wali yang menolak siaran",
+      "intro": "Nomor di daftar ini dilewati siaran pengumuman. Pesan langsung dan pesan otomatis (kehadiran, pembayaran, rapor) tetap terkirim; pesan langsung hanya diberi peringatan.",
+      "searchLabel": "Cari wali (nama atau nomor, minimal 2 huruf)",
+      "noResults": "Tidak ada wali yang cocok.",
+      "add": "Tandai menolak",
+      "added": "Wali ditandai menolak siaran.",
+      "remove": "Cabut",
+      "removed": "Penolakan dicabut.",
+      "listTitle": "Daftar penolakan ({total})",
+      "empty": "Belum ada wali yang menolak siaran.",
+      "colGuardian": "Wali",
+      "colSince": "Sejak",
+      "colBy": "Ditandai oleh",
+      "guardianDeleted": "(wali sudah dihapus)",
+      "needSend": "Menambahkan wali lewat pencarian butuh izin kirim pesan. Anda masih bisa mencabut penolakan.",
+      "shown": "Menampilkan {shown} dari {total}."
+    },
     "direct": {
       "intro": "Kirim pesan teks ke wali atau staf terpilih, misalnya memanggil orang tua murid tertentu. Pesan lewat antrean yang sama dengan pesan otomatis, dengan jeda acak dan jam kirim yang sama; header dan footer sekolah ikut dipasang.",
       "view": {
@@ -5315,7 +5338,8 @@
         "queueFull": "Antrean pesan sekolah hampir penuh (sisa {remaining} slot untuk pesan langsung).",
         "newNumber": "Nomor WhatsApp ini belum lama dipakai, sehingga batas harian dibatasi {limit} pesan.",
         "noVariation": "Pesan ke banyak penerima sebaiknya memuat nama wali atau murid agar tidak identik.",
-        "risk": "WhatsApp dapat memblokir nomor yang mengirim banyak pesan. Kirim seperlunya."
+        "risk": "WhatsApp dapat memblokir nomor yang mengirim banyak pesan. Kirim seperlunya.",
+        "optedOut": "{n} penerima menolak siaran. Pesan langsung tetap dikirim ke mereka; pastikan memang perlu."
       },
       "send": "Kirim pesan",
       "sending": "Mengirim...",
@@ -6883,6 +6907,34 @@
     "pinnedBadge": "Disematkan",
     "charCount": "{count} dari {max}",
     "visibleOnSite": "Tampil di situs publik",
+    "broadcastButton": "Siarkan lewat WhatsApp",
+    "broadcast": {
+      "title": "Siarkan lewat WhatsApp",
+      "intro": "Kirim \"{title}\" ke penerima lewat WhatsApp. Terpisah dari penerbitan: pengumuman tetap terbit apa pun hasilnya.",
+      "offer": "Pengumuman terbit. Siarkan juga lewat WhatsApp?",
+      "offerAction": "Siarkan",
+      "target": {
+        "public": "Sasaran: wali murid (staf bisa ditambahkan).",
+        "all": "Sasaran: wali murid (staf bisa ditambahkan).",
+        "portal": "Sasaran: wali murid.",
+        "staff": "Sasaran: staf."
+      },
+      "includeStaff": "Sertakan juga staf",
+      "messageLabel": "Pesan yang akan dikirim",
+      "truncated": "Pengumuman panjang dipotong 1.000 karakter dan diakhiri rujukan ke portal sekolah.",
+      "excludedLine": "Dilewati: {noPhone} tanpa nomor, {invalid} nomor tidak valid, {duplicate} ganda, {optedOut} menolak siaran.",
+      "pace": "Siaran dikirim paling cepat satu pesan tiap 10 detik, setelah pesan otomatis dan pesan langsung, dan ikut menghitung batas harian.",
+      "confirmButton": "Kirim ke {total} penerima",
+      "sentToast": "Siaran masuk antrean: {total} penerima.",
+      "alreadyTitle": "Pengumuman ini sudah disiarkan",
+      "state": {
+        "sending": "Sedang dikirim",
+        "done": "Selesai"
+      },
+      "cancelledNote": "Siaran dibatalkan: pesan yang belum terkirim tidak akan dikirim.",
+      "oneOnly": "Setiap pengumuman hanya dapat disiarkan satu kali.",
+      "openHistory": "Buka riwayat pesan"
+    },
     "loadError": "Pengumuman tidak dapat dimuat.",
     "openSite": "Lihat situs",
     "siteSettings": "Pengaturan situs",

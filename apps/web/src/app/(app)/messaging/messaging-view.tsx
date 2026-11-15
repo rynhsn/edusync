@@ -9,10 +9,10 @@ import { Button } from '@/components/ui/button';
 import { ConnectionPanel } from './connection-panel';
 import { DirectTab } from './direct-tab';
 import { HistoryPanel } from './history-panel';
+import { OptOutPanel } from './optout-panel';
 import { SettingsPanel } from './settings-panel';
 
-type Tab = 'connection' | 'settings' | 'history' | 'direct';
-const TABS: Tab[] = ['connection', 'settings', 'direct', 'history'];
+type Tab = 'connection' | 'settings' | 'history' | 'direct' | 'optout';
 
 export function MessagingView() {
   const t = useTranslations('messaging');
@@ -30,6 +30,13 @@ export function MessagingView() {
     );
   }
   const readOnly = !can('message:manage');
+  const tabs: Tab[] = [
+    'connection',
+    'settings',
+    'direct',
+    'history',
+    ...(readOnly ? [] : (['optout'] as const)),
+  ];
   return (
     <PageBody>
       <PageHeader
@@ -37,7 +44,7 @@ export function MessagingView() {
         description={readOnly ? `${t('subtitle')} ${t('readOnly')}` : t('subtitle')}
       />
       <div className="flex w-fit flex-wrap rounded-lg border p-0.5">
-        {TABS.map((k) => (
+        {tabs.map((k) => (
           <Button
             key={k}
             size="sm"
@@ -53,6 +60,7 @@ export function MessagingView() {
       {tab === 'settings' && <SettingsPanel />}
       {tab === 'direct' && <DirectTab />}
       {tab === 'history' && <HistoryPanel />}
+      {tab === 'optout' && <OptOutPanel />}
     </PageBody>
   );
 }

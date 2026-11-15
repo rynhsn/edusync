@@ -407,6 +407,11 @@ export function DirectPanel({ onSent }: { onSent: () => void }) {
                 <AlertDescription>{t('warn.queueFull', { remaining: r.queueRemaining })}</AlertDescription>
               </Alert>
             )}
+            {r.optedOutWarning > 0 && (
+              <Alert>
+                <AlertDescription>{t('warn.optedOut', { n: r.optedOutWarning })}</AlertDescription>
+              </Alert>
+            )}
             {r.newNumber && (
               <p className="text-muted-foreground text-xs">{t('warn.newNumber', { limit: r.dailyLimit })}</p>
             )}

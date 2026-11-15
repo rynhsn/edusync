@@ -1342,6 +1342,21 @@ export const SERVICE_DOCS: DocArticle[] = [
             tip: 'Batas pesan langsung per hari diatur di tab Pengaturan (bawaan 200; nomor yang belum 7 hari dipakai dibatasi 50). Pesan yang dibatalkan tidak dihitung ke batas. Lampiran dihapus dari server 7 hari setelah batch selesai (atau 24 jam bila tidak dipakai); namanya tetap ada di Riwayat batch dan salinan di ponsel penerima tidak terhapus. Lampiran yang sudah kedaluwarsa tidak dikirim ulang.',
             href: '/messaging',
           },
+          {
+            heading: 'Menyiarkan pengumuman lewat WhatsApp',
+            body: 'Pengumuman yang sudah terbit dapat disiarkan ke wali (atau staf) lewat WhatsApp. Siaran terpisah dari penerbitan: pengumuman tetap terbit apa pun hasil pengiriman WhatsApp, dan tidak pernah terkirim otomatis. Butuh izin kelola pengumuman dan izin siaran pesan, serta modul Pengumuman dan Notifikasi WhatsApp aktif.',
+            steps: [
+              'Di halaman Pengumuman, klik Siarkan lewat WhatsApp pada pengumuman yang sudah terbit (atau klik Siarkan pada pemberitahuan setelah Anda menerbitkannya).',
+              'Sasaran mengikuti audiens pengumuman: Portal dikirim ke wali, Staf ke staf, sedangkan Publik dan Semua dikirim ke wali dan staf bisa dicentang sendiri. Murid tidak pernah menjadi sasaran.',
+              'Periksa Pesan yang akan dikirim: judul tebal lalu isi pengumuman apa adanya, dipotong 1.000 karakter dengan rujukan ke portal sekolah bila lebih panjang. Lampirkan satu PDF atau gambar bila perlu.',
+              'Periksa jumlah penerima beserta yang dilewati (tanpa nomor, tidak valid, ganda, menolak siaran), sisa batas harian, dan perkiraan lama.',
+              'Klik Kirim ke sekian penerima. Bila penerima lebih dari 30, ketik jumlahnya untuk mengonfirmasi. Sesudahnya dialog yang sama menampilkan status siaran.',
+            ],
+            warning:
+              'Setiap pengumuman hanya dapat disiarkan satu kali. Bila pengumuman ditarik ke draf atau dihapus, pesan siaran yang masih antre dibatalkan. Siaran dikirim paling cepat satu pesan tiap 10 detik, setelah pesan otomatis dan pesan langsung, dan ikut menghitung batas harian. Isi yang memuat deret 16 digit ditolak.',
+            tip: 'Wali yang menolak siaran dikelola staf di tab Opt-out siaran (izin kelola pesan): nomor mereka dilewati siaran, sedangkan pesan langsung dan pesan otomatis tetap terkirim (pesan langsung hanya diberi peringatan).',
+            href: '/announcements',
+          },
         ],
         faq: [
           {
@@ -1444,6 +1459,21 @@ export const SERVICE_DOCS: DocArticle[] = [
             tip: 'The direct message limit per day is set in the Settings tab (default 200; a number used for less than 7 days is capped at 50). Cancelled messages do not count toward the limit. An attachment is deleted from the server 7 days after the batch finishes (or 24 hours if unused); its name stays in Batch history and the copy on the recipient phone is not removed. An expired attachment is not resent.',
             href: '/messaging',
           },
+          {
+            heading: 'Broadcasting an announcement on WhatsApp',
+            body: 'A published announcement can be broadcast to guardians (or staff) on WhatsApp. A broadcast is separate from publishing: the announcement stays published whatever the WhatsApp result, and nothing is ever sent automatically. It needs the manage announcements and broadcast messages permissions, with the Announcements and WhatsApp notifications modules active.',
+            steps: [
+              'On the Announcements page, click Broadcast on WhatsApp on a published announcement (or click Broadcast in the notice shown right after you publish).',
+              'The target follows the announcement audience: Portal goes to guardians, Staff to staff, while Public and All go to guardians and staff can be ticked in. Students are never a target.',
+              'Check Message to be sent: a bold title then the announcement text as is, cut at 1,000 characters with a pointer to the school portal when longer. Attach one PDF or image if needed.',
+              'Check the number of recipients and those skipped (no number, invalid, duplicate, opted out), the daily limit left, and the estimated time.',
+              'Click Send to N recipients. With more than 30 recipients, type the number to confirm. Afterwards the same dialog shows the broadcast status.',
+            ],
+            warning:
+              'Each announcement can be broadcast only once. If the announcement is returned to draft or deleted, broadcast messages still queued are cancelled. A broadcast goes out at most one message every 10 seconds, after automatic and direct messages, and counts toward the daily limit. Text containing a 16-digit number is rejected.',
+            tip: 'Guardians who opt out of broadcasts are managed by staff in the Broadcast opt-outs tab (manage messages permission): their numbers are skipped by broadcasts, while direct and automatic messages are still sent (direct messages only show a warning).',
+            href: '/announcements',
+          },
         ],
         faq: [
           {
@@ -1545,6 +1575,21 @@ export const SERVICE_DOCS: DocArticle[] = [
               'Wali nu gaduh dua murangkalih dina pilihan anjeun ngan narima hiji pesen. Pesen teu meunang ngandung deret 16 angka (siga NIK), sarta entong nuliskeun nilai atawa data pribadi murangkalih. Ngirim ka rombongan, sakabéh sakola, atawa langkung ti 30 panampi merlukeun idin siaran. WhatsApp tiasa meungpeuk nomer nu ngirim loba pesen; wates poéan jeung jeda acak ngirangan, tapi teu ngaleungitkeun, résikona.',
             tip: 'Wates pesen langsung per poé diatur dina tab Pangaturan (bawaan 200; nomer nu can 7 poé dipaké diwatesan 50). Pesen nu dibatalkeun teu diitung kana wates. Lampiran dihapus tina server 7 poé sanggeus bets réngsé (atawa 24 jam upami teu dipaké); ngaranna tetep aya dina Riwayat bets sarta salinan di ponsél panampi teu kahapus. Lampiran nu geus kadaluwarsa teu dikirim deui.',
             href: '/messaging',
+          },
+          {
+            heading: 'Nyiarkeun pengumuman lewat WhatsApp',
+            body: 'Pengumuman anu geus ditayangkeun tiasa disiarkeun ka wali (atawa staf) lewat WhatsApp. Siaran misah ti penayangan: pengumuman tetep ditayangkeun naon waé hasil pangiriman WhatsApp, sarta teu pernah kakirim otomatis. Merlukeun idin ngatur pengumuman jeung idin siaran pesen, sarta modul Pengumuman jeung Notifikasi WhatsApp aktif.',
+            steps: [
+              'Dina kaca Pengumuman, klik Siarkeun lewat WhatsApp dina pengumuman anu geus ditayangkeun (atawa klik Siarkeun dina béwara sanggeus anjeun nayangkeunana).',
+              'Sasaran nuturkeun audiens pengumuman: Portal dikirim ka wali, Staf ka staf, sedengkeun Umum jeung Sadaya dikirim ka wali sarta staf tiasa dicentang sorangan. Murid teu pernah jadi sasaran.',
+              'Pariksa Pesen anu bakal dikirim: judul kandel tuluy eusi pengumuman sakumaha aya, dipotong 1.000 karakter jeung rujukan ka portal sakola upami langkung panjang. Lampirkeun hiji PDF atawa gambar upami peryogi.',
+              'Pariksa jumlah panampi jeung anu dilewatan (tanpa nomer, teu valid, ganda, nolak siaran), sésa wates poéan, jeung kira-kira lilana.',
+              'Klik Kirim ka sakian panampi. Upami panampi langkung ti 30, ketik jumlahna pikeun mastikeun. Saparantosna dialog nu sarua nembongkeun status siaran.',
+            ],
+            warning:
+              'Unggal pengumuman ngan tiasa disiarkeun sakali. Upami pengumuman dibalikkeun ka draf atawa dihapus, pesen siaran anu masih ngantri dibatalkeun. Siaran dikirim paling gancang hiji pesen unggal 10 detik, sanggeus pesen otomatis jeung pesen langsung, sarta ngitung wates poéan. Eusi anu ngandung deret 16 angka ditolak.',
+            tip: 'Wali anu nolak siaran diatur ku staf dina tab Opt-out siaran (idin ngatur pesen): nomerna dilewatan siaran, sedengkeun pesen langsung jeung pesen otomatis tetep dikirim (pesen langsung ngan dibere peringatan).',
+            href: '/announcements',
           },
         ],
         faq: [

@@ -1,4 +1,11 @@
-import { composeMessage, DEFAULT_TIMEZONE, localParts, zonedTimeToDate } from '@edusync/contracts';
+import {
+  broadcastDelay,
+  composeMessage,
+  DEFAULT_TIMEZONE,
+  localParts,
+  MESSAGE_PRIORITY,
+  zonedTimeToDate,
+} from '@edusync/contracts';
 import {
   and,
   asc,
@@ -230,6 +237,7 @@ export class Dispatcher {
       body: string;
       attempts: number;
       batch_id: string | null;
+      priority: number;
     }>(sql`
       update msg_message set status = 'sending', attempts = attempts + 1
       where id = (
@@ -239,13 +247,16 @@ export class Dispatcher {
         limit 1
         for update skip locked
       ) and status = 'queued'
-      returning id, to_phone, body, attempts, batch_id`);
+      returning id, to_phone, body, attempts, batch_id, priority`);
     const msg = claimed.rows[0];
     if (!msg) return 0;
 
-    const delaySeconds =
-      setting.delayMinSeconds +
-      this.random() * Math.max(0, setting.delayMaxSeconds - setting.delayMinSeconds);
+    // Siaran (prioritas 2) tak pernah lebih rapat dari BROADCAST_DELAY_MIN_SECONDS; pesan lain memakai pengaturan sekolah.
+    const { min, max } =
+      msg.priority === MESSAGE_PRIORITY.broadcast
+        ? broadcastDelay(setting.delayMinSeconds, setting.delayMaxSeconds)
+        : { min: setting.delayMinSeconds, max: setting.delayMaxSeconds };
+    const delaySeconds = min + this.random() * Math.max(0, max - min);
     this.nextAllowed.set(schoolId, now.getTime() + delaySeconds * 1000);
 
     let result: Awaited<ReturnType<MessageSender['send']>>;

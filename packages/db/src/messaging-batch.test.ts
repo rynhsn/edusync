@@ -2,7 +2,9 @@ import { and, eq } from 'drizzle-orm';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
   academicYear,
+  announcement,
   BatchError,
+  cancelAnnouncementBroadcast,
   classRoom,
   createDb,
   enqueueBatch,
@@ -12,6 +14,7 @@ import {
   loadSendLimits,
   msgBatch,
   msgMessage,
+  msgOptOut,
   msgSetting,
   resolveRecipients,
   school,
@@ -107,6 +110,8 @@ afterAll(async () => {
   for (const id of [schoolId, otherSchoolId]) {
     await db.delete(msgMessage).where(eq(msgMessage.schoolId, id));
     await db.delete(msgBatch).where(eq(msgBatch.schoolId, id));
+    await db.delete(announcement).where(eq(announcement.schoolId, id));
+    await db.delete(msgOptOut).where(eq(msgOptOut.schoolId, id));
     await db.delete(msgSetting).where(eq(msgSetting.schoolId, id));
     await db.delete(enrollment).where(eq(enrollment.schoolId, id));
     await db.delete(studentGuardian).where(eq(studentGuardian.schoolId, id));
@@ -314,5 +319,92 @@ describe('RLS dan FK komposit tabel baru', () => {
         .from(msgMessage)
         .where(and(eq(msgMessage.schoolId, schoolId), eq(msgMessage.toPhone, '6281200000077'))),
     ).toHaveLength(0);
+  });
+});
+
+describe('siaran pengumuman: opt-out, isi polos, satu siaran, pembatalan', () => {
+  const optOut = () =>
+    platform.db
+      .insert(msgOptOut)
+      .values({ schoolId, phone: '6281200000001', guardianId: ids.gSari, createdBy: 'uji' })
+      .onConflictDoNothing();
+
+  it('opt-out dibuang dari siaran dan hanya diperingatkan untuk pesan langsung', async () => {
+    await optOut();
+    const sel = { students: [ids.a, ids.b, ids.c] };
+    const direct = await resolve(sel);
+    expect(direct.recipients.map((r) => r.name).sort()).toEqual(['Bu Sari', 'Cadangan']);
+    expect(direct).toMatchObject({ optedOutWarning: 1, excluded: { optedOut: 0 } });
+    const cast = await inTenant((tx) => resolveRecipients(tx, schoolId, sel, { dropOptedOut: true }));
+    expect(cast.recipients.map((r) => r.name)).toEqual(['Cadangan']);
+    expect(cast).toMatchObject({ optedOutWarning: 0, excluded: { optedOut: 1 } });
+  });
+
+  it('enqueueBatch broadcast: isi apa adanya, satu siaran per pengumuman, batal membiarkan yang terkirim', async () => {
+    await optOut();
+    const [ann] = await platform.db
+      .insert(announcement)
+      .values({
+        schoolId,
+        title: 'T',
+        body: 'x',
+        createdBy: 'uji',
+        status: 'published',
+        publishedAt: new Date(),
+      })
+      .returning();
+    const body = '*T*\n\nHalo {{x}}   dua spasi 12';
+    const make = () =>
+      inTenant((tx) =>
+        enqueueBatch(tx, {
+          schoolId,
+          kind: 'broadcast',
+          title: 'T',
+          body,
+          plain: true,
+          announcementId: ann!.id,
+          selection: { wholeSchool: true },
+          createdBy: 'uji',
+          expectedTotal: 1,
+          schoolName: 'SMP Batch',
+        }),
+      );
+    const r = await make();
+    expect(r).toMatchObject({ total: 1, excluded: { optedOut: 1 } });
+    const msgs = await platform.db.select().from(msgMessage).where(eq(msgMessage.batchId, r.batchId));
+    expect(msgs).toHaveLength(1);
+    expect(msgs[0]).toMatchObject({ body, priority: 2, eventKey: 'broadcast', toPhone: '6281200000002' });
+    // Paling banyak satu siaran per pengumuman (indeks unik parsial).
+    await expect(make()).rejects.toThrow();
+    // Isi 16 digit tetap ditolak walau polos.
+    await expect(
+      inTenant((tx) =>
+        enqueueBatch(tx, {
+          schoolId,
+          kind: 'broadcast',
+          title: 'N',
+          body: 'rek 1234567890123456',
+          plain: true,
+          selection: { wholeSchool: true },
+          createdBy: 'uji',
+          expectedTotal: 1,
+          schoolName: 'SMP Batch',
+        }),
+      ),
+    ).rejects.toMatchObject({ code: 'sensitive_content' });
+    // Yang sedang dikirim tidak disentuh; yang antre dibatalkan. Dua kali = aman.
+    await platform.db.update(msgMessage).set({ status: 'sending' }).where(eq(msgMessage.id, msgs[0]!.id));
+    expect(await inTenant((tx) => cancelAnnouncementBroadcast(tx, ann!.id, 'uji'))).toBe(0);
+    await platform.db.update(msgMessage).set({ status: 'queued' }).where(eq(msgMessage.id, msgs[0]!.id));
+    expect(await inTenant((tx) => cancelAnnouncementBroadcast(tx, ann!.id, 'uji'))).toBe(1);
+    expect(await inTenant((tx) => cancelAnnouncementBroadcast(tx, ann!.id, 'uji'))).toBe(0);
+    const [after] = await platform.db.select().from(msgMessage).where(eq(msgMessage.id, msgs[0]!.id));
+    expect(after).toMatchObject({ status: 'skipped', detail: 'cancelled' });
+    const [b] = await platform.db.select().from(msgBatch).where(eq(msgBatch.id, r.batchId));
+    expect(b!.cancelledAt).not.toBeNull();
+    // Menghapus pengumuman: batch tetap, rujukan menjadi null, school_id utuh.
+    await platform.db.delete(announcement).where(eq(announcement.id, ann!.id));
+    const [kept] = await platform.db.select().from(msgBatch).where(eq(msgBatch.id, r.batchId));
+    expect(kept).toMatchObject({ announcementId: null, schoolId });
   });
 });
