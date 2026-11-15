@@ -7,7 +7,7 @@ memutus kompatibilitas. Produksi hanya berubah saat tag `vX.Y.Z` dikirim; tulis 
 Cara merilis: tulis bagian baru di bawah "Belum dirilis" lalu ganti judulnya menjadi `## [x.y.z] - tanggal`, kemudian
 `pnpm release x.y.z` dan `git push edusync HEAD:main vx.y.z`.
 
-## Belum dirilis
+## [0.6.3] - 2026-11-15
 
 ### Diperbaiki
 
@@ -15,10 +15,6 @@ Cara merilis: tulis bagian baru di bawah "Belum dirilis" lalu ganti judulnya men
   bukan kelasnya. Pengguna tanpa akses luas hanya melihat kelas yang ia walikan (terpilih otomatis), dan bila belum
   menjadi wali kelas muncul keterangan untuk menghubungi admin. Admin, kepala sekolah, dan kurikulum tetap melihat semua
   kelas. Daftar kelas (`GET /v1/classes`) memuat penanda baru `homeroomIsMe`.
-
-## [0.6.3] - 2026-11-15
-
-### Diperbaiki
 
 - Halaman peran dan izin: semua modul dan aksi (Lihat semua, Jalankan, Atur ulang, Tanggapi, Kirim, Siarkan, dst.) kini berlabel rapi berhuruf awal kapital di id/en/su, tidak lagi tampil sebagai kode mentah. Tes baru menjaga setiap modul dan aksi punya label.
 - Menu samping di ponsel: tombol tutup (X) pindah ke baris judul sendiri dengan target sentuh 44 px, tidak lagi menimpa pemilih sekolah.
