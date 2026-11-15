@@ -7,6 +7,15 @@ memutus kompatibilitas. Produksi hanya berubah saat tag `vX.Y.Z` dikirim; tulis 
 Cara merilis: tulis bagian baru di bawah "Belum dirilis" lalu ganti judulnya menjadi `## [x.y.z] - tanggal`, kemudian
 `pnpm release x.y.z` dan `git push edusync HEAD:main vx.y.z`.
 
+## Belum dirilis
+
+### Diperbaiki
+
+- Rapor dan leger: wali kelas tidak lagi langsung melihat galat "Anda tidak punya izin" karena kelas pertama pada daftar
+  bukan kelasnya. Pengguna tanpa akses luas hanya melihat kelas yang ia walikan (terpilih otomatis), dan bila belum
+  menjadi wali kelas muncul keterangan untuk menghubungi admin. Admin, kepala sekolah, dan kurikulum tetap melihat semua
+  kelas. Daftar kelas (`GET /v1/classes`) memuat penanda baru `homeroomIsMe`.
+
 ## [0.6.3] - 2026-11-15
 
 ### Diperbaiki

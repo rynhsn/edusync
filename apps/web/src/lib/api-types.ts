@@ -11450,7 +11450,7 @@ export interface paths {
         };
         /**
          * Daftar kelas
-         * @description Izin: `class:read`. Tanpa `academicYearId`, semua tahun ajaran ditampilkan. Memuat wali kelas (`homeroomTeacherId`, `homeroomTeacherName`).
+         * @description Izin: `class:read`. Tanpa `academicYearId`, semua tahun ajaran ditampilkan. Memuat wali kelas (`homeroomTeacherId`, `homeroomTeacherName`) dan `homeroomIsMe` (true bila pengguna yang masuk adalah wali kelasnya, lewat akun yang terhubung pada guru).
          */
         get: {
             parameters: {
@@ -11489,6 +11489,8 @@ export interface paths {
                             homeroomTeacherId: string | null;
                             homeroomTeacherName: string | null;
                             studentCount: number;
+                            /** @description Hanya pada daftar kelas: true bila pengguna yang masuk adalah wali kelas ini */
+                            homeroomIsMe?: boolean;
                         }[];
                     };
                 };
@@ -11581,6 +11583,8 @@ export interface paths {
                             homeroomTeacherId: string | null;
                             homeroomTeacherName: string | null;
                             studentCount: number;
+                            /** @description Hanya pada daftar kelas: true bila pengguna yang masuk adalah wali kelas ini */
+                            homeroomIsMe?: boolean;
                         };
                     };
                 };
@@ -11714,6 +11718,8 @@ export interface paths {
                             homeroomTeacherId: string | null;
                             homeroomTeacherName: string | null;
                             studentCount: number;
+                            /** @description Hanya pada daftar kelas: true bila pengguna yang masuk adalah wali kelas ini */
+                            homeroomIsMe?: boolean;
                         };
                     };
                 };

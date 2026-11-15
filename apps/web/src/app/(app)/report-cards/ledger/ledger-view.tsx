@@ -44,6 +44,7 @@ import {
   rankText,
   safeSheetName,
 } from '@/lib/ledger';
+import { pickClassId, reportClassList } from '@/lib/report-class-access';
 import { semesterLabel } from '@/lib/semester-label';
 import { buildExport, saveBlob } from '@/lib/sheet';
 import { cn } from '@/lib/utils';
@@ -125,8 +126,10 @@ export function LedgerView() {
         }),
       ),
   });
-  const classList = classes.data ?? [];
-  const classId = classList.some((c) => c.id === classChoice) ? classChoice : (classList[0]?.id ?? '');
+  const wide = can('report_card:manage') || can('report_card:read_all');
+  const classList = reportClassList(classes.data ?? [], wide);
+  const classId = pickClassId(classList, classChoice);
+  const noHomeroom = !wide && !!classes.data && classList.length === 0;
   const className = classList.find((c) => c.id === classId)?.name ?? '';
   const ready = !!semesterId && !!classId;
 
@@ -253,7 +256,15 @@ export function LedgerView() {
           body={t('noSemesters')}
         />
       )}
-      {semesters.data && semesters.data.length > 0 && !ready && !classes.isPending && (
+      {semesters.data && semesters.data.length > 0 && noHomeroom && (
+        <EmptyPanel
+          icon={Users}
+          tone={MODULE_TONE.academic}
+          title={t('noHomeroomTitle')}
+          body={t('noHomeroom')}
+        />
+      )}
+      {semesters.data && semesters.data.length > 0 && !ready && !noHomeroom && !classes.isPending && (
         <EmptyPanel
           icon={ListFilter}
           tone={MODULE_TONE.academic}

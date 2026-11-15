@@ -26133,7 +26133,7 @@
         "tags": [
           "Academic"
         ],
-        "description": "Izin: `class:read`. Tanpa `academicYearId`, semua tahun ajaran ditampilkan. Memuat wali kelas (`homeroomTeacherId`, `homeroomTeacherName`).",
+        "description": "Izin: `class:read`. Tanpa `academicYearId`, semua tahun ajaran ditampilkan. Memuat wali kelas (`homeroomTeacherId`, `homeroomTeacherName`) dan `homeroomIsMe` (true bila pengguna yang masuk adalah wali kelasnya, lewat akun yang terhubung pada guru).",
         "parameters": [
           {
             "schema": {
@@ -26208,6 +26208,10 @@
                         "type": "integer",
                         "minimum": -9007199254740991,
                         "maximum": 9007199254740991
+                      },
+                      "homeroomIsMe": {
+                        "description": "Hanya pada daftar kelas: true bila pengguna yang masuk adalah wali kelas ini",
+                        "type": "boolean"
                       }
                     },
                     "required": [
@@ -26407,6 +26411,10 @@
                       "type": "integer",
                       "minimum": -9007199254740991,
                       "maximum": 9007199254740991
+                    },
+                    "homeroomIsMe": {
+                      "description": "Hanya pada daftar kelas: true bila pengguna yang masuk adalah wali kelas ini",
+                      "type": "boolean"
                     }
                   },
                   "required": [
@@ -26675,6 +26683,10 @@
                       "type": "integer",
                       "minimum": -9007199254740991,
                       "maximum": 9007199254740991
+                    },
+                    "homeroomIsMe": {
+                      "description": "Hanya pada daftar kelas: true bila pengguna yang masuk adalah wali kelas ini",
+                      "type": "boolean"
                     }
                   },
                   "required": [

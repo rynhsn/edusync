@@ -49,6 +49,7 @@ import {
 } from '@/components/ui-kit';
 import { ApiError, api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
+import { pickClassId, reportClassList } from '@/lib/report-class-access';
 import {
   completenessPercent,
   completeCount as countComplete,
@@ -208,8 +209,10 @@ export function ReportCardsView() {
         }),
       ),
   });
-  const classList = classes.data ?? [];
-  const classId = classList.some((c) => c.id === classChoice) ? classChoice : (classList[0]?.id ?? '');
+  const wide = manage || can('report_card:read_all');
+  const classList = reportClassList(classes.data ?? [], wide);
+  const classId = pickClassId(classList, classChoice);
+  const noHomeroom = !wide && !!classes.data && classList.length === 0;
   const className = classList.find((c) => c.id === classId)?.name ?? '';
   const ready = !!semesterId && !!classId;
 
@@ -448,7 +451,15 @@ export function ReportCardsView() {
           body={t('noSemesters')}
         />
       )}
-      {semesters.data && semesters.data.length > 0 && !ready && !classes.isPending && (
+      {semesters.data && semesters.data.length > 0 && noHomeroom && (
+        <EmptyPanel
+          icon={Users}
+          tone={MODULE_TONE.academic}
+          title={t('noHomeroomTitle')}
+          body={t('noHomeroom')}
+        />
+      )}
+      {semesters.data && semesters.data.length > 0 && !ready && !noHomeroom && !classes.isPending && (
         <EmptyPanel
           icon={ListFilter}
           tone={MODULE_TONE.academic}

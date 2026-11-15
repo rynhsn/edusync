@@ -190,6 +190,10 @@ const classSchema = z.object({
   homeroomTeacherId: z.uuid().nullable().describe('Wali kelas (guru), bila ada'),
   homeroomTeacherName: z.string().nullable(),
   studentCount: z.number().int(),
+  homeroomIsMe: z
+    .boolean()
+    .optional()
+    .describe('Hanya pada daftar kelas: true bila pengguna yang masuk adalah wali kelas ini'),
 });
 const classBody = z.object({
   academicYearId: z.uuid(),
@@ -542,7 +546,8 @@ export async function academicStructureRoutes(instance: FastifyInstance) {
         summary: 'Daftar kelas',
         description:
           'Izin: `class:read`. Tanpa `academicYearId`, semua tahun ajaran ditampilkan. Memuat wali kelas ' +
-          '(`homeroomTeacherId`, `homeroomTeacherName`).',
+          '(`homeroomTeacherId`, `homeroomTeacherName`) dan `homeroomIsMe` (true bila pengguna yang masuk adalah ' +
+          'wali kelasnya, lewat akun yang terhubung pada guru).',
         headers: schoolHeader,
         querystring: z.object({ academicYearId: z.uuid().optional() }),
         response: { 200: z.array(classSchema), ...guarded },
@@ -561,6 +566,7 @@ export async function academicStructureRoutes(instance: FastifyInstance) {
             level: classRoom.level,
             homeroomTeacherId: classRoom.homeroomTeacherId,
             homeroomTeacherName: teacher.name,
+            homeroomMemberId: teacher.memberId,
           })
           .from(classRoom)
           .leftJoin(program, eq(program.id, classRoom.programId))
@@ -572,7 +578,12 @@ export async function academicStructureRoutes(instance: FastifyInstance) {
           .from(enrollment)
           .innerJoin(student, and(eq(student.id, enrollment.studentId), isNull(student.deletedAt)))
           .groupBy(enrollment.classId);
-        return rows.map((r) => ({ ...r, studentCount: counts.find((c) => c.classId === r.id)?.n ?? 0 }));
+        const me = (request.ctx as TenantContext).memberId;
+        return rows.map(({ homeroomMemberId, ...r }) => ({
+          ...r,
+          studentCount: counts.find((c) => c.classId === r.id)?.n ?? 0,
+          homeroomIsMe: !!homeroomMemberId && homeroomMemberId === me,
+        }));
       });
     },
   );

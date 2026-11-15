@@ -533,6 +533,18 @@ describe('wali kelas pada kelas', () => {
   });
 });
 
+describe('penanda wali kelas pada daftar kelas', () => {
+  it('homeroomIsMe true hanya bagi wali kelasnya; guru lain dan admin false', async () => {
+    const mine = (cookie: string) =>
+      call('GET', '/v1/classes', cookie).then((r) =>
+        (r.json() as { id: string; homeroomIsMe: boolean }[]).filter((c) => c.homeroomIsMe).map((c) => c.id),
+      );
+    expect(await mine(waliCookie)).toEqual([ids.class7A]);
+    expect(await mine(lainCookie)).toEqual([]);
+    expect(await mine(adminCookie)).toEqual([]);
+  });
+});
+
 describe('daftar rapor kelas', () => {
   it('wali kelas dan peran lebar boleh; guru lain 403; rujukan divalidasi', async () => {
     const res = await call('GET', listUrl(), waliCookie);
