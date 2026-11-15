@@ -7,6 +7,13 @@ memutus kompatibilitas. Produksi hanya berubah saat tag `vX.Y.Z` dikirim; tulis 
 Cara merilis: tulis bagian baru di bawah "Belum dirilis" lalu ganti judulnya menjadi `## [x.y.z] - tanggal`, kemudian
 `pnpm release x.y.z` dan `git push edusync HEAD:main vx.y.z`.
 
+## [0.6.2] - 2026-11-15
+
+### Diperbaiki
+
+- **Tulisan melingkar pada segel verifikasi surat** terpotong di tengah ulangan sehingga terbaca ganda ("SMK SMK Miftahul Huda").
+  Kini nama sekolah diulang utuh dan mengisi lingkaran persis; nama panjang dipotong dengan "…".
+
 ## [0.6.1] - 2026-11-15
 
 ### Diubah

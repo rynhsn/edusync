@@ -4,6 +4,9 @@ import './letters.css';
 
 export type SealTone = 'valid' | 'revoked' | 'unknown' | 'draft';
 
+/** Keliling lintasan teks (jari-jari 68). */
+const RING_LENGTH = 2 * Math.PI * 68;
+
 const TONE_VAR: Record<SealTone, string> = {
   valid: 'var(--lt-valid)',
   revoked: 'var(--lt-revoked)',
@@ -30,7 +33,9 @@ export function Seal({
   className?: string;
 }) {
   const pathId = useId();
-  const ring = (label.toUpperCase() + ' · ').repeat(3).slice(0, 56);
+  // Ulangan utuh (tanpa dipotong di tengah) yang mengisi lingkaran persis, supaya cincin berputar tanpa sambungan ganda.
+  const unit = `${(label.length > 28 ? `${label.slice(0, 27)}…` : label).toUpperCase()} · `;
+  const ring = unit.repeat(Math.max(1, Math.round(40 / unit.length)));
   const teeth = 28;
   return (
     <svg
@@ -68,9 +73,9 @@ export function Seal({
       <circle cx="100" cy="100" r="83" fill="none" stroke="var(--lt-gold-deep)" strokeWidth="2" />
       <circle cx="100" cy="100" r="50" fill="none" stroke="currentColor" strokeWidth="1.5" opacity="0.7" />
 
-      <g className="lt-seal-ring" fill="currentColor" fontSize="12.5" fontWeight="700" letterSpacing="2.4">
+      <g className="lt-seal-ring" fill="currentColor" fontSize="12.5" fontWeight="700">
         <text>
-          <textPath href={`#${pathId}`} startOffset="0">
+          <textPath href={`#${pathId}`} startOffset="0" textLength={RING_LENGTH} lengthAdjust="spacing">
             {ring}
           </textPath>
         </text>
