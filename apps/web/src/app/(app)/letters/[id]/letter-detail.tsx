@@ -2,7 +2,17 @@
 
 import { type LetterPlaceholder, renderLetter } from '@edusync/contracts';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Ban, Check, Copy, Download, ExternalLink, FileSignature, Pencil, Trash2 } from 'lucide-react';
+import {
+  Ban,
+  Check,
+  Copy,
+  Download,
+  ExternalLink,
+  FileSignature,
+  MessageCircle,
+  Pencil,
+  Trash2,
+} from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
@@ -22,9 +32,11 @@ import { Skeleton } from '@/components/ui/skeleton';
 import type { Locale } from '@/i18n/config';
 import { ApiError, api, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
+import { toBase64 } from '@/lib/file-base64';
 import { formatCalendarDate } from '@/lib/format-date';
 import { cn } from '@/lib/utils';
-import { formatIdDate, formatIdDateTime } from '../format';
+import { saveLetterHandoff } from '../../messaging/letter-handoff';
+import { formatIdDate, formatIdDateTime, letterFileName } from '../format';
 import { IncomingDialog } from '../incoming-dialog';
 import { LetterPaper, PaperSheet, type PaperSigner } from '../letter-paper';
 import { type RevokeField, validateRevoke } from '../letter-validation';
@@ -54,10 +66,11 @@ const TONE: Record<'draft' | 'signed' | 'revoked', SealTone> = {
 export function LetterDetail({ id }: { id: string }) {
   const t = useTranslations('letters');
   const te = useTranslations();
+  const tm = useTranslations('messaging.direct');
   const locale = useLocale() as Locale;
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { school, can } = useSchool();
+  const { school, can, hasModule } = useSchool();
   const { header } = useHeader();
   const letterhead = useLetterhead();
   const verifyUrlFor = useVerifyUrl();
@@ -290,6 +303,35 @@ export function LetterDetail({ id }: { id: string }) {
     onError: (e) => toast.error(e instanceof ApiError ? te(errorKey(e)) : t('pdfFailed')),
   });
 
+  /** PDF surat diunggah sebagai lampiran WhatsApp (server memeriksa hash-nya), lalu pesan langsung dibuka. */
+  const sendWhatsapp = useMutation({
+    mutationFn: async () => {
+      if (!l || !sig.data || !paperSigner) return;
+      setBusy(t('stepPdf'));
+      const { blob } = await buildPdf(sig.data.token, paperSigner);
+      const meta = unwrap(
+        await api.POST('/v1/letters/{id}/whatsapp-attachment', {
+          params: { header, path: { id } },
+          body: {
+            fileName: letterFileName(l.number, l.subject),
+            dataBase64: await toBase64(new File([blob], 'surat.pdf', { type: 'application/pdf' })),
+          },
+        }),
+      );
+      saveLetterHandoff({
+        attachment: { id: meta.id, fileName: meta.fileName, mime: meta.mime, size: meta.size },
+        student: l.studentId && l.studentName ? { id: l.studentId, label: l.studentName } : null,
+        body: `${tm('letterGreeting')} {{guardian}}, ${tm('letterBody', { subject: l.subject.replace(/[{}]/g, '') })}`,
+      });
+      router.push('/messaging');
+    },
+    onSettled: () => {
+      setBusy(null);
+      refresh();
+    },
+    onError: (e) => toast.error(e instanceof ApiError ? te(errorKey(e)) : t('pdfFailed')),
+  });
+
   const revoke = useMutation({
     mutationFn: async () =>
       unwrap(
@@ -354,6 +396,7 @@ export function LetterDetail({ id }: { id: string }) {
     !!mySigner &&
     mySigner.name === sig.data.signerName &&
     mySigner.title === sig.data.signerTitle;
+  const waAllowed = can('message:send') && hasModule('messaging');
   const canSign = outgoing && l.status === 'draft' && can('letter:sign') && !!mySigner?.active;
   const canRevoke = outgoing && l.status === 'signed' && (manage || isMySignature);
   const draftEditable = outgoing && l.status === 'draft' && manage;
@@ -412,6 +455,11 @@ export function LetterDetail({ id }: { id: string }) {
       {outgoing && l.status !== 'draft' && sig.data && (
         <Button variant="outline" disabled={working || !paperSigner} onClick={() => download.mutate()}>
           <Download className="size-4" /> {t('downloadPdf')}
+        </Button>
+      )}
+      {outgoing && l.status === 'signed' && sig.data && !sig.data.revoked && waAllowed && (
+        <Button variant="outline" disabled={working || !paperSigner} onClick={() => sendWhatsapp.mutate()}>
+          <MessageCircle className="size-4" /> {t('sendWhatsapp')}
         </Button>
       )}
       {draftEditable && (

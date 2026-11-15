@@ -1558,6 +1558,8 @@
     "invalid_assignee": "Éta jalma lain staf platform.",
     "unknown_placeholder": "Citakan ngandung gaganti data anu teu dipikawanoh.",
     "hash_already_set": "Cap ramo berkas surat ieu geus kadaptar.",
+    "hash_mismatch": "PDF surat teu sarua jeung berkas nu didaptarkeun waktu ditandatanganan. Unduh PDF aslina terus lampirkeun ti tab Pesan langsung.",
+    "hash_not_registered": "Sidik ramo PDF surat can didaptarkeun. Nu nandatanganan atawa pangurus surat kudu ngaunduh PDF-na heula.",
     "not_draft": "Ngan surat status konsép anu bisa dirobah atawa dihapus.",
     "not_outgoing": "Lampah ieu ngan pikeun surat kaluar.",
     "not_signable": "Surat ieu teu bisa ditandatanganan; ngan konsép surat kaluar anu bisa.",
@@ -5393,7 +5395,9 @@
       "hasAttachment": "Aya lampiran",
       "attachmentPurged": "Eusi berkas geus dihapus",
       "attachmentDownload": "Unduh lampiran",
-      "attachmentDownloadFailed": "Lampiran teu tiasa diunduh."
+      "attachmentDownloadFailed": "Lampiran teu tiasa diunduh.",
+      "letterGreeting": "Hormat",
+      "letterBody": "ieu kami lampirkeun surat \"{subject}\"."
     },
     "delayInvalid": "Jeda minimum teu meunang leuwih ti maksimum.",
     "absentAt": "Jam panginget acan datang",
@@ -6152,6 +6156,7 @@
     "stepPdf": "Nyieun PDF…",
     "stepHash": "Ngadaptarkeun cap ramo berkas…",
     "downloadPdf": "Undeur PDF",
+    "sendWhatsapp": "Kirim ngaliwatan WhatsApp",
     "revoke": "Cabut surat",
     "revokeTitle": "Cabut surat ieu?",
     "revokeBody": "Kaca vérifikasi bakal nuduhkeun yén surat dicabut jeung alesanana. Lampah ieu teu bisa dibatalkeun.",

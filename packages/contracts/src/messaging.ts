@@ -337,6 +337,9 @@ export const attachmentUploadSchema = z.object({
   dataBase64: z.string().min(1).max(2_900_000),
 });
 
+/** Unggah PDF surat (tahap D): jenisnya pasti PDF, hash-nya harus sama dengan yang terdaftar pada penandatanganan surat. */
+export const letterAttachmentUploadSchema = attachmentUploadSchema.omit({ mime: true });
+
 /* ---------- Siaran pengumuman lewat WhatsApp (tahap C) ---------- */
 
 /** Pengumuman yang lebih panjang dipotong sebegini karakter lalu diberi rujukan ke portal. */

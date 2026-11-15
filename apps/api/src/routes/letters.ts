@@ -1,9 +1,11 @@
-import { randomBytes, timingSafeEqual } from 'node:crypto';
+import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 import {
   DEFAULT_AGENDA_PATTERN,
   DEFAULT_LETTER_TEMPLATES,
   DEFAULT_NUMBER_PATTERN,
+  detectAttachmentMime,
   formatLongDateId,
+  letterAttachmentUploadSchema,
   MAX_SIGNATURE_BYTES,
   normalizeSchoolCode,
   parseSignatureDataUrl,
@@ -45,6 +47,7 @@ import { z } from 'zod';
 import { errorSchema, forbidden, HttpError } from '../http-error';
 import { requireModule, requirePermission, type TenantContext } from '../identity/guards';
 import { audit, conflictAs409, guarded, idParams, ok, schoolHeader } from './helpers';
+import { attachmentSchema, decodeAttachment, storeAttachment } from './messaging-batches';
 
 const tag = ['Administration'];
 const dateField = z.iso.date();
@@ -52,6 +55,12 @@ const dateField = z.iso.date();
 const readGate = [requirePermission('letter:read'), requireModule('administration')];
 const manageGate = [requirePermission('letter:manage'), requireModule('administration')];
 const signGate = [requirePermission('letter:sign'), requireModule('administration')];
+const whatsappGate = [
+  requirePermission('letter:read'),
+  requirePermission('message:send'),
+  requireModule('administration'),
+  requireModule('messaging'),
+];
 
 const notFound = (what: string) => new HttpError(404, 'not_found', `${what} tidak ditemukan.`);
 const invalidRef = (message: string) => new HttpError(400, 'invalid_reference', message);
@@ -1288,6 +1297,75 @@ export async function letterRoutes(instance: FastifyInstance) {
         if (!updated) throw new HttpError(409, 'hash_already_set', 'Hash dokumen ini sudah terdaftar.');
         await audit(tx, ctx, 'letter.hash', 'signed_document', sd.id, { sha256: request.body.sha256 });
         return { ok: true as const, sha256: request.body.sha256 };
+      });
+    },
+  );
+
+  app.post(
+    '/v1/letters/:id/whatsapp-attachment',
+    {
+      onRequest: whatsappGate,
+      bodyLimit: 3 * 1024 * 1024,
+      schema: {
+        tags: tag,
+        summary: 'Unggah PDF surat sebagai lampiran WhatsApp',
+        description:
+          'Izin: `letter:read` dan `message:send`; modul `administration` dan `messaging`. PDF surat dibuat di klien, ' +
+          'jadi klien mengunggahnya (base64 di `dataBase64`, maks 2 MB asli) dan server memverifikasi SHA-256-nya ' +
+          'terhadap hash yang terdaftar pada penandatanganan surat: berbeda 409 `hash_mismatch`. Hash belum ' +
+          'terdaftar: didaftarkan dari unggahan ini bila pengunggah penandatangan surat atau punya `letter:manage` ' +
+          '(sekali tulis, sama dengan `PUT /v1/signed-documents/{id}/hash`), selain itu 409 `hash_not_registered`. ' +
+          'Surat dicabut: 409 `revoked`; surat belum ditandatangani: 409 `not_signed`. Isi bukan PDF: 400 ' +
+          '`attachment_type`. Balikan sama dengan `POST /v1/messaging/attachments`; `id`-nya dipakai sebagai ' +
+          '`attachmentId` pada `POST /v1/messaging/batches` (alur pesan langsung yang ada, tanpa perubahan).',
+        headers: schoolHeader,
+        params: idParams,
+        body: letterAttachmentUploadSchema,
+        response: { 200: attachmentSchema, 400: errorSchema, 404: errorSchema, 409: errorSchema, ...guarded },
+      },
+    },
+    async (request) => {
+      const ctx = request.ctx as TenantContext;
+      const bytes = decodeAttachment(request.body.dataBase64);
+      if (detectAttachmentMime(bytes) !== 'application/pdf') {
+        throw new HttpError(400, 'attachment_type', 'Berkas surat harus PDF yang isinya sesuai.');
+      }
+      const sha256 = createHash('sha256').update(bytes).digest('hex');
+      return tenant(request, async (tx) => {
+        const cur = await letterOrThrow(tx, request.params.id);
+        const sd = await latestSigned(tx, cur.id);
+        if (cur.status === 'revoked' || sd?.revokedAt) {
+          throw new HttpError(409, 'revoked', 'Surat ini sudah dicabut, tidak dapat dikirim.');
+        }
+        if (cur.status !== 'signed' || !sd) {
+          throw new HttpError(409, 'not_signed', 'Hanya surat yang sudah ditandatangani yang dapat dikirim.');
+        }
+        if (sd.pdfSha256 === null) {
+          const mine = await myCredential(tx, ctx);
+          if (!ctx.permissions.has('letter:manage') && mine?.id !== sd.signerId) {
+            throw new HttpError(
+              409,
+              'hash_not_registered',
+              'Hash PDF surat belum terdaftar. Penandatangan atau pengelola surat perlu mengunduh PDF-nya dulu.',
+            );
+          }
+          const [reg] = await tx
+            .update(signedDocument)
+            .set({ pdfSha256: sha256 })
+            .where(and(eq(signedDocument.id, sd.id), sql`${signedDocument.pdfSha256} is null`))
+            .returning({ id: signedDocument.id });
+          if (!reg) throw new HttpError(409, 'hash_already_set', 'Hash dokumen ini sudah terdaftar.');
+          await audit(tx, ctx, 'letter.hash', 'signed_document', sd.id, { sha256 });
+        } else if (sd.pdfSha256 !== sha256) {
+          throw new HttpError(
+            409,
+            'hash_mismatch',
+            'PDF tidak identik dengan berkas yang terdaftar saat surat ditandatangani.',
+          );
+        }
+        const stored = await storeAttachment(tx, ctx, request.body.fileName, 'application/pdf', bytes);
+        await audit(tx, ctx, 'letter.whatsapp', 'letter', cur.id, { attachmentId: stored.id, sha256 });
+        return stored;
       });
     },
   );

@@ -1558,6 +1558,8 @@
     "invalid_assignee": "That person is not platform staff.",
     "unknown_placeholder": "The template contains an unknown data placeholder.",
     "hash_already_set": "This letter's file fingerprint is already registered.",
+    "hash_mismatch": "The letter PDF differs from the file registered at signing. Download the original PDF and attach it from the Direct messages tab.",
+    "hash_not_registered": "The letter PDF fingerprint is not registered yet. The signer or a letter manager needs to download its PDF first.",
     "not_draft": "Only draft letters can be edited or deleted.",
     "not_outgoing": "This action only applies to outgoing letters.",
     "not_signable": "This letter cannot be signed; only outgoing drafts can.",
@@ -5393,7 +5395,9 @@
       "hasAttachment": "Has attachment",
       "attachmentPurged": "File content deleted",
       "attachmentDownload": "Download attachment",
-      "attachmentDownloadFailed": "The attachment could not be downloaded."
+      "attachmentDownloadFailed": "The attachment could not be downloaded.",
+      "letterGreeting": "Dear",
+      "letterBody": "please find attached the letter \"{subject}\"."
     },
     "delayInvalid": "The minimum delay cannot exceed the maximum.",
     "absentAt": "Not-arrived reminder time",
@@ -6152,6 +6156,7 @@
     "stepPdf": "Creating PDF…",
     "stepHash": "Registering file fingerprint…",
     "downloadPdf": "Download PDF",
+    "sendWhatsapp": "Send via WhatsApp",
     "revoke": "Revoke letter",
     "revokeTitle": "Revoke this letter?",
     "revokeBody": "The verification page will show the letter as revoked, with the reason. This cannot be undone.",

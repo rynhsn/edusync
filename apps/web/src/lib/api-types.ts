@@ -31986,6 +31986,137 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/letters/{id}/whatsapp-attachment": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Unggah PDF surat sebagai lampiran WhatsApp
+         * @description Izin: `letter:read` dan `message:send`; modul `administration` dan `messaging`. PDF surat dibuat di klien, jadi klien mengunggahnya (base64 di `dataBase64`, maks 2 MB asli) dan server memverifikasi SHA-256-nya terhadap hash yang terdaftar pada penandatanganan surat: berbeda 409 `hash_mismatch`. Hash belum terdaftar: didaftarkan dari unggahan ini bila pengunggah penandatangan surat atau punya `letter:manage` (sekali tulis, sama dengan `PUT /v1/signed-documents/{id}/hash`), selain itu 409 `hash_not_registered`. Surat dicabut: 409 `revoked`; surat belum ditandatangani: 409 `not_signed`. Isi bukan PDF: 400 `attachment_type`. Balikan sama dengan `POST /v1/messaging/attachments`; `id`-nya dipakai sebagai `attachmentId` pada `POST /v1/messaging/batches` (alur pesan langsung yang ada, tanpa perubahan).
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        fileName: string;
+                        dataBase64: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            fileName: string;
+                            /** @enum {string} */
+                            mime: "application/pdf" | "image/jpeg" | "image/png";
+                            /** @description Byte */
+                            size: number;
+                            /** @description Isi berkas sudah dihapus (kedaluwarsa); metadata tetap */
+                            purged: boolean;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/letters/{id}/signature": {
         parameters: {
             query?: never;

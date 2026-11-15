@@ -1558,6 +1558,8 @@
     "invalid_assignee": "Petugas itu bukan staf platform.",
     "unknown_placeholder": "Templat memuat pengganti data yang tidak dikenal.",
     "hash_already_set": "Sidik jari berkas surat ini sudah terdaftar.",
+    "hash_mismatch": "PDF surat tidak identik dengan berkas yang terdaftar saat penandatanganan. Unduh PDF aslinya lalu lampirkan lewat tab Pesan langsung.",
+    "hash_not_registered": "Sidik jari PDF surat belum terdaftar. Penandatangan atau pengelola surat perlu mengunduh PDF-nya lebih dulu.",
     "not_draft": "Hanya surat berstatus draf yang dapat diubah atau dihapus.",
     "not_outgoing": "Tindakan ini hanya untuk surat keluar.",
     "not_signable": "Surat ini tidak dapat ditandatangani; hanya draf surat keluar yang bisa.",
@@ -5393,7 +5395,9 @@
       "hasAttachment": "Ada lampiran",
       "attachmentPurged": "Isi berkas sudah dihapus",
       "attachmentDownload": "Unduh lampiran",
-      "attachmentDownloadFailed": "Lampiran tidak dapat diunduh."
+      "attachmentDownloadFailed": "Lampiran tidak dapat diunduh.",
+      "letterGreeting": "Yth.",
+      "letterBody": "bersama pesan ini kami lampirkan surat \"{subject}\"."
     },
     "delayInvalid": "Jeda minimum tidak boleh melebihi maksimum.",
     "absentAt": "Jam pengingat belum tiba",
@@ -6152,6 +6156,7 @@
     "stepPdf": "Membuat PDF…",
     "stepHash": "Mendaftarkan sidik jari berkas…",
     "downloadPdf": "Unduh PDF",
+    "sendWhatsapp": "Kirim lewat WhatsApp",
     "revoke": "Cabut surat",
     "revokeTitle": "Cabut surat ini?",
     "revokeBody": "Halaman verifikasi akan menampilkan bahwa surat dicabut beserta alasannya. Tindakan ini tidak dapat dibatalkan.",

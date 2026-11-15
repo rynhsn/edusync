@@ -15,6 +15,7 @@ import {
   EVENT_PLACEHOLDERS,
   hasSensitiveNumber,
   joinNames,
+  letterAttachmentUploadSchema,
   MESSAGE_TOTAL_MAX,
   normalizePhone,
   recipientSelectionSchema,
@@ -198,6 +199,12 @@ describe('lampiran pesan langsung', () => {
     expect(attachmentUploadSchema.safeParse({ ...ok, mime: 'text/html' }).success).toBe(false);
     const big = 'A'.repeat(2_900_001);
     expect(attachmentUploadSchema.safeParse({ ...ok, dataBase64: big }).success).toBe(false);
+  });
+  it('skema unggah PDF surat: tanpa mime, jenis ditetapkan server', () => {
+    expect(
+      letterAttachmentUploadSchema.safeParse({ fileName: 's.pdf', dataBase64: 'JVBERi0=' }).success,
+    ).toBe(true);
+    expect(letterAttachmentUploadSchema.safeParse({ fileName: 's.pdf' }).success).toBe(false);
   });
 });
 

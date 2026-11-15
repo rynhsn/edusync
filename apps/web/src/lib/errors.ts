@@ -117,6 +117,8 @@ const KNOWN = [
   'rate_limited',
   'unknown_placeholder',
   'hash_already_set',
+  'hash_mismatch',
+  'hash_not_registered',
   'not_draft',
   'not_outgoing',
   'not_signable',

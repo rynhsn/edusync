@@ -11,7 +11,7 @@ import {
 } from '@edusync/contracts';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
-import { useDeferredValue, useMemo, useRef, useState } from 'react';
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { TOUCH_INPUT, TOUCH_SELECT } from '@/components/form-field-error';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -42,6 +42,7 @@ import {
   type PickState,
   toSelection,
 } from './direct-logic';
+import { takeLetterHandoff } from './letter-handoff';
 import { RecipientPicker } from './recipient-picker';
 import { useMessagingCtx } from './shared';
 import { WaBubble } from './wa-bubble';
@@ -66,6 +67,16 @@ export function DirectPanel({ onSent }: { onSent: () => void }) {
   const [attachment, setAttachment] = useState<PickedAttachment | null>(null);
   const [attachmentBusy, setAttachmentBusy] = useState(false);
   const area = useRef<HTMLTextAreaElement>(null);
+
+  // Lampiran, murid, dan teks awal dari halaman surat (sekali pakai).
+  useEffect(() => {
+    const h = takeLetterHandoff();
+    if (!h) return;
+    setAttachment({ ...h.attachment, previewUrl: null });
+    setBody(h.body);
+    if (h.student)
+      setPick((p) => ({ ...p, students: [{ id: h.student!.id, label: h.student!.label, hint: null }] }));
+  }, []);
   const deferredBody = useDeferredValue(body.trim());
   const selection = useMemo(() => toSelection(pick), [pick]);
   const deferredSelection = useDeferredValue(selection);

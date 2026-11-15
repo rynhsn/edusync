@@ -1357,6 +1357,18 @@ export const SERVICE_DOCS: DocArticle[] = [
             tip: 'Wali yang menolak siaran dikelola staf di tab Opt-out siaran (izin kelola pesan): nomor mereka dilewati siaran, sedangkan pesan langsung dan pesan otomatis tetap terkirim (pesan langsung hanya diberi peringatan).',
             href: '/announcements',
           },
+          {
+            heading: 'Mengirim surat lewat WhatsApp',
+            body: 'Surat bertanda tangan dapat dikirim sebagai lampiran PDF lewat WhatsApp, misalnya surat pemanggilan orang tua. Alur penerbitan dan penandatanganan surat tidak berubah. Butuh izin lihat surat dan izin kirim pesan, serta modul Administrasi dan Notifikasi WhatsApp aktif.',
+            steps: [
+              'Buka rincian surat keluar yang sudah ditandatangani, lalu klik Kirim lewat WhatsApp. PDF surat dibuat di perangkat Anda dan diunggah; server memeriksa sidik jarinya terhadap berkas yang terdaftar saat penandatanganan.',
+              'Tab Pesan langsung terbuka dengan PDF sudah terlampir. Bila surat untuk murid tertentu, murid itu sudah terpilih sehingga pesan menuju wali muridnya; untuk surat tanpa murid, pilih penerima sendiri.',
+              'Ubah teks pesan bila perlu, tinjau penerima, lalu kirim seperti pesan langsung biasa.',
+            ],
+            warning:
+              'Surat yang dicabut atau belum ditandatangani tidak dapat dikirim. Bila PDF yang dibuat ulang tidak identik dengan berkas yang terdaftar, pengiriman ditolak: unduh PDF aslinya dari halaman surat lalu lampirkan lewat tab Pesan langsung.',
+            href: '/letters',
+          },
         ],
         faq: [
           {
@@ -1474,6 +1486,18 @@ export const SERVICE_DOCS: DocArticle[] = [
             tip: 'Guardians who opt out of broadcasts are managed by staff in the Broadcast opt-outs tab (manage messages permission): their numbers are skipped by broadcasts, while direct and automatic messages are still sent (direct messages only show a warning).',
             href: '/announcements',
           },
+          {
+            heading: 'Sending a letter on WhatsApp',
+            body: 'A signed letter can be sent as a PDF attachment on WhatsApp, for example a parent summons. Issuing and signing letters work as before. It needs the letter read and send message permissions, with the Administration and WhatsApp notifications modules active.',
+            steps: [
+              'Open a signed outgoing letter and click Send via WhatsApp. The letter PDF is built on your device and uploaded; the server checks its fingerprint against the file registered at signing.',
+              'The Direct messages tab opens with the PDF attached. If the letter is for a specific student, that student is already selected so the message goes to their guardian; for a letter without a student, choose the recipients yourself.',
+              'Edit the message text if needed, review the recipients, then send as with any direct message.',
+            ],
+            warning:
+              'A revoked or unsigned letter cannot be sent. If the regenerated PDF is not identical to the registered file, sending is rejected: download the original PDF from the letter page and attach it in the Direct messages tab.',
+            href: '/letters',
+          },
         ],
         faq: [
           {
@@ -1590,6 +1614,18 @@ export const SERVICE_DOCS: DocArticle[] = [
               'Unggal pengumuman ngan tiasa disiarkeun sakali. Upami pengumuman dibalikkeun ka draf atawa dihapus, pesen siaran anu masih ngantri dibatalkeun. Siaran dikirim paling gancang hiji pesen unggal 10 detik, sanggeus pesen otomatis jeung pesen langsung, sarta ngitung wates poéan. Eusi anu ngandung deret 16 angka ditolak.',
             tip: 'Wali anu nolak siaran diatur ku staf dina tab Opt-out siaran (idin ngatur pesen): nomerna dilewatan siaran, sedengkeun pesen langsung jeung pesen otomatis tetep dikirim (pesen langsung ngan dibere peringatan).',
             href: '/announcements',
+          },
+          {
+            heading: 'Ngirim surat lewat WhatsApp',
+            body: 'Surat nu geus ditandatanganan bisa dikirim jadi lampiran PDF lewat WhatsApp, upamana surat nyeluk kolot. Alur nerbitkeun jeung nandatanganan surat teu robah. Merlukeun idin ningali surat jeung ngirim pesen, sarta modul Administrasi jeung Notifikasi WhatsApp aktif.',
+            steps: [
+              'Buka rincian surat kaluar nu geus ditandatanganan, klik Kirim ngaliwatan WhatsApp. PDF surat dijieun dina parangkat anjeun terus diunggah; server mariksa sidik ramona kana berkas nu didaptarkeun waktu ditandatanganan.',
+              'Tab Pesan langsung muka kalawan PDF geus dilampirkeun. Upami surat pikeun murid tangtu, murid eta geus kapilih sangkan pesen ka wali muridna; pikeun surat tanpa murid, pilih panampi sorangan.',
+              'Robah téks pesen upami perlu, pariksa panampi, tuluy kirim siga pesen langsung biasa.',
+            ],
+            warning:
+              'Surat nu dicabut atawa can ditandatanganan teu bisa dikirim. Upami PDF nu dijieun deui teu sarua jeung berkas nu didaptarkeun, pangirimanna ditolak: unduh PDF aslina ti kaca surat terus lampirkeun ti tab Pesan langsung.',
+            href: '/letters',
           },
         ],
         faq: [

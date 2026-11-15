@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSchool } from '@/components/app-shell';
 import { PageBody, PageHeader } from '@/components/page-header';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { ConnectionPanel } from './connection-panel';
 import { DirectTab } from './direct-tab';
 import { HistoryPanel } from './history-panel';
+import { hasLetterHandoff } from './letter-handoff';
 import { OptOutPanel } from './optout-panel';
 import { SettingsPanel } from './settings-panel';
 
@@ -18,6 +19,11 @@ export function MessagingView() {
   const t = useTranslations('messaging');
   const { can } = useSchool();
   const [tab, setTab] = useState<Tab>('connection');
+
+  // Datang dari tombol "Kirim lewat WhatsApp" di halaman surat: langsung ke pesan langsung.
+  useEffect(() => {
+    if (hasLetterHandoff()) setTab('direct');
+  }, []);
 
   if (!can('message:read')) {
     return (

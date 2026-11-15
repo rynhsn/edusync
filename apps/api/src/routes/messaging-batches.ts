@@ -78,7 +78,7 @@ export const countsSchema = z.object({
   failed: z.number().int(),
   skipped: z.number().int(),
 });
-const attachmentSchema = z.object({
+export const attachmentSchema = z.object({
   id: z.uuid(),
   fileName: z.string(),
   mime: z.enum(['application/pdf', 'image/jpeg', 'image/png']),
@@ -122,6 +122,49 @@ export const batchErrorStatus: Record<BatchError['code'], number> = {
   daily_limit: 409,
   queue_full: 409,
 };
+
+/** Dekode base64 unggahan lampiran dan periksa ukurannya (400 `invalid_base64` / `attachment_too_large`). */
+export function decodeAttachment(dataBase64: string): Buffer {
+  if (!/^[A-Za-z0-9+/]+={0,2}$/.test(dataBase64)) {
+    throw new HttpError(400, 'invalid_base64', 'Isi berkas bukan base64 yang valid.');
+  }
+  const bytes = Buffer.from(dataBase64, 'base64');
+  if (bytes.length > ATTACHMENT_MAX_BYTES) {
+    throw new HttpError(400, 'attachment_too_large', 'Lampiran maksimal 2 MB.');
+  }
+  return bytes;
+}
+
+/** Simpan lampiran milik sekolah (jenis sudah diperiksa pemanggil) dan catat audit; `extra` ikut ke audit. */
+export async function storeAttachment(
+  tx: Tx,
+  ctx: TenantContext,
+  fileName: string,
+  mime: z.infer<typeof attachmentSchema>['mime'],
+  bytes: Buffer,
+  extra: Record<string, unknown> = {},
+) {
+  const name = safeAttachmentName(fileName);
+  const [row] = await tx
+    .insert(msgAttachment)
+    .values({
+      schoolId: ctx.schoolId,
+      fileName: name,
+      mime,
+      size: bytes.length,
+      sha256: createHash('sha256').update(bytes).digest('hex'),
+      data: bytes,
+      createdBy: ctx.userId,
+    })
+    .returning({ id: msgAttachment.id });
+  const id = (row as { id: string }).id;
+  await audit(tx, ctx, 'messaging.attachment.upload', 'msg_attachment', id, {
+    mime,
+    size: bytes.length,
+    ...extra,
+  });
+  return { id, fileName: name, mime, size: bytes.length, purged: false };
+}
 
 function bodyIssue(body: string) {
   const issue = directBodyIssue(body);
@@ -485,13 +528,7 @@ export async function messagingBatchRoutes(instance: FastifyInstance) {
     async (request) => {
       const ctx = request.ctx as TenantContext;
       const { fileName, mime, dataBase64 } = request.body;
-      if (!/^[A-Za-z0-9+/]+={0,2}$/.test(dataBase64)) {
-        throw new HttpError(400, 'invalid_base64', 'Isi berkas bukan base64 yang valid.');
-      }
-      const bytes = Buffer.from(dataBase64, 'base64');
-      if (bytes.length > ATTACHMENT_MAX_BYTES) {
-        throw new HttpError(400, 'attachment_too_large', 'Lampiran maksimal 2 MB.');
-      }
+      const bytes = decodeAttachment(dataBase64);
       if (detectAttachmentMime(bytes) !== mime) {
         throw new HttpError(
           400,
@@ -499,27 +536,7 @@ export async function messagingBatchRoutes(instance: FastifyInstance) {
           'Lampiran harus berkas PDF, JPG, atau PNG yang isinya sesuai.',
         );
       }
-      const name = safeAttachmentName(fileName);
-      return tenant(request, async (tx) => {
-        const [row] = await tx
-          .insert(msgAttachment)
-          .values({
-            schoolId: ctx.schoolId,
-            fileName: name,
-            mime,
-            size: bytes.length,
-            sha256: createHash('sha256').update(bytes).digest('hex'),
-            data: bytes,
-            createdBy: ctx.userId,
-          })
-          .returning({ id: msgAttachment.id });
-        const id = (row as { id: string }).id;
-        await audit(tx, ctx, 'messaging.attachment.upload', 'msg_attachment', id, {
-          mime,
-          size: bytes.length,
-        });
-        return { id, fileName: name, mime, size: bytes.length, purged: false };
-      });
+      return tenant(request, (tx) => storeAttachment(tx, ctx, fileName, mime, bytes));
     },
   );
 
