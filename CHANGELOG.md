@@ -14,6 +14,8 @@ jeda acak, status/QR di halaman Notifikasi WhatsApp, dan pengaturan platform tid
 
 ### Diubah
 
+- **Pesan uji tetap terkirim walau pengiriman otomatis sekolah dimatikan** (sebelumnya langsung berstatus "dilewati"). Pesan lain tetap dilewati.
+
 - **Pustaka WhatsApp di worker: Baileys** (`@whiskeysockets/baileys`, versi 7.0.0-rc14 dikunci persis). Tanpa Chrome/Chromium dan
   puppeteer: memori per sekolah turun dari sekitar 300 MB menjadi beberapa puluh MB, dan Dockerfile/server tidak perlu memasang
   Chrome. Batas `WA_MAX_CLIENTS` tetap berlaku (bawaan 20). Sambung ulang untuk putus sementara otomatis (jeda bertahap); bila

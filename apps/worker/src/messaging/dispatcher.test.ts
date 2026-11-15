@@ -225,8 +225,8 @@ describe('Dispatcher', () => {
   it('pengaturan sekolah mati atau tanpa baris: skipped disabled', async () => {
     const off = await fx.newSchool({ setting: { enabled: false } });
     const none = await fx.newSchool({ setting: null });
-    const a = await fx.addMessage(off);
-    const b = await fx.addMessage(none);
+    const a = await fx.addMessage(off, { eventKey: 'announcement' });
+    const b = await fx.addMessage(none, { eventKey: 'announcement' });
     const sender = new FakeSender();
     await make(sender, { now: NOW }).tick();
     expect(sender.calls).toHaveLength(0);
@@ -235,6 +235,17 @@ describe('Dispatcher', () => {
       expect(row.status).toBe('skipped');
       expect(row.detail).toBe('disabled');
     }
+  });
+
+  it('pengaturan sekolah mati: pesan uji tetap terkirim, pesan lain dilewati', async () => {
+    const off = await fx.newSchool({ setting: { enabled: false } });
+    const test = await fx.addMessage(off, { eventKey: 'test' });
+    const other = await fx.addMessage(off, { eventKey: 'announcement' });
+    const sender = new FakeSender();
+    await make(sender, { now: NOW }).tick();
+    expect(sender.calls).toHaveLength(1);
+    expect((await fx.getMessage(test.id)).status).toBe('sent');
+    expect((await fx.getMessage(other.id)).status).toBe('skipped');
   });
 
   it('saklar global mati: pesan dibiarkan queued', async () => {

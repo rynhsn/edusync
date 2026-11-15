@@ -140,9 +140,16 @@ export class Dispatcher {
     );
 
     const [setting] = await this.db.select().from(msgSetting).where(eq(msgSetting.schoolId, schoolId));
-    if (!setting?.enabled) {
+    if (!setting) {
       await this.db.update(msgMessage).set({ status: 'skipped', detail: 'disabled' }).where(dueOfSchool);
       return 0;
+    }
+    if (!setting.enabled) {
+      // Pesan uji tetap dikirim walau pengiriman otomatis dimatikan: gunanya memeriksa sambungan WhatsApp.
+      await this.db
+        .update(msgMessage)
+        .set({ status: 'skipped', detail: 'disabled' })
+        .where(and(dueOfSchool, sql`${msgMessage.eventKey} <> 'test'`));
     }
 
     const [account] = await this.db.select().from(waAccount).where(eq(waAccount.schoolId, schoolId));
