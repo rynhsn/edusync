@@ -1,4 +1,4 @@
-import { msgBatch } from '@edusync/db';
+import { msgBatch, sql } from '@edusync/db';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { BACKOFF_MS, Dispatcher, sendWindow } from './dispatcher';
 import { FakeSender } from './sender';
@@ -399,5 +399,69 @@ describe('prioritas antrean (pesan langsung dan siaran)', () => {
     expect(await make(sender, { now: NOW }).tick()).toBe(1);
     expect(await make(sender, { now: NOW }).tick()).toBe(0);
     expect(sender.calls.map((c) => c.text)).toEqual(['*SMP Contoh*\n\nYth. Bu Sari\n\nSalam hangat']);
+  });
+});
+
+describe('Dispatcher: lampiran', () => {
+  it('batch dengan lampiran: pengirim menerima berkas dan teks sebagai caption (header/footer ikut)', async () => {
+    const sid = await fx.newSchool({ name: 'SMP Lampir', setting: { footerText: 'Salam' } });
+    const { batchId } = await fx.addAttachmentBatch(sid);
+    await fx.addMessage(sid, { eventKey: 'direct', body: 'Terlampir', priority: 1, batchId });
+    const sender = new FakeSender();
+    expect(await make(sender, { now: NOW }).tick()).toBe(1);
+    const call = sender.calls[0];
+    expect(call?.text).toBe('Terlampir\n\nSalam');
+    expect(call?.attachment?.fileName).toBe('surat.pdf');
+    expect(call?.attachment?.mime).toBe('application/pdf');
+    expect(call?.attachment?.data.toString()).toBe('%PDF-1.7 uji');
+  });
+
+  it('batch tanpa lampiran dan pesan peristiwa dikirim tanpa argumen lampiran', async () => {
+    const sid = await fx.newSchool();
+    const { batchId } = await fx.addAttachmentBatch(sid, {}, { attachmentId: null });
+    await fx.addMessage(sid, { eventKey: 'direct', body: 'teks', priority: 1, batchId });
+    const sender = new FakeSender();
+    await make(sender, { now: NOW }).tick();
+    expect(sender.calls).toEqual([{ schoolId: sid, phone: '6281234567890', text: 'teks' }]);
+  });
+
+  it('isi dibaca dari DB sekali lalu dari cache untuk penerima berikutnya', async () => {
+    const sid = await fx.newSchool();
+    const { batchId, attachmentId } = await fx.addAttachmentBatch(sid);
+    await fx.addMessage(sid, { eventKey: 'direct', toPhone: '6281200000001', priority: 1, batchId });
+    await fx.addMessage(sid, { eventKey: 'direct', toPhone: '6281200000002', priority: 1, batchId });
+    const sender = new FakeSender();
+    const d = make(sender, { now: NOW });
+    await d.tick();
+    // Isi di DB dihapus di antara dua kiriman: yang kedua tetap terkirim dari cache memori.
+    await fx.db.execute(sql`update msg_attachment set data = null where id = ${attachmentId}`);
+    await d.tick();
+    expect(sender.calls).toHaveLength(2);
+    expect(sender.calls[1]?.attachment?.data.toString()).toBe('%PDF-1.7 uji');
+  });
+
+  it('lampiran kedaluwarsa (purged): failed attachment_expired, tidak dikirim dan tidak diulang', async () => {
+    const sid = await fx.newSchool();
+    const { batchId } = await fx.addAttachmentBatch(sid, { data: null, purgedAt: new Date() });
+    const m = await fx.addMessage(sid, { eventKey: 'direct', priority: 1, batchId });
+    const sender = new FakeSender();
+    const d = make(sender, { now: NOW });
+    expect(await d.tick()).toBe(1);
+    expect(await d.tick()).toBe(0);
+    expect(sender.calls).toHaveLength(0);
+    const after = await fx.getMessage(m.id);
+    expect(after.status).toBe('failed');
+    expect(after.detail).toBe('attachment_expired');
+  });
+
+  it('galat kirim lampiran mengikuti aturan coba ulang yang sama', async () => {
+    const sid = await fx.newSchool();
+    const { batchId } = await fx.addAttachmentBatch(sid);
+    const m = await fx.addMessage(sid, { eventKey: 'direct', priority: 1, batchId });
+    const sender = new FakeSender().program({ ok: false, retryable: true, error: 'timeout' });
+    await make(sender, { now: NOW }).tick();
+    const after = await fx.getMessage(m.id);
+    expect(after.status).toBe('queued');
+    expect(after.detail).toBe('timeout');
   });
 });

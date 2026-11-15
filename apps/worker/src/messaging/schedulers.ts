@@ -4,6 +4,10 @@ import type { PlatformLoader } from './account-sync';
 import { type Loop, startLoop } from './loop';
 
 const DAY_MS = 86_400_000;
+const HOUR_MS = 3_600_000;
+/** Lampiran yang tak dipakai batch mana pun dibersihkan setelah ini; yang dipakai, setelah batch terakhirnya selesai selama ini. */
+export const ATTACHMENT_UNUSED_MS = DAY_MS;
+export const ATTACHMENT_KEEP_MS = 7 * DAY_MS;
 
 export const toMinutes = (hhmm: string) => {
   const [h, m] = hhmm.split(':').map(Number);
@@ -74,6 +78,8 @@ export class MessagingSchedulers {
   private absentDone = new Set<string>();
   /** Sekolah yang pengingat tunggakannya sudah selesai pada tanggal lokalnya: `sekolah:tanggal`. */
   private overdueDone = new Set<string>();
+  /** Pembersihan lampiran berjalan paling sering sekali per jam. */
+  private lastPurge = 0;
 
   constructor(
     private readonly db: Db,
@@ -97,10 +103,43 @@ export class MessagingSchedulers {
   }
 
   async tick() {
+    // Retensi data jalan walau pengiriman dimatikan.
+    if (this.now().getTime() - this.lastPurge >= HOUR_MS) {
+      this.lastPurge = this.now().getTime();
+      await this.runPurgeAttachments().catch((error) =>
+        this.options.log?.error('[pesan] pembersihan lampiran gagal', error),
+      );
+    }
     const platform = await this.options.getPlatform();
     if (!platform.enabled) return;
     await this.runAbsent();
     await this.runOverdue();
+  }
+
+  /**
+   * (c) Hapus isi lampiran (data = null, purged_at) yang tak dipakai batch dalam 24 jam, atau yang batch terakhirnya sudah
+   * tidak punya pesan antre/dikirim dan "selesai" > 7 hari. Waktu selesai = yang terbaru dari created_at batch, sent_at,
+   * dan not_before pesannya (pesan gagal/dilewati tak punya cap waktu sendiri). Metadata tetap. Mengembalikan jumlah berkas.
+   */
+  async runPurgeAttachments(): Promise<number> {
+    const nowIso = this.now().toISOString();
+    const rows = await this.db.execute(sql`
+      update msg_attachment a set data = null, purged_at = ${nowIso}::timestamptz
+      where a.data is not null and ${this.schoolFilter('a.school_id')}
+        and case
+          when not exists (select 1 from msg_batch b where b.school_id = a.school_id and b.attachment_id = a.id)
+            then a.created_at < ${nowIso}::timestamptz - ${ATTACHMENT_UNUSED_MS / 1000} * interval '1 second'
+          else not exists (
+            select 1 from msg_batch b
+            where b.school_id = a.school_id and b.attachment_id = a.id
+              and (exists (select 1 from msg_message m where m.batch_id = b.id and m.status in ('queued', 'sending'))
+                or greatest(b.created_at,
+                     (select max(m.sent_at) from msg_message m where m.batch_id = b.id),
+                     (select max(m.not_before) from msg_message m where m.batch_id = b.id))
+                   >= ${nowIso}::timestamptz - ${ATTACHMENT_KEEP_MS / 1000} * interval '1 second'))
+        end
+      returning a.id`);
+    return rows.rows.length;
   }
 
   /** (a) Pengingat "belum tiba". Mengembalikan jumlah siswa yang diproses. */

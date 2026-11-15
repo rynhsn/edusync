@@ -130832,7 +130832,7 @@
         "tags": [
           "Messaging"
         ],
-        "description": "Izin: `message:send`; pemilih luas (rombel/tingkat/seluruh sekolah/semua staf) atau lebih dari 30 penerima juga butuh `message:broadcast` (403). Modul `messaging`. Satu pesan per nomor unik masuk antrean yang sama dengan pesan otomatis (prioritas 1: sesudah pesan peristiwa, sebelum siaran), dengan jeda acak, jendela kirim, dan header/footer sekolah yang sama. `expectedTotal` = jumlah penerima dari pratinjau; hasil resolusi berbeda: 409 `count_changed`. Semua atau tidak sama sekali. Galat: 400 `unknown_placeholder`, `sensitive_content`, `no_recipients`; 409 `messaging_disabled`, `daily_limit`, `queue_full` (100 slot antrean dicadangkan untuk pesan peristiwa), `duplicate_batch` (isi dan penerima yang sama dikirim pengguna yang sama dalam 30 detik terakhir). Pengganti: `{{guardian}}`, `{{student}}`, `{{class}}`, `{{school}}`, `{{date}}`, `{{teacher}}`. `title` = subjek internal (bawaan: awal isi pesan).",
+        "description": "Izin: `message:send`; pemilih luas (rombel/tingkat/seluruh sekolah/semua staf) atau lebih dari 30 penerima juga butuh `message:broadcast` (403). Modul `messaging`. Satu pesan per nomor unik masuk antrean yang sama dengan pesan otomatis (prioritas 1: sesudah pesan peristiwa, sebelum siaran), dengan jeda acak, jendela kirim, dan header/footer sekolah yang sama. `expectedTotal` = jumlah penerima dari pratinjau; hasil resolusi berbeda: 409 `count_changed`. Semua atau tidak sama sekali. Galat: 400 `unknown_placeholder`, `sensitive_content`, `no_recipients`; 409 `messaging_disabled`, `daily_limit`, `queue_full` (100 slot antrean dicadangkan untuk pesan peristiwa), `duplicate_batch` (isi, lampiran, dan penerima yang sama dikirim pengguna yang sama dalam 30 detik terakhir). `attachmentId` (opsional) = lampiran dari `POST /v1/messaging/attachments` yang dikirim ke tiap penerima dengan isi pesan sebagai caption (header/footer sekolah ikut); lampiran tidak ada atau isinya sudah dihapus: 400 `attachment_invalid`. Pengganti: `{{guardian}}`, `{{student}}`, `{{class}}`, `{{school}}`, `{{date}}`, `{{teacher}}`. `title` = subjek internal (bawaan: awal isi pesan).",
         "requestBody": {
           "required": true,
           "content": {
@@ -130923,6 +130923,11 @@
                     "type": "integer",
                     "minimum": 0,
                     "maximum": 100000
+                  },
+                  "attachmentId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
                   }
                 },
                 "required": [
@@ -131308,6 +131313,47 @@
                             "type": "string",
                             "format": "date-time",
                             "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                          },
+                          "attachment": {
+                            "nullable": true,
+                            "description": "Lampiran batch; null = teks saja",
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "format": "uuid",
+                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                              },
+                              "fileName": {
+                                "type": "string"
+                              },
+                              "mime": {
+                                "type": "string",
+                                "enum": [
+                                  "application/pdf",
+                                  "image/jpeg",
+                                  "image/png"
+                                ]
+                              },
+                              "size": {
+                                "type": "integer",
+                                "minimum": -9007199254740991,
+                                "maximum": 9007199254740991,
+                                "description": "Byte"
+                              },
+                              "purged": {
+                                "type": "boolean",
+                                "description": "Isi berkas sudah dihapus (kedaluwarsa); metadata tetap"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "fileName",
+                              "mime",
+                              "size",
+                              "purged"
+                            ],
+                            "additionalProperties": false
                           }
                         },
                         "required": [
@@ -131320,7 +131366,8 @@
                           "excluded",
                           "counts",
                           "status",
-                          "cancelledAt"
+                          "cancelledAt",
+                          "attachment"
                         ],
                         "additionalProperties": false
                       }
@@ -131373,6 +131420,379 @@
             }
           },
           "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/messaging/attachments": {
+      "post": {
+        "summary": "Unggah lampiran pesan langsung",
+        "tags": [
+          "Messaging"
+        ],
+        "description": "Izin: `message:send`; modul `messaging`. PDF, JPEG, atau PNG sampai 2 MB (asli), base64 di `dataBase64` (tanpa awalan `data:`). Jenis diperiksa dari isi berkas (magic bytes), bukan hanya `mime` kiriman: tidak cocok atau bukan salah satu dari tiga jenis itu 400 `attachment_type`; lebih dari 2 MB 400 `attachment_too_large`; base64 rusak 400 `invalid_base64`. `id` dipakai sebagai `attachmentId` di `POST /v1/messaging/batches`. Isi berkas dihapus otomatis bila tak dipakai batch dalam 24 jam, atau 7 hari setelah batch terakhirnya selesai; metadata tetap. Badan permintaan di atas 3 MB: 413.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "fileName": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 255
+                  },
+                  "mime": {
+                    "type": "string",
+                    "enum": [
+                      "application/pdf",
+                      "image/jpeg",
+                      "image/png"
+                    ]
+                  },
+                  "dataBase64": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 2900000
+                  }
+                },
+                "required": [
+                  "fileName",
+                  "mime",
+                  "dataBase64"
+                ]
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "header",
+            "name": "x-school-id",
+            "required": true,
+            "description": "Sekolah yang sedang dipakai"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "fileName": {
+                      "type": "string"
+                    },
+                    "mime": {
+                      "type": "string",
+                      "enum": [
+                        "application/pdf",
+                        "image/jpeg",
+                        "image/png"
+                      ]
+                    },
+                    "size": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991,
+                      "description": "Byte"
+                    },
+                    "purged": {
+                      "type": "boolean",
+                      "description": "Isi berkas sudah dihapus (kedaluwarsa); metadata tetap"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "fileName",
+                    "mime",
+                    "size",
+                    "purged"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/messaging/attachments/{id}/content": {
+      "get": {
+        "summary": "Unduh isi lampiran",
+        "tags": [
+          "Messaging"
+        ],
+        "description": "Izin: `message:send` (pengirim memeriksa ulang lampiran sebelum mengirim); modul `messaging`. Isi berkas asli dengan `content-type` aslinya. Lampiran tidak ada: 404 `not_found`; isi sudah dihapus: 410 `attachment_expired`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "header",
+            "name": "x-school-id",
+            "required": true,
+            "description": "Sekolah yang sedang dipakai"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Isi berkas (PDF, JPEG, atau PNG)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Isi berkas (PDF, JPEG, atau PNG)"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "410": {
             "description": "Default Response",
             "content": {
               "application/json": {
@@ -131580,6 +132000,47 @@
                       "format": "date-time",
                       "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
                     },
+                    "attachment": {
+                      "nullable": true,
+                      "description": "Lampiran batch; null = teks saja",
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        "fileName": {
+                          "type": "string"
+                        },
+                        "mime": {
+                          "type": "string",
+                          "enum": [
+                            "application/pdf",
+                            "image/jpeg",
+                            "image/png"
+                          ]
+                        },
+                        "size": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991,
+                          "description": "Byte"
+                        },
+                        "purged": {
+                          "type": "boolean",
+                          "description": "Isi berkas sudah dihapus (kedaluwarsa); metadata tetap"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "fileName",
+                        "mime",
+                        "size",
+                        "purged"
+                      ],
+                      "additionalProperties": false
+                    },
                     "body": {
                       "type": "string"
                     },
@@ -131663,6 +132124,7 @@
                     "counts",
                     "status",
                     "cancelledAt",
+                    "attachment",
                     "body",
                     "selection",
                     "recipients"

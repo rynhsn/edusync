@@ -2921,10 +2921,35 @@ export const msgBatch = pgTable(
     createdAt: createdAt(),
     cancelledAt: timestamp('cancelled_at', { withTimezone: true }),
     cancelledBy: text('cancelled_by'),
+    /** Lampiran (migrasi 0116); null = pesan teks saja. FK komposit di SQL tangan 0116. */
+    attachmentId: uuid('attachment_id'),
   },
   (t) => [
     unique('msg_batch_school_id_uq').on(t.schoolId, t.id),
     index('msg_batch_school_created_idx').on(t.schoolId, t.createdAt),
+  ],
+);
+
+/** Lampiran pesan langsung (migrasi 0116). `data` null setelah dibersihkan worker (`purgedAt`); metadata tetap. */
+export const msgAttachment = pgTable(
+  'msg_attachment',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    fileName: text('file_name').notNull(),
+    mime: text('mime', { enum: ['application/pdf', 'image/jpeg', 'image/png'] }).notNull(),
+    size: integer('size').notNull(),
+    sha256: text('sha256').notNull(),
+    data: bytea('data'),
+    purgedAt: timestamp('purged_at', { withTimezone: true }),
+    createdBy: text('created_by').notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    unique('msg_attachment_school_id_uq').on(t.schoolId, t.id),
+    index('msg_attachment_school_created_idx').on(t.schoolId, t.createdAt),
   ],
 );
 

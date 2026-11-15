@@ -8,6 +8,8 @@ import {
   inArray,
   lte,
   type MessagingRetry,
+  msgAttachment,
+  msgBatch,
   msgMessage,
   msgSetting,
   school,
@@ -15,8 +17,9 @@ import {
   waAccount,
 } from '@edusync/db';
 import type { PlatformLoader } from './account-sync';
+import { AttachmentCache } from './attachment-cache';
 import { type Loop, startLoop } from './loop';
-import type { MessageSender } from './sender';
+import type { MessageSender, SendAttachment } from './sender';
 
 /**
  * Bawaan aturan kirim ulang (pengaturan platform `retry` menimpa). Jeda sebelum percobaan ke-n+1 setelah ke-n
@@ -78,6 +81,8 @@ export class Dispatcher {
   private readonly nextAllowed = new Map<string, number>();
   private readonly now: () => Date;
   private readonly random: () => number;
+  /** Isi lampiran yang baru dipakai; dibaca dari DB lewat peran platform hanya saat tidak ada di sini. */
+  private readonly attachments = new AttachmentCache();
 
   constructor(
     private readonly db: Db,
@@ -130,6 +135,45 @@ export class Dispatcher {
       ),
     );
     return results.reduce((a, b) => a + b, 0);
+  }
+
+  /**
+   * Lampiran batch: undefined = batch tanpa lampiran, null = isinya sudah dihapus (kedaluwarsa, tidak diulang).
+   * Baris disaring `school_id` juga karena pool platform melewati RLS.
+   */
+  private async loadAttachment(
+    schoolId: string,
+    batchId: string,
+  ): Promise<SendAttachment | null | undefined> {
+    const [meta] = await this.db
+      .select({
+        id: msgAttachment.id,
+        fileName: msgAttachment.fileName,
+        mime: msgAttachment.mime,
+        purgedAt: msgAttachment.purgedAt,
+      })
+      .from(msgBatch)
+      .innerJoin(
+        msgAttachment,
+        and(eq(msgAttachment.schoolId, msgBatch.schoolId), eq(msgAttachment.id, msgBatch.attachmentId)),
+      )
+      .where(and(eq(msgBatch.schoolId, schoolId), eq(msgBatch.id, batchId)));
+    if (!meta) return undefined;
+    if (meta.purgedAt) {
+      this.attachments.delete(meta.id);
+      return null;
+    }
+    let data = this.attachments.get(meta.id);
+    if (!data) {
+      const [row] = await this.db
+        .select({ data: msgAttachment.data })
+        .from(msgAttachment)
+        .where(and(eq(msgAttachment.schoolId, schoolId), eq(msgAttachment.id, meta.id)));
+      if (!row?.data) return null;
+      data = row.data;
+      this.attachments.set(meta.id, data);
+    }
+    return { data, mime: meta.mime, fileName: meta.fileName };
   }
 
   private async serveSchool(schoolId: string, now: Date, retry: MessagingRetry): Promise<number> {
@@ -185,6 +229,7 @@ export class Dispatcher {
       to_phone: string;
       body: string;
       attempts: number;
+      batch_id: string | null;
     }>(sql`
       update msg_message set status = 'sending', attempts = attempts + 1
       where id = (
@@ -194,7 +239,7 @@ export class Dispatcher {
         limit 1
         for update skip locked
       ) and status = 'queued'
-      returning id, to_phone, body, attempts`);
+      returning id, to_phone, body, attempts, batch_id`);
     const msg = claimed.rows[0];
     if (!msg) return 0;
 
@@ -211,7 +256,11 @@ export class Dispatcher {
         footerText: setting.footerText,
         schoolName: sch?.name ?? null,
       });
-      result = await this.sender.send(schoolId, msg.to_phone, text);
+      const attachment = msg.batch_id ? await this.loadAttachment(schoolId, msg.batch_id) : undefined;
+      result =
+        attachment === null
+          ? { ok: false, retryable: false, error: 'attachment_expired' }
+          : await this.sender.send(schoolId, msg.to_phone, text, attachment);
     } catch (error) {
       result = { ok: false, retryable: true, error: error instanceof Error ? error.message : String(error) };
     }

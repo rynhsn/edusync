@@ -7,6 +7,7 @@ import {
   DIRECT_TEMPLATES,
   hasSensitiveNumber,
   renderDirect,
+  WA_CAPTION_MAX,
 } from '@edusync/contracts';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
@@ -31,6 +32,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
 import { api, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
+import { AttachmentPicker, type PickedAttachment } from './attachment-picker';
 import {
   EMPTY_PICK,
   estimateMinutes,
@@ -61,6 +63,8 @@ export function DirectPanel({ onSent }: { onSent: () => void }) {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [typed, setTyped] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [attachment, setAttachment] = useState<PickedAttachment | null>(null);
+  const [attachmentBusy, setAttachmentBusy] = useState(false);
   const area = useRef<HTMLTextAreaElement>(null);
   const deferredBody = useDeferredValue(body.trim());
   const selection = useMemo(() => toSelection(pick), [pick]);
@@ -111,13 +115,23 @@ export function DirectPanel({ onSent }: { onSent: () => void }) {
     return composeMessage(text, { ...settings.data, schoolName: school.schoolName });
   }, [r, body, settings.data, school.schoolName, t]);
 
+  const changeAttachment = (next: PickedAttachment | null) => {
+    if (attachment?.previewUrl) URL.revokeObjectURL(attachment.previewUrl);
+    setAttachment(next);
+  };
+
   const send = useMutation({
     mutationFn: async () => {
       if (!r) throw new Error('no_preview');
       return unwrap(
         await api.POST('/v1/messaging/batches', {
           params: header,
-          body: { selection, body: body.trim(), expectedTotal: r.total },
+          body: {
+            selection,
+            body: body.trim(),
+            expectedTotal: r.total,
+            ...(attachment ? { attachmentId: attachment.id } : {}),
+          },
         }),
       );
     },
@@ -129,6 +143,7 @@ export function DirectPanel({ onSent }: { onSent: () => void }) {
       setBody('');
       setTemplateKey('');
       setError(null);
+      changeAttachment(null);
       queryClient.invalidateQueries({ queryKey: ['messaging-batches', school.schoolId] });
       queryClient.invalidateQueries({ queryKey: ['messaging-messages', school.schoolId] });
       onSent();
@@ -137,6 +152,7 @@ export function DirectPanel({ onSent }: { onSent: () => void }) {
       setConfirmOpen(false);
       setTyped('');
       setError(te(errorKey(e)));
+      if (errorKey(e) === 'errors.attachment_invalid') changeAttachment(null); // sudah kedaluwarsa: pilih ulang
       queryClient.invalidateQueries({ queryKey: ['messaging-preview', school.schoolId] });
     },
   });
@@ -284,6 +300,11 @@ export function DirectPanel({ onSent }: { onSent: () => void }) {
               <p className="text-muted-foreground text-xs">{t('warn.values')}</p>
             </div>
 
+            <AttachmentPicker value={attachment} onChange={changeAttachment} onBusy={setAttachmentBusy} />
+            {attachment && bubble.length > WA_CAPTION_MAX && (
+              <p className="text-muted-foreground text-xs">{t('captionLong', { max: WA_CAPTION_MAX })}</p>
+            )}
+
             {canManage && (
               <div className="flex flex-wrap items-end gap-2">
                 <div className="grid min-w-40 flex-1 gap-1.5">
@@ -322,7 +343,7 @@ export function DirectPanel({ onSent }: { onSent: () => void }) {
             <p className="text-muted-foreground text-xs font-medium">
               {r?.sample[0]?.message ? t('previewFor', { name: r.sample[0].name }) : t('previewDummy')}
             </p>
-            <WaBubble body={bubble} />
+            <WaBubble body={bubble} attachment={attachment} />
           </div>
         </div>
       </Card>
@@ -403,7 +424,7 @@ export function DirectPanel({ onSent }: { onSent: () => void }) {
         <div>
           <Button
             className="min-h-11 w-full sm:w-auto md:min-h-8"
-            disabled={blocked || send.isPending}
+            disabled={blocked || send.isPending || attachmentBusy}
             onClick={() => {
               setError(null);
               setTyped('');

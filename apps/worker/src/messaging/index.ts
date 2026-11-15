@@ -30,8 +30,10 @@ export function startMessaging(db: Db, env: MessagingEnv) {
   });
   const log = new LogSender();
   const sender: MessageSender = {
-    send: (schoolId, phone, text) =>
-      provider === 'whatsapp' ? manager.send(schoolId, phone, text) : log.send(schoolId, phone, text),
+    send: (schoolId, phone, text, attachment) =>
+      provider === 'whatsapp'
+        ? manager.send(schoolId, phone, text, attachment)
+        : log.send(schoolId, phone, text, attachment),
   };
 
   const sync = new AccountSync(db, { mode: env.MESSAGING_PROVIDER, manager, getPlatform });

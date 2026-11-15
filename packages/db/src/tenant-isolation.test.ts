@@ -12,6 +12,7 @@ import {
   cocurricularRubricLevel,
   createDb,
   foundation,
+  msgAttachment,
   msgBatch,
   msgDirectTemplate,
   msgMessage,
@@ -957,6 +958,68 @@ describe('tabel tenant pesan langsung (migrasi 0115)', () => {
         await platform.db.delete(msgMessage).where(eq(msgMessage.schoolId, sid));
         await platform.db.delete(msgBatch).where(eq(msgBatch.schoolId, sid));
         await platform.db.delete(msgDirectTemplate).where(eq(msgDirectTemplate.schoolId, sid));
+      }
+    }
+  });
+});
+
+describe('tabel tenant lampiran pesan (migrasi 0116)', () => {
+  it('msg_attachment terisolasi; tulis lintas sekolah, FK komposit batch, dan CHECK jenis/ukuran ditolak', async () => {
+    const attach = (sid: string, over: Partial<typeof msgAttachment.$inferInsert> = {}) =>
+      platform.db
+        .insert(msgAttachment)
+        .values({
+          schoolId: sid,
+          fileName: 'a.pdf',
+          mime: 'application/pdf',
+          size: 5,
+          sha256: '0'.repeat(64),
+          data: Buffer.from('%PDF-'),
+          createdBy: 'uji',
+          ...over,
+        })
+        .returning();
+    const batchWith = (sid: string, attachmentId: string) =>
+      platform.db.insert(msgBatch).values({
+        schoolId: sid,
+        kind: 'direct',
+        title: 'b',
+        bodyTemplate: 'x',
+        selection: {},
+        recipientCount: 0,
+        createdBy: 'uji',
+        attachmentId,
+      });
+    const [a] = await attach(schoolA1);
+    const [b] = await attach(schoolB);
+    try {
+      const rows = await withTenant(app.db, [schoolA1], (tx) => tx.select().from(msgAttachment));
+      expect(rows.map((r) => r.schoolId)).toEqual([schoolA1]);
+      expect(await app.db.select().from(msgAttachment)).toHaveLength(0);
+      // Tulis lintas sekolah ditolak RLS.
+      await expect(
+        withTenant(app.db, [schoolA1], (tx) =>
+          tx.insert(msgAttachment).values({
+            schoolId: schoolB,
+            fileName: 'x.pdf',
+            mime: 'application/pdf',
+            size: 1,
+            sha256: '0'.repeat(64),
+            data: Buffer.from('x'),
+            createdBy: 'uji',
+          }),
+        ),
+      ).rejects.toThrow();
+      // FK komposit: batch sekolah A tidak boleh menunjuk lampiran sekolah B.
+      await expect(batchWith(schoolA1, b!.id)).rejects.toThrow();
+      await batchWith(schoolA1, a!.id);
+      // CHECK: jenis di luar tiga jenis, ukuran > 2 MB.
+      await expect(attach(schoolA1, { mime: 'text/html' as 'application/pdf' })).rejects.toThrow();
+      await expect(attach(schoolA1, { size: 2 * 1024 * 1024 + 1 })).rejects.toThrow();
+    } finally {
+      for (const sid of [schoolA1, schoolB]) {
+        await platform.db.delete(msgBatch).where(eq(msgBatch.schoolId, sid));
+        await platform.db.delete(msgAttachment).where(eq(msgAttachment.schoolId, sid));
       }
     }
   });

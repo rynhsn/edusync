@@ -12,6 +12,7 @@ import {
   finPaymentItem,
   foundation,
   guardian,
+  msgAttachment,
   msgBatch,
   msgMessage,
   msgSetting,
@@ -85,6 +86,43 @@ export function createFixture(prefix: string) {
       .values({ schoolId, eventKey: 'test', toPhone: '6281234567890', body: `Pesan ${counter}`, ...values })
       .returning();
     return m as typeof msgMessage.$inferSelect;
+  }
+
+  /** Lampiran PDF kecil + batch yang memakainya; mengembalikan id keduanya. */
+  async function addAttachmentBatch(
+    schoolId: string,
+    attachment: Partial<typeof msgAttachment.$inferInsert> = {},
+    batch: Partial<typeof msgBatch.$inferInsert> = {},
+  ) {
+    const data = Buffer.from('%PDF-1.7 uji');
+    const [a] = await db
+      .insert(msgAttachment)
+      .values({
+        schoolId,
+        fileName: 'surat.pdf',
+        mime: 'application/pdf',
+        size: data.length,
+        sha256: '0'.repeat(64),
+        data,
+        createdBy: 'tes',
+        ...attachment,
+      })
+      .returning();
+    const [b] = await db
+      .insert(msgBatch)
+      .values({
+        schoolId,
+        kind: 'direct',
+        title: 'uji',
+        bodyTemplate: 'x',
+        selection: {},
+        recipientCount: 1,
+        createdBy: 'tes',
+        attachmentId: a?.id ?? null,
+        ...batch,
+      })
+      .returning();
+    return { attachmentId: a?.id as string, batchId: b?.id as string };
   }
 
   async function getMessage(id: string) {
@@ -187,6 +225,7 @@ export function createFixture(prefix: string) {
     for (const id of schoolIds) {
       await db.delete(msgMessage).where(eq(msgMessage.schoolId, id));
       await db.delete(msgBatch).where(eq(msgBatch.schoolId, id));
+      await db.delete(msgAttachment).where(eq(msgAttachment.schoolId, id));
       await db.delete(msgTemplate).where(eq(msgTemplate.schoolId, id));
       await db.delete(msgSetting).where(eq(msgSetting.schoolId, id));
       await db.delete(waAuthState).where(eq(waAuthState.schoolId, id));
@@ -215,6 +254,7 @@ export function createFixture(prefix: string) {
     init,
     newSchool,
     addMessage,
+    addAttachmentBatch,
     getMessage,
     newYear,
     newStudent,

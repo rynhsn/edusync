@@ -360,6 +360,8 @@ export interface EnqueueBatchInput {
   /** Jumlah penerima yang dikonfirmasi pengguna di pratinjau. */
   expectedTotal: number;
   schoolName: string;
+  /** Lampiran (msg_attachment) yang ikut dikirim ke tiap penerima; null/kosong = teks saja. */
+  attachmentId?: string | null;
   now?: Date;
 }
 
@@ -409,6 +411,7 @@ export async function enqueueBatch(
       recipientCount: total,
       excluded,
       createdBy: input.createdBy,
+      attachmentId: input.attachmentId ?? null,
     })
     .returning({ id: msgBatch.id });
   const batchId = (batch as { id: string }).id;

@@ -301,3 +301,38 @@ export function directBodyIssue(
   if (hasSensitiveNumber(body)) return { code: 'sensitive_content', detail: '16 digit' };
   return null;
 }
+
+/* ---------- Lampiran pesan langsung (tahap B) ---------- */
+
+/** Batas ukuran asli lampiran dan jenis yang diizinkan (diperiksa dari magic bytes, bukan hanya `mime` kiriman). */
+export const ATTACHMENT_MAX_BYTES = 2 * 1024 * 1024;
+export const ATTACHMENT_MIMES = ['application/pdf', 'image/jpeg', 'image/png'] as const;
+export type AttachmentMime = (typeof ATTACHMENT_MIMES)[number];
+export const ATTACHMENT_NAME_MAX = 120;
+/** Batas caption media di WhatsApp (konservatif); lebih panjang dikirim sebagai teks lalu lampiran tanpa caption. */
+export const WA_CAPTION_MAX = 1024;
+
+const MAGIC: readonly { mime: AttachmentMime; bytes: readonly number[] }[] = [
+  { mime: 'application/pdf', bytes: [0x25, 0x50, 0x44, 0x46, 0x2d] }, // %PDF-
+  { mime: 'image/jpeg', bytes: [0xff, 0xd8, 0xff] },
+  { mime: 'image/png', bytes: [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a] },
+];
+
+/** Jenis berkas dari awal isinya; null bila bukan PDF/JPEG/PNG. */
+export function detectAttachmentMime(bytes: Uint8Array): AttachmentMime | null {
+  return MAGIC.find((m) => m.bytes.every((b, i) => bytes[i] === b))?.mime ?? null;
+}
+
+/** Nama berkas aman untuk disimpan/dikirim: tanpa jalur, tanda kutip, dan karakter kendali. */
+export function safeAttachmentName(name: string): string {
+  // biome-ignore lint/suspicious/noControlCharactersInRegex: karakter kendali memang dibuang
+  const base = (name.split(/[/]/).pop() ?? '').replace(/[\u0000-\u001f<>:"|?*]/g, '_').trim();
+  return base.slice(0, ATTACHMENT_NAME_MAX) || 'lampiran';
+}
+
+export const attachmentUploadSchema = z.object({
+  fileName: z.string().trim().min(1).max(255),
+  mime: z.enum(ATTACHMENT_MIMES),
+  // Sedikit di atas 2 MB (base64 = 4/3) agar berkas kelewat besar mendapat galat khusus dari rute, bukan "validation".
+  dataBase64: z.string().min(1).max(2_900_000),
+});

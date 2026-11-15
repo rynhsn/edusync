@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import {
+  attachmentUploadSchema,
   composeMessage,
   DEFAULT_TEMPLATES,
   DIRECT_TEMPLATES,
+  detectAttachmentMime,
   EVENT_KEYS,
   EVENT_PLACEHOLDERS,
   hasSensitiveNumber,
@@ -12,6 +14,7 @@ import {
   recipientSelectionSchema,
   renderDirect,
   renderTemplate,
+  safeAttachmentName,
   selectionIsBroad,
   selectionIsEmpty,
   unknownDirectPlaceholders,
@@ -162,5 +165,32 @@ describe('pesan langsung', () => {
     expect(selectionIsBroad({ classes: [id] })).toBe(true);
     expect(selectionIsBroad({ wholeSchool: true })).toBe(true);
     expect(selectionIsBroad({ allStaff: true })).toBe(true);
+  });
+});
+
+const ascii = (s: string) => Uint8Array.from(s, (c) => c.charCodeAt(0));
+
+describe('lampiran pesan langsung', () => {
+  it('mengenali jenis dari magic bytes, bukan dari nama', () => {
+    expect(detectAttachmentMime(ascii('%PDF-1.7 isi'))).toBe('application/pdf');
+    expect(detectAttachmentMime(Uint8Array.from([0xff, 0xd8, 0xff, 0xe0, 0]))).toBe('image/jpeg');
+    expect(detectAttachmentMime(Uint8Array.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0]))).toBe(
+      'image/png',
+    );
+    expect(detectAttachmentMime(ascii('MZ exe'))).toBeNull();
+    expect(detectAttachmentMime(ascii('%PDF'))).toBeNull(); // terpotong
+    expect(detectAttachmentMime(new Uint8Array())).toBeNull();
+  });
+  it('membersihkan nama berkas', () => {
+    expect(safeAttachmentName('..\\x/surat?.pdf')).toBe('surat_.pdf');
+    expect(safeAttachmentName('  ')).toBe('lampiran');
+    expect(safeAttachmentName('a'.repeat(300))).toHaveLength(120);
+  });
+  it('skema unggah: jenis terbatas dan ukuran base64 dibatasi', () => {
+    const ok = { fileName: 'a.pdf', mime: 'application/pdf', dataBase64: 'JVBERi0=' };
+    expect(attachmentUploadSchema.safeParse(ok).success).toBe(true);
+    expect(attachmentUploadSchema.safeParse({ ...ok, mime: 'text/html' }).success).toBe(false);
+    const big = 'A'.repeat(2_900_001);
+    expect(attachmentUploadSchema.safeParse({ ...ok, dataBase64: big }).success).toBe(false);
   });
 });

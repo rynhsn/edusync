@@ -1,7 +1,7 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ChevronDown, ChevronUp, RotateCw } from 'lucide-react';
+import { ChevronDown, ChevronUp, Paperclip, RotateCw } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -14,6 +14,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { api, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
+import { formatSize } from './attachment-logic';
 import { type MessageStatus, OK_BADGE, useMessagingCtx } from './shared';
 
 const PAGE_SIZE = 10;
@@ -91,6 +92,22 @@ function Detail({ id, canSend, status }: { id: string; canSend: boolean; status:
     onError: (e) => toast.error(te(errorKey(e))),
   });
 
+  // Unduh lewat fetch karena API butuh header x-school-id (tautan biasa tidak bisa membawanya).
+  const download = async (attachmentId: string) => {
+    try {
+      const res = await fetch(`/v1/messaging/attachments/${attachmentId}/content`, {
+        credentials: 'include',
+        headers: header.header,
+      });
+      if (!res.ok) throw new Error(String(res.status));
+      const url = URL.createObjectURL(await res.blob());
+      window.open(url, '_blank', 'noopener');
+      setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    } catch {
+      toast.error(t('attachmentDownloadFailed'));
+    }
+  };
+
   const d = detail.data;
   if (detail.isPending) return <Skeleton className="h-24 w-full" />;
   if (!d) return null;
@@ -101,6 +118,27 @@ function Detail({ id, canSend, status }: { id: string; canSend: boolean; status:
         <p className="text-muted-foreground text-xs font-medium">{t('bodyLabel')}</p>
         <p className="bg-muted/50 rounded-lg p-2.5 text-sm break-words whitespace-pre-wrap">{d.body}</p>
       </div>
+      {d.attachment && (
+        <div className="flex flex-wrap items-center gap-2 text-sm">
+          <Paperclip className="text-muted-foreground size-4 shrink-0" aria-hidden />
+          <span className="min-w-0 font-medium break-all">{d.attachment.fileName}</span>
+          <span className="text-muted-foreground text-xs">({formatSize(d.attachment.size)})</span>
+          {d.attachment.purged ? (
+            <Badge variant="outline">{t('attachmentPurged')}</Badge>
+          ) : (
+            canSend && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="min-h-11 md:min-h-8"
+                onClick={() => download((d.attachment as { id: string }).id)}
+              >
+                {t('attachmentDownload')}
+              </Button>
+            )
+          )}
+        </div>
+      )}
       <div className="flex flex-wrap gap-2">
         {canSend && d.counts.queued > 0 && !d.cancelledAt && (
           <ConfirmDialog
@@ -207,7 +245,12 @@ export function BatchHistory() {
           <Card key={b.id} className="grid gap-3 p-4">
             <div className="flex flex-wrap items-start justify-between gap-2">
               <div className="min-w-0">
-                <p className="font-medium break-words">{b.title}</p>
+                <p className="font-medium break-words">
+                  {b.attachment && (
+                    <Paperclip className="mr-1 inline size-3.5" aria-label={t('hasAttachment')} />
+                  )}
+                  {b.title}
+                </p>
                 <p className="text-muted-foreground text-xs">
                   {new Date(b.createdAt).toLocaleString()}
                   {b.createdBy ? ` · ${t('by', { name: b.createdBy })}` : ''} ·{' '}

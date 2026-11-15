@@ -1530,6 +1530,11 @@
     "daily_limit": "Melebihi batas pesan harian sekolah.",
     "queue_full": "Antrean pesan sekolah penuh. Tunggu hingga sebagian terkirim.",
     "duplicate_batch": "Pesan yang sama baru saja dikirim. Periksa Riwayat batch.",
+    "attachment_type": "Lampiran harus berkas PDF, JPG, atau PNG yang isinya sesuai.",
+    "attachment_too_large": "Lampiran maksimal 2 MB.",
+    "invalid_base64": "Isi berkas tidak dapat dibaca. Pilih berkas lagi.",
+    "attachment_invalid": "Lampiran tidak ditemukan atau sudah kedaluwarsa. Pilih lampiran lagi.",
+    "attachment_expired": "Isi lampiran sudah dihapus (disimpan 7 hari setelah batch selesai).",
     "invalid_daily_limit": "Batas harian melebihi batas yang ditetapkan platform.",
     "batch_cancelled": "Batch ini sudah dibatalkan.",
     "invalid_range": "Rentang tidak valid: pastikan tanggal awal sebelum tanggal akhir dan rentang tidak terlalu panjang.",
@@ -5346,9 +5351,25 @@
         "cancelled": "Dibatalkan",
         "expired": "Kedaluwarsa",
         "not_on_whatsapp": "Bukan nomor WhatsApp",
-        "disabled": "Pengiriman dimatikan"
+        "disabled": "Pengiriman dimatikan",
+        "attachment_expired": "Lampiran kedaluwarsa"
       },
-      "loadMore": "Muat lebih banyak"
+      "loadMore": "Muat lebih banyak",
+      "attachment": "Lampiran (opsional)",
+      "attachmentPick": "Pilih berkas",
+      "attachmentUploading": "Mengunggah...",
+      "attachmentRemove": "Hapus lampiran",
+      "attachmentHint": "PDF, JPG, atau PNG, maksimal 2 MB. Isi pesan menjadi keterangan (caption) berkas. Berkas dihapus dari server 7 hari setelah batch selesai; salinannya tetap ada di ponsel penerima.",
+      "attachmentIssue": {
+        "empty": "Berkas kosong.",
+        "tooLarge": "Berkas lebih dari 2 MB.",
+        "badType": "Hanya berkas PDF, JPG, atau PNG yang valid yang bisa dilampirkan."
+      },
+      "captionLong": "Pesan lebih dari {max} karakter dikirim sebagai teks terpisah, lalu berkas menyusul tanpa keterangan.",
+      "hasAttachment": "Ada lampiran",
+      "attachmentPurged": "Isi berkas sudah dihapus",
+      "attachmentDownload": "Unduh lampiran",
+      "attachmentDownloadFailed": "Lampiran tidak dapat diunduh."
     },
     "delayInvalid": "Jeda minimum tidak boleh melebihi maksimum.",
     "absentAt": "Jam pengingat belum tiba",

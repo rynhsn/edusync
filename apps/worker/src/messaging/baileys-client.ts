@@ -1,4 +1,6 @@
+import { WA_CAPTION_MAX } from '@edusync/contracts';
 import type { Db } from '@edusync/db';
+import type { SendAttachment } from './sender';
 import type { WaClient } from './whatsapp';
 
 /** Kode putus Baileys (DisconnectReason); ditulis ulang agar modul ini bisa dimuat tanpa Baileys di tes. */
@@ -10,13 +12,19 @@ const CODE = {
   restartRequired: 515,
 } as const;
 
+/** Isi pesan Baileys yang dipakai (bagian dari AnyMessageContent); tanpa impor Baileys agar modul ini ringan di tes. */
+export type WaContent =
+  | { text: string }
+  | { image: Buffer; caption?: string }
+  | { document: Buffer; mimetype: string; fileName: string; caption?: string };
+
 /** Bagian soket Baileys yang dipakai; memudahkan peniruan di tes. */
 export interface WaSocket {
   // biome-ignore lint/suspicious/noExplicitAny: tanda tangan peristiwa beragam
   ev: { on(event: string, listener: (...args: any[]) => void): unknown };
   user?: { id?: string } | undefined;
   onWhatsApp(...jids: string[]): Promise<{ jid: string; exists: boolean }[] | undefined>;
-  sendMessage(jid: string, content: { text: string }): Promise<unknown>;
+  sendMessage(jid: string, content: WaContent): Promise<unknown>;
   logout(): Promise<void>;
   end(error: Error | undefined): void;
 }
@@ -147,8 +155,22 @@ export class BaileysClient implements WaClient {
     return hit?.exists ? { _serialized: hit.jid } : null;
   }
 
-  async sendMessage(chatId: string, text: string) {
-    await this.ready().sendMessage(chatId, { text });
+  async sendMessage(chatId: string, text: string, attachment?: SendAttachment) {
+    const sock = this.ready();
+    if (!attachment) {
+      await sock.sendMessage(chatId, { text });
+      return;
+    }
+    // Caption media dibatasi WhatsApp; teks yang lebih panjang dikirim dulu sebagai pesan, lalu berkas tanpa caption.
+    const inline = text.length <= WA_CAPTION_MAX;
+    if (!inline && text) await sock.sendMessage(chatId, { text });
+    const caption = inline && text ? { caption: text } : {};
+    await sock.sendMessage(
+      chatId,
+      attachment.mime === 'application/pdf'
+        ? { document: attachment.data, mimetype: attachment.mime, fileName: attachment.fileName, ...caption }
+        : { image: attachment.data, ...caption },
+    );
   }
 
   async logout() {

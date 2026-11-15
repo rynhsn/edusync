@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import {
   academicYear,
   assignRoles,
@@ -8,6 +9,7 @@ import {
   foundation,
   guardian,
   member,
+  msgAttachment,
   msgBatch,
   msgDirectTemplate,
   msgMessage,
@@ -121,6 +123,7 @@ const create = (
 const TABLES = [
   'msg_message',
   'msg_batch',
+  'msg_attachment',
   'msg_direct_template',
   'msg_template',
   'msg_setting',
@@ -689,5 +692,176 @@ describe('pesan otomatis tidak berubah', () => {
       (await app.platformDb.select().from(msgSetting).where(eq(msgSetting.schoolId, schoolId)))[0]
         ?.dailyLimit,
     ).toBe(200);
+  });
+});
+
+describe('lampiran pesan langsung (tahap B)', () => {
+  const PDF = Buffer.concat([Buffer.from('%PDF-1.7\n'), Buffer.alloc(200, 1)]);
+  const PNG = Buffer.concat([
+    Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+    Buffer.alloc(50, 2),
+  ]);
+  const upload = (
+    cookie: string,
+    bytes: Buffer,
+    mime = 'application/pdf',
+    fileName = 'surat.pdf',
+    sid: string = schoolId,
+  ) =>
+    call(
+      'POST',
+      '/v1/messaging/attachments',
+      cookie,
+      { fileName, mime, dataBase64: bytes.toString('base64') },
+      sid,
+    );
+
+  it('unggah PDF valid: metadata kembali, isi bisa diunduh pengirim, audit tercatat', async () => {
+    const res = await upload(adminCookie, PDF, 'application/pdf', 'Surat Panggilan.pdf');
+    expect(res.statusCode).toBe(200);
+    const meta = res.json();
+    expect(meta).toMatchObject({
+      fileName: 'Surat Panggilan.pdf',
+      mime: 'application/pdf',
+      size: PDF.length,
+      purged: false,
+    });
+    expect(meta.data).toBeUndefined();
+    const [row] = await app.platformDb.select().from(msgAttachment).where(eq(msgAttachment.id, meta.id));
+    expect(row?.sha256).toBe(createHash('sha256').update(PDF).digest('hex'));
+    const dl = await call('GET', `/v1/messaging/attachments/${meta.id}/content`, operatorCookie);
+    expect(dl.statusCode).toBe(200);
+    expect(dl.headers['content-type']).toBe('application/pdf');
+    expect(dl.rawPayload.equals(PDF)).toBe(true);
+    const audits = await app.platformDb.execute(
+      sql`select 1 from audit_log where school_id = ${schoolId} and action = 'messaging.attachment.upload' and entity_id = ${meta.id}`,
+    );
+    expect(audits.rows).toHaveLength(1);
+    // PNG juga diterima.
+    expect((await upload(adminCookie, PNG, 'image/png', 'foto.png')).statusCode).toBe(200);
+  });
+
+  it('menolak: jenis tidak diizinkan, mime tidak cocok dengan isi, lebih dari 2 MB, base64 rusak', async () => {
+    const html = Buffer.from('<html><script>alert(1)</script></html>');
+    expect((await upload(adminCookie, html, 'application/pdf')).json().error.code).toBe('attachment_type');
+    expect((await upload(adminCookie, PNG, 'application/pdf')).json().error.code).toBe('attachment_type');
+    expect((await upload(adminCookie, PDF, 'text/html')).statusCode).toBe(400);
+    const big = Buffer.concat([Buffer.from('%PDF-'), Buffer.alloc(2 * 1024 * 1024)]);
+    const tooBig = await upload(adminCookie, big);
+    expect(tooBig.statusCode).toBe(400);
+    expect(tooBig.json().error.code).toBe('attachment_too_large');
+    const bad = await call('POST', '/v1/messaging/attachments', adminCookie, {
+      fileName: 'a.pdf',
+      mime: 'application/pdf',
+      dataBase64: '###',
+    });
+    expect(bad.json().error.code).toBe('invalid_base64');
+    // Tepat 2 MB lolos.
+    const exact = Buffer.concat([Buffer.from('%PDF-'), Buffer.alloc(2 * 1024 * 1024 - 5)]);
+    expect((await upload(adminCookie, exact)).statusCode).toBe(200);
+  });
+
+  it('izin message:send dan modul; sekolah lain tidak bisa melihat lampiran; nama berkas dibersihkan', async () => {
+    expect((await upload(teacherCookie, PDF)).statusCode).toBe(403);
+    expect((await upload(noModuleCookie, PDF, 'application/pdf', 'a.pdf', noModuleId)).statusCode).toBe(403);
+    expect(
+      (await app.inject({ method: 'POST', url: '/v1/messaging/attachments', payload: {} })).statusCode,
+    ).toBe(401);
+    const id = (await upload(principalCookie, PDF)).json().id;
+    expect((await call('GET', `/v1/messaging/attachments/${id}/content`, teacherCookie)).statusCode).toBe(
+      403,
+    );
+    const other = await call(
+      'GET',
+      `/v1/messaging/attachments/${id}/content`,
+      otherCookie,
+      undefined,
+      otherId,
+    );
+    expect(other.statusCode).toBe(404);
+    const named = await upload(adminCookie, PDF, 'application/pdf', '..\\..\\etc/pass?wd.pdf');
+    expect(named.json().fileName).toBe('pass_wd.pdf');
+  });
+
+  it('batch dengan lampiran: tersimpan di batch, tampil di riwayat, audit attachment true, lalu kedaluwarsa', async () => {
+    await clearBatches();
+    const att = (await upload(adminCookie, PDF)).json();
+    const res = await call('POST', '/v1/messaging/batches', adminCookie, {
+      selection: { students: [ids.cici] },
+      body: 'Terlampir untuk {{student}}',
+      expectedTotal: 1,
+      attachmentId: att.id,
+    });
+    expect(res.statusCode).toBe(200);
+    const { id } = res.json();
+    const [batch] = await app.platformDb.select().from(msgBatch).where(eq(msgBatch.id, id));
+    expect(batch?.attachmentId).toBe(att.id);
+    expect((await messagesOf(id))[0]?.body).toBe('Terlampir untuk Cici');
+    const detail = (await call('GET', `/v1/messaging/batches/${id}`, principalCookie)).json();
+    expect(detail.attachment).toEqual({
+      id: att.id,
+      fileName: 'surat.pdf',
+      mime: 'application/pdf',
+      size: PDF.length,
+      purged: false,
+    });
+    const list = (await call('GET', '/v1/messaging/batches', principalCookie)).json();
+    expect(list.items.find((b: { id: string }) => b.id === id).attachment.id).toBe(att.id);
+    const audits = await app.platformDb.execute<{ details: { attachment: boolean } }>(
+      sql`select details from audit_log where school_id = ${schoolId} and action = 'messaging.batch.create' and entity_id = ${id}`,
+    );
+    expect(audits.rows[0]?.details.attachment).toBe(true);
+    // Isi dihapus: metadata tampil purged, unduh 410, batch baru dengan lampiran itu ditolak.
+    await app.platformDb.execute(
+      sql`update msg_attachment set data = null, purged_at = now() where id = ${att.id}`,
+    );
+    expect((await call('GET', `/v1/messaging/batches/${id}`, principalCookie)).json().attachment.purged).toBe(
+      true,
+    );
+    const gone = await call('GET', `/v1/messaging/attachments/${att.id}/content`, adminCookie);
+    expect(gone.statusCode).toBe(410);
+    expect(gone.json().error.code).toBe('attachment_expired');
+    const again = await call('POST', '/v1/messaging/batches', adminCookie, {
+      selection: { students: [ids.cici] },
+      body: 'Lagi',
+      expectedTotal: 1,
+      attachmentId: att.id,
+    });
+    expect(again.json().error.code).toBe('attachment_invalid');
+  });
+
+  it('lampiran sekolah lain atau tak dikenal ditolak; tanpa lampiran perilaku lama (attachment null)', async () => {
+    await clearBatches();
+    const foreign = (await upload(otherCookie, PDF, 'application/pdf', 'x.pdf', otherId)).json().id;
+    for (const attachmentId of [foreign, '019a0000-0000-7000-8000-000000000000']) {
+      const res = await call('POST', '/v1/messaging/batches', adminCookie, {
+        selection: { students: [ids.cici] },
+        body: 'x',
+        expectedTotal: 1,
+        attachmentId,
+      });
+      expect(res.statusCode).toBe(400);
+      expect(res.json().error.code).toBe('attachment_invalid');
+    }
+    const plain = await create(adminCookie, { students: [ids.cici] }, 1);
+    expect(plain.statusCode).toBe(200);
+    const detail = (await call('GET', `/v1/messaging/batches/${plain.json().id}`, adminCookie)).json();
+    expect(detail.attachment).toBeNull();
+  });
+
+  it('duplicate_batch membedakan lampiran: isi sama dengan lampiran lain boleh', async () => {
+    await clearBatches();
+    const a = (await upload(adminCookie, PDF)).json().id;
+    const b = (await upload(adminCookie, PNG, 'image/png', 'f.png')).json().id;
+    const send = (attachmentId: string) =>
+      call('POST', '/v1/messaging/batches', adminCookie, {
+        selection: { students: [ids.cici] },
+        body: 'sama',
+        expectedTotal: 1,
+        attachmentId,
+      });
+    expect((await send(a)).statusCode).toBe(200);
+    expect((await send(a)).json().error.code).toBe('duplicate_batch');
+    expect((await send(b)).statusCode).toBe(200);
   });
 });

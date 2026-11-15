@@ -1,4 +1,4 @@
-import { calendarEvent, dailyAttendance } from '@edusync/db';
+import { calendarEvent, dailyAttendance, eq, msgAttachment, msgBatch, msgMessage } from '@edusync/db';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { formatDateId, formatRupiah, isoWeekKey, MessagingSchedulers } from './schedulers';
 import { createFixture } from './test-helpers';
@@ -219,5 +219,58 @@ describe('pengingat tunggakan', () => {
     });
     await make(WED).runOverdue();
     expect(await fx.messagesOf(sid)).toHaveLength(0);
+  });
+});
+
+describe('pembersihan lampiran', () => {
+  const DAY = 86_400_000;
+  const dataOf = async (id: string) => {
+    const [r] = await fx.db.select().from(msgAttachment).where(eq(msgAttachment.id, id));
+    return r as typeof msgAttachment.$inferSelect;
+  };
+
+  it('tak dipakai batch: dihapus isinya setelah 24 jam, metadata tetap', async () => {
+    const sid = await fx.newSchool();
+    const { attachmentId } = await fx.addAttachmentBatch(sid, {}, {});
+    // Lampiran yatim: batch dilepas.
+    await fx.db.update(msgBatch).set({ attachmentId: null }).where(eq(msgBatch.schoolId, sid));
+    expect(await make(new Date(Date.now() + DAY - 3_600_000)).runPurgeAttachments()).toBe(0);
+    expect(await make(new Date(Date.now() + DAY + 3_600_000)).runPurgeAttachments()).toBe(1);
+    const a = await dataOf(attachmentId);
+    expect(a.data).toBeNull();
+    expect(a.purgedAt).toBeInstanceOf(Date);
+    expect(a.fileName).toBe('surat.pdf');
+    expect(a.size).toBeGreaterThan(0);
+    // Idempoten.
+    expect(await make(new Date(Date.now() + 2 * DAY)).runPurgeAttachments()).toBe(0);
+  });
+
+  it('dipakai batch: dipertahankan selama batch belum selesai dan 7 hari sesudahnya', async () => {
+    const sid = await fx.newSchool();
+    const { attachmentId, batchId } = await fx.addAttachmentBatch(sid);
+    const m = await fx.addMessage(sid, { eventKey: 'direct', priority: 1, batchId });
+    const t = (days: number) => make(new Date(Date.now() + days * DAY));
+    // Masih antre: tidak dihapus walau sangat lama.
+    expect(await t(30).runPurgeAttachments()).toBe(0);
+    const sentAt = new Date();
+    await fx.db.update(msgMessage).set({ status: 'sent', sentAt }).where(eq(msgMessage.id, m.id));
+    expect(await t(6.5).runPurgeAttachments()).toBe(0);
+    expect((await dataOf(attachmentId)).data).not.toBeNull();
+    expect(await t(8).runPurgeAttachments()).toBe(1);
+    expect((await dataOf(attachmentId)).data).toBeNull();
+  });
+
+  it('tick menjalankan pembersihan paling sering sekali per jam', async () => {
+    const sid = await fx.newSchool();
+    const { attachmentId } = await fx.addAttachmentBatch(sid);
+    await fx.db.update(msgBatch).set({ attachmentId: null }).where(eq(msgBatch.schoolId, sid));
+    const clock = { now: new Date(Date.now() + 2 * DAY) };
+    const s = new MessagingSchedulers(fx.db, {
+      getPlatform: platformOn,
+      now: () => clock.now,
+      schoolIds: fx.schoolIds.slice(base),
+    });
+    await s.tick();
+    expect((await dataOf(attachmentId)).data).toBeNull();
   });
 });

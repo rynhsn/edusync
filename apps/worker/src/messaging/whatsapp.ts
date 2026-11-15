@@ -1,5 +1,5 @@
 import { type Db, eq, waAccount, waAuthState } from '@edusync/db';
-import type { MessageSender, SendResult } from './sender';
+import type { MessageSender, SendAttachment, SendResult } from './sender';
 
 /** Kontrak klien WhatsApp (diisi adaptor Baileys); memudahkan peniruan di tes. */
 export interface WaClient {
@@ -7,7 +7,8 @@ export interface WaClient {
   on(event: string, listener: (...args: any[]) => void): unknown;
   initialize(): Promise<void>;
   getNumberId(phone: string): Promise<{ _serialized: string } | null>;
-  sendMessage(chatId: string, text: string): Promise<unknown>;
+  /** Dengan lampiran, teks menjadi caption (atau dikirim lebih dulu bila terlalu panjang untuk caption). */
+  sendMessage(chatId: string, text: string, attachment?: SendAttachment): Promise<unknown>;
   logout(): Promise<void>;
   destroy(): Promise<void>;
   info?: { wid?: { user?: string } };
@@ -196,13 +197,18 @@ export class WhatsAppManager implements MessageSender {
     await Promise.all(entries.map((e) => e.client.destroy().catch(() => undefined)));
   }
 
-  async send(schoolId: string, phone: string, text: string): Promise<SendResult> {
+  async send(
+    schoolId: string,
+    phone: string,
+    text: string,
+    attachment?: SendAttachment,
+  ): Promise<SendResult> {
     const entry = this.clients.get(schoolId);
     if (!entry?.ready) return { ok: false, retryable: true, error: 'not_ready' };
     try {
       const id = await entry.client.getNumberId(phone);
       if (!id) return { ok: false, retryable: false, error: 'not_on_whatsapp' };
-      await entry.client.sendMessage(id._serialized, text);
+      await entry.client.sendMessage(id._serialized, text, attachment);
       return { ok: true };
     } catch (error) {
       return { ok: false, retryable: true, error: error instanceof Error ? error.message : String(error) };

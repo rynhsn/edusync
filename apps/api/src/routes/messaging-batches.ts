@@ -1,13 +1,18 @@
+import { createHash } from 'node:crypto';
 import {
+  ATTACHMENT_MAX_BYTES,
+  attachmentUploadSchema,
   BATCH_CONFIRM_THRESHOLD,
   DIRECT_BODY_MAX,
   DIRECT_TEMPLATE_NAME_MAX,
   DIRECT_TITLE_MAX,
+  detectAttachmentMime,
   directBodyIssue,
   formatDateId,
   localParts,
   recipientSelectionSchema,
   renderDirect,
+  safeAttachmentName,
   selectionIsBroad,
   selectionIsEmpty,
 } from '@edusync/contracts';
@@ -28,6 +33,7 @@ import {
   inArray,
   isNull,
   loadSendLimits,
+  msgAttachment,
   msgBatch,
   msgDirectTemplate,
   msgMessage,
@@ -70,6 +76,13 @@ const countsSchema = z.object({
   failed: z.number().int(),
   skipped: z.number().int(),
 });
+const attachmentSchema = z.object({
+  id: z.uuid(),
+  fileName: z.string(),
+  mime: z.enum(['application/pdf', 'image/jpeg', 'image/png']),
+  size: z.number().int().describe('Byte'),
+  purged: z.boolean().describe('Isi berkas sudah dihapus (kedaluwarsa); metadata tetap'),
+});
 const batchSchema = z.object({
   id: z.uuid(),
   kind: z.enum(['direct', 'broadcast']),
@@ -81,6 +94,7 @@ const batchSchema = z.object({
   counts: countsSchema,
   status: z.enum(['sending', 'done']).describe('Dihitung: `sending` bila masih ada pesan antre/dikirim'),
   cancelledAt: z.iso.datetime({ offset: true }).nullable(),
+  attachment: attachmentSchema.nullable().describe('Lampiran batch; null = teks saja'),
 });
 const templateSchema = z.object({
   id: z.uuid(),
@@ -339,8 +353,10 @@ export async function messagingBatchRoutes(instance: FastifyInstance) {
           'siaran), dengan jeda acak, jendela kirim, dan header/footer sekolah yang sama. `expectedTotal` = jumlah ' +
           'penerima dari pratinjau; hasil resolusi berbeda: 409 `count_changed`. Semua atau tidak sama sekali. Galat: ' +
           '400 `unknown_placeholder`, `sensitive_content`, `no_recipients`; 409 `messaging_disabled`, `daily_limit`, ' +
-          '`queue_full` (100 slot antrean dicadangkan untuk pesan peristiwa), `duplicate_batch` (isi dan penerima yang ' +
-          'sama dikirim pengguna yang sama dalam 30 detik terakhir). Pengganti: `{{guardian}}`, `{{student}}`, ' +
+          '`queue_full` (100 slot antrean dicadangkan untuk pesan peristiwa), `duplicate_batch` (isi, lampiran, dan ' +
+          'penerima yang sama dikirim pengguna yang sama dalam 30 detik terakhir). `attachmentId` (opsional) = ' +
+          'lampiran dari `POST /v1/messaging/attachments` yang dikirim ke tiap penerima dengan isi pesan sebagai ' +
+          'caption (header/footer sekolah ikut); lampiran tidak ada atau isinya sudah dihapus: 400 `attachment_invalid`. Pengganti: `{{guardian}}`, `{{student}}`, ' +
           '`{{class}}`, `{{school}}`, `{{date}}`, `{{teacher}}`. `title` = subjek internal (bawaan: awal isi pesan).',
         headers: schoolHeader,
         body: z.object({
@@ -348,6 +364,7 @@ export async function messagingBatchRoutes(instance: FastifyInstance) {
           body: bodyText,
           title: z.string().trim().min(1).max(DIRECT_TITLE_MAX).optional(),
           expectedTotal: z.number().int().min(0).max(100_000),
+          attachmentId: z.uuid().optional(),
         }),
         response: {
           200: z.object({ id: z.uuid(), total: z.number().int(), excluded: excludedSchema }),
@@ -373,6 +390,19 @@ export async function messagingBatchRoutes(instance: FastifyInstance) {
       const title = b.title ?? b.body.replace(/\s+/g, ' ').slice(0, 60);
       try {
         return await tenant(request, async (tx) => {
+          if (b.attachmentId) {
+            const [a] = await tx
+              .select({ id: msgAttachment.id, purgedAt: msgAttachment.purgedAt })
+              .from(msgAttachment)
+              .where(eq(msgAttachment.id, b.attachmentId));
+            if (!a || a.purgedAt) {
+              throw new HttpError(
+                400,
+                'attachment_invalid',
+                'Lampiran tidak ditemukan atau sudah kedaluwarsa.',
+              );
+            }
+          }
           const [dup] = await tx
             .select({ id: msgBatch.id })
             .from(msgBatch)
@@ -381,6 +411,7 @@ export async function messagingBatchRoutes(instance: FastifyInstance) {
                 eq(msgBatch.createdBy, ctx.userId),
                 eq(msgBatch.bodyTemplate, b.body),
                 sql`${msgBatch.selection} = ${JSON.stringify(b.selection)}::jsonb`,
+                sql`${msgBatch.attachmentId} is not distinct from ${b.attachmentId ?? null}::uuid`,
                 gte(msgBatch.createdAt, new Date(Date.now() - 30_000)),
               ),
             );
@@ -394,11 +425,12 @@ export async function messagingBatchRoutes(instance: FastifyInstance) {
             createdBy: ctx.userId,
             expectedTotal: b.expectedTotal,
             schoolName: await schoolInfo(tx, ctx.schoolId),
+            attachmentId: b.attachmentId ?? null,
           });
           await audit(tx, ctx, 'messaging.batch.create', 'msg_batch', r.batchId, {
             kind: 'direct',
             total: r.total,
-            attachment: false,
+            attachment: Boolean(b.attachmentId),
           });
           return { id: r.batchId, total: r.total, excluded: r.excluded };
         });
@@ -416,6 +448,105 @@ export async function messagingBatchRoutes(instance: FastifyInstance) {
     },
   );
 
+  /* ---------- Lampiran ---------- */
+
+  app.post(
+    '/v1/messaging/attachments',
+    {
+      onRequest: sendGate,
+      bodyLimit: 3 * 1024 * 1024,
+      schema: {
+        tags: tag,
+        summary: 'Unggah lampiran pesan langsung',
+        description:
+          'Izin: `message:send`; modul `messaging`. PDF, JPEG, atau PNG sampai 2 MB (asli), base64 di `dataBase64` ' +
+          '(tanpa awalan `data:`). Jenis diperiksa dari isi berkas (magic bytes), bukan hanya `mime` kiriman: tidak ' +
+          'cocok atau bukan salah satu dari tiga jenis itu 400 `attachment_type`; lebih dari 2 MB 400 ' +
+          '`attachment_too_large`; base64 rusak 400 `invalid_base64`. `id` dipakai sebagai `attachmentId` di ' +
+          '`POST /v1/messaging/batches`. Isi berkas dihapus otomatis bila tak dipakai batch dalam 24 jam, atau 7 hari ' +
+          'setelah batch terakhirnya selesai; metadata tetap. Badan permintaan di atas 3 MB: 413.',
+        headers: schoolHeader,
+        body: attachmentUploadSchema,
+        response: { 200: attachmentSchema, 400: errorSchema, ...guarded },
+      },
+    },
+    async (request) => {
+      const ctx = request.ctx as TenantContext;
+      const { fileName, mime, dataBase64 } = request.body;
+      if (!/^[A-Za-z0-9+/]+={0,2}$/.test(dataBase64)) {
+        throw new HttpError(400, 'invalid_base64', 'Isi berkas bukan base64 yang valid.');
+      }
+      const bytes = Buffer.from(dataBase64, 'base64');
+      if (bytes.length > ATTACHMENT_MAX_BYTES) {
+        throw new HttpError(400, 'attachment_too_large', 'Lampiran maksimal 2 MB.');
+      }
+      if (detectAttachmentMime(bytes) !== mime) {
+        throw new HttpError(
+          400,
+          'attachment_type',
+          'Lampiran harus berkas PDF, JPG, atau PNG yang isinya sesuai.',
+        );
+      }
+      const name = safeAttachmentName(fileName);
+      return tenant(request, async (tx) => {
+        const [row] = await tx
+          .insert(msgAttachment)
+          .values({
+            schoolId: ctx.schoolId,
+            fileName: name,
+            mime,
+            size: bytes.length,
+            sha256: createHash('sha256').update(bytes).digest('hex'),
+            data: bytes,
+            createdBy: ctx.userId,
+          })
+          .returning({ id: msgAttachment.id });
+        const id = (row as { id: string }).id;
+        await audit(tx, ctx, 'messaging.attachment.upload', 'msg_attachment', id, {
+          mime,
+          size: bytes.length,
+        });
+        return { id, fileName: name, mime, size: bytes.length, purged: false };
+      });
+    },
+  );
+
+  app.get(
+    '/v1/messaging/attachments/:id/content',
+    {
+      onRequest: sendGate,
+      schema: {
+        tags: tag,
+        summary: 'Unduh isi lampiran',
+        description:
+          'Izin: `message:send` (pengirim memeriksa ulang lampiran sebelum mengirim); modul `messaging`. Isi berkas ' +
+          'asli dengan `content-type` aslinya. Lampiran tidak ada: 404 `not_found`; isi sudah dihapus: 410 ' +
+          '`attachment_expired`.',
+        headers: schoolHeader,
+        params: idParams,
+        response: {
+          200: z.any().describe('Isi berkas (PDF, JPEG, atau PNG)'),
+          404: errorSchema,
+          410: errorSchema,
+          ...guarded,
+        },
+      },
+    },
+    async (request, reply) => {
+      const [row] = await tenant(request, (tx) =>
+        tx.select().from(msgAttachment).where(eq(msgAttachment.id, request.params.id)),
+      );
+      if (!row) throw new HttpError(404, 'not_found', 'Lampiran tidak ditemukan.');
+      if (!row.data) throw new HttpError(410, 'attachment_expired', 'Isi lampiran sudah dihapus.');
+      return reply
+        .header('content-type', row.mime)
+        .header('content-disposition', `inline; filename*=UTF-8''${encodeURIComponent(row.fileName)}`)
+        .header('cache-control', 'private, no-store')
+        .header('x-content-type-options', 'nosniff')
+        .send(row.data);
+    },
+  );
+
   /* ---------- Riwayat batch ---------- */
 
   const countsOf = (rows: { status: string; n: number }[]) => {
@@ -423,7 +554,13 @@ export async function messagingBatchRoutes(instance: FastifyInstance) {
     return { queued: n('queued', 'sending'), sent: n('sent'), failed: n('failed'), skipped: n('skipped') };
   };
   type BatchRow = typeof msgBatch.$inferSelect;
-  const view = (b: BatchRow, rows: { status: string; n: number }[], createdBy: string | null) => {
+  type AttachmentMeta = z.infer<typeof attachmentSchema>;
+  const view = (
+    b: BatchRow,
+    rows: { status: string; n: number }[],
+    createdBy: string | null,
+    attachment: AttachmentMeta | null,
+  ) => {
     const counts = countsOf(rows);
     return {
       id: b.id,
@@ -436,7 +573,27 @@ export async function messagingBatchRoutes(instance: FastifyInstance) {
       counts,
       status: counts.queued > 0 ? ('sending' as const) : ('done' as const),
       cancelledAt: b.cancelledAt?.toISOString() ?? null,
+      attachment,
     };
+  };
+  const attachmentsOf = async (tx: Tx, ids: (string | null)[]) => {
+    const want = [...new Set(ids.filter((i): i is string => Boolean(i)))];
+    if (want.length === 0) return new Map<string, AttachmentMeta>();
+    const rows = await tx
+      .select({
+        id: msgAttachment.id,
+        fileName: msgAttachment.fileName,
+        mime: msgAttachment.mime,
+        size: msgAttachment.size,
+        purgedAt: msgAttachment.purgedAt,
+      })
+      .from(msgAttachment)
+      .where(inArray(msgAttachment.id, want));
+    return new Map(
+      rows.map(
+        ({ purgedAt, ...r }) => [r.id, { ...r, purged: purgedAt !== null }] as [string, AttachmentMeta],
+      ),
+    );
   };
   const notFound = () => new HttpError(404, 'not_found', 'Batch tidak ditemukan.');
 
@@ -482,12 +639,17 @@ export async function messagingBatchRoutes(instance: FastifyInstance) {
           .select({ id: user.id, name: user.name })
           .from(user)
           .where(inArray(user.id, [...new Set(rows.map((r) => r.createdBy))]));
+        const files = await attachmentsOf(
+          tx,
+          rows.map((r) => r.attachmentId),
+        );
         return {
           items: rows.map((r) =>
             view(
               r,
               grouped.filter((g) => g.batchId === r.id),
               users.find((u) => u.id === r.createdBy)?.name ?? null,
+              files.get(r.attachmentId ?? '') ?? null,
             ),
           ),
           total: totalRow?.n ?? 0,
@@ -564,7 +726,12 @@ export async function messagingBatchRoutes(instance: FastifyInstance) {
           .limit(request.query.limit)
           .offset(request.query.offset);
         return {
-          ...view(b, grouped, u?.name ?? null),
+          ...view(
+            b,
+            grouped,
+            u?.name ?? null,
+            (await attachmentsOf(tx, [b.attachmentId])).get(b.attachmentId ?? '') ?? null,
+          ),
           body: b.bodyTemplate,
           selection: b.selection,
           recipients: rows.map((r) => ({

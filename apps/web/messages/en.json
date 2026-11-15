@@ -1530,6 +1530,11 @@
     "daily_limit": "This exceeds the school daily message limit.",
     "queue_full": "The school message queue is full. Wait until some are sent.",
     "duplicate_batch": "The same message was just sent. Check the Batch history.",
+    "attachment_type": "The attachment must be a PDF, JPG, or PNG file whose content matches.",
+    "attachment_too_large": "The attachment must be 2 MB or smaller.",
+    "invalid_base64": "The file could not be read. Choose the file again.",
+    "attachment_invalid": "The attachment was not found or has expired. Choose it again.",
+    "attachment_expired": "The attachment content has been deleted (kept 7 days after the batch finishes).",
     "invalid_daily_limit": "The daily limit exceeds the limit set by the platform.",
     "batch_cancelled": "This batch has already been cancelled.",
     "invalid_range": "Invalid range: the start date must come before the end date and the range must not be too long.",
@@ -5346,9 +5351,25 @@
         "cancelled": "Cancelled",
         "expired": "Expired",
         "not_on_whatsapp": "Not a WhatsApp number",
-        "disabled": "Sending switched off"
+        "disabled": "Sending switched off",
+        "attachment_expired": "Attachment expired"
       },
-      "loadMore": "Load more"
+      "loadMore": "Load more",
+      "attachment": "Attachment (optional)",
+      "attachmentPick": "Choose file",
+      "attachmentUploading": "Uploading...",
+      "attachmentRemove": "Remove attachment",
+      "attachmentHint": "PDF, JPG, or PNG, up to 2 MB. The message text becomes the file caption. The file is deleted from the server 7 days after the batch finishes; a copy stays on the recipient phone.",
+      "attachmentIssue": {
+        "empty": "The file is empty.",
+        "tooLarge": "The file is larger than 2 MB.",
+        "badType": "Only valid PDF, JPG, or PNG files can be attached."
+      },
+      "captionLong": "A message longer than {max} characters is sent as a separate text, then the file follows without a caption.",
+      "hasAttachment": "Has attachment",
+      "attachmentPurged": "File content deleted",
+      "attachmentDownload": "Download attachment",
+      "attachmentDownloadFailed": "The attachment could not be downloaded."
     },
     "delayInvalid": "The minimum delay cannot exceed the maximum.",
     "absentAt": "Not-arrived reminder time",

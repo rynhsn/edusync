@@ -56976,6 +56976,18 @@ export interface paths {
                                 status: "sending" | "done";
                                 /** Format: date-time */
                                 cancelledAt: string | null;
+                                /** @description Lampiran batch; null = teks saja */
+                                attachment: {
+                                    /** Format: uuid */
+                                    id: string;
+                                    fileName: string;
+                                    /** @enum {string} */
+                                    mime: "application/pdf" | "image/jpeg" | "image/png";
+                                    /** @description Byte */
+                                    size: number;
+                                    /** @description Isi berkas sudah dihapus (kedaluwarsa); metadata tetap */
+                                    purged: boolean;
+                                } | null;
                             }[];
                             total: number;
                         };
@@ -57014,7 +57026,7 @@ export interface paths {
         put?: never;
         /**
          * Kirim pesan langsung (buat batch)
-         * @description Izin: `message:send`; pemilih luas (rombel/tingkat/seluruh sekolah/semua staf) atau lebih dari 30 penerima juga butuh `message:broadcast` (403). Modul `messaging`. Satu pesan per nomor unik masuk antrean yang sama dengan pesan otomatis (prioritas 1: sesudah pesan peristiwa, sebelum siaran), dengan jeda acak, jendela kirim, dan header/footer sekolah yang sama. `expectedTotal` = jumlah penerima dari pratinjau; hasil resolusi berbeda: 409 `count_changed`. Semua atau tidak sama sekali. Galat: 400 `unknown_placeholder`, `sensitive_content`, `no_recipients`; 409 `messaging_disabled`, `daily_limit`, `queue_full` (100 slot antrean dicadangkan untuk pesan peristiwa), `duplicate_batch` (isi dan penerima yang sama dikirim pengguna yang sama dalam 30 detik terakhir). Pengganti: `{{guardian}}`, `{{student}}`, `{{class}}`, `{{school}}`, `{{date}}`, `{{teacher}}`. `title` = subjek internal (bawaan: awal isi pesan).
+         * @description Izin: `message:send`; pemilih luas (rombel/tingkat/seluruh sekolah/semua staf) atau lebih dari 30 penerima juga butuh `message:broadcast` (403). Modul `messaging`. Satu pesan per nomor unik masuk antrean yang sama dengan pesan otomatis (prioritas 1: sesudah pesan peristiwa, sebelum siaran), dengan jeda acak, jendela kirim, dan header/footer sekolah yang sama. `expectedTotal` = jumlah penerima dari pratinjau; hasil resolusi berbeda: 409 `count_changed`. Semua atau tidak sama sekali. Galat: 400 `unknown_placeholder`, `sensitive_content`, `no_recipients`; 409 `messaging_disabled`, `daily_limit`, `queue_full` (100 slot antrean dicadangkan untuk pesan peristiwa), `duplicate_batch` (isi, lampiran, dan penerima yang sama dikirim pengguna yang sama dalam 30 detik terakhir). `attachmentId` (opsional) = lampiran dari `POST /v1/messaging/attachments` yang dikirim ke tiap penerima dengan isi pesan sebagai caption (header/footer sekolah ikut); lampiran tidak ada atau isinya sudah dihapus: 400 `attachment_invalid`. Pengganti: `{{guardian}}`, `{{student}}`, `{{class}}`, `{{school}}`, `{{date}}`, `{{teacher}}`. `title` = subjek internal (bawaan: awal isi pesan).
          */
         post: {
             parameters: {
@@ -57045,6 +57057,8 @@ export interface paths {
                         body: string;
                         title?: string;
                         expectedTotal: number;
+                        /** Format: uuid */
+                        attachmentId?: string;
                     };
                 };
             };
@@ -57136,6 +57150,209 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/messaging/attachments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Unggah lampiran pesan langsung
+         * @description Izin: `message:send`; modul `messaging`. PDF, JPEG, atau PNG sampai 2 MB (asli), base64 di `dataBase64` (tanpa awalan `data:`). Jenis diperiksa dari isi berkas (magic bytes), bukan hanya `mime` kiriman: tidak cocok atau bukan salah satu dari tiga jenis itu 400 `attachment_type`; lebih dari 2 MB 400 `attachment_too_large`; base64 rusak 400 `invalid_base64`. `id` dipakai sebagai `attachmentId` di `POST /v1/messaging/batches`. Isi berkas dihapus otomatis bila tak dipakai batch dalam 24 jam, atau 7 hari setelah batch terakhirnya selesai; metadata tetap. Badan permintaan di atas 3 MB: 413.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        fileName: string;
+                        /** @enum {string} */
+                        mime: "application/pdf" | "image/jpeg" | "image/png";
+                        dataBase64: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            fileName: string;
+                            /** @enum {string} */
+                            mime: "application/pdf" | "image/jpeg" | "image/png";
+                            /** @description Byte */
+                            size: number;
+                            /** @description Isi berkas sudah dihapus (kedaluwarsa); metadata tetap */
+                            purged: boolean;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/messaging/attachments/{id}/content": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Unduh isi lampiran
+         * @description Izin: `message:send` (pengirim memeriksa ulang lampiran sebelum mengirim); modul `messaging`. Isi berkas asli dengan `content-type` aslinya. Lampiran tidak ada: 404 `not_found`; isi sudah dihapus: 410 `attachment_expired`.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Isi berkas (PDF, JPEG, atau PNG) */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                410: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/messaging/batches/{id}": {
         parameters: {
             query?: never;
@@ -57205,6 +57422,18 @@ export interface paths {
                             status: "sending" | "done";
                             /** Format: date-time */
                             cancelledAt: string | null;
+                            /** @description Lampiran batch; null = teks saja */
+                            attachment: {
+                                /** Format: uuid */
+                                id: string;
+                                fileName: string;
+                                /** @enum {string} */
+                                mime: "application/pdf" | "image/jpeg" | "image/png";
+                                /** @description Byte */
+                                size: number;
+                                /** @description Isi berkas sudah dihapus (kedaluwarsa); metadata tetap */
+                                purged: boolean;
+                            } | null;
                             body: string;
                             selection: {
                                 [key: string]: unknown;

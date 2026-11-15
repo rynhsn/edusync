@@ -1,4 +1,5 @@
 import { EventEmitter } from 'node:events';
+import { WA_CAPTION_MAX } from '@edusync/contracts';
 import { describe, expect, it, vi } from 'vitest';
 import { type AuthHandle, BaileysClient, type WaSocket } from './baileys-client';
 
@@ -143,5 +144,54 @@ describe('BaileysClient (soket tiruan)', () => {
     await b.client.destroy();
     expect(b.sockets[0]?.ended).toBe(true);
     expect(b.auth.clear).not.toHaveBeenCalled();
+  });
+});
+
+describe('BaileysClient: lampiran', () => {
+  async function ready() {
+    const contents: { jid: string; content: Record<string, unknown> }[] = [];
+    const client = new BaileysClient({
+      loadAuth: async () => ({ state: {}, saveCreds: async () => undefined, clear: async () => undefined }),
+      createSocket: () => {
+        const s = new FakeSocket();
+        s.sendMessage = async (jid: string, content: object) => {
+          contents.push({ jid, content: content as Record<string, unknown> });
+        };
+        queueMicrotask(() => s.update({ connection: 'open' }));
+        return s;
+      },
+    });
+    await client.initialize();
+    await new Promise((r) => setTimeout(r, 0));
+    return { client, contents };
+  }
+  const pdf = { data: Buffer.from('%PDF-1.7'), mime: 'application/pdf', fileName: 'surat.pdf' };
+  const png = { data: Buffer.from('png'), mime: 'image/png', fileName: 'foto.png' };
+
+  it('PDF dikirim sebagai dokumen dengan caption; gambar sebagai image dengan caption', async () => {
+    const { client, contents } = await ready();
+    await client.sendMessage(WA, 'Halo', pdf);
+    await client.sendMessage(WA, 'Lihat', png);
+    expect(contents).toEqual([
+      {
+        jid: WA,
+        content: { document: pdf.data, mimetype: 'application/pdf', fileName: 'surat.pdf', caption: 'Halo' },
+      },
+      { jid: WA, content: { image: png.data, caption: 'Lihat' } },
+    ]);
+  });
+
+  it('caption terlalu panjang: teks dikirim dulu, lalu berkas tanpa caption', async () => {
+    const { client, contents } = await ready();
+    const long = 'x'.repeat(WA_CAPTION_MAX + 1);
+    await client.sendMessage(WA, long, pdf);
+    expect(contents).toEqual([
+      { jid: WA, content: { text: long } },
+      { jid: WA, content: { document: pdf.data, mimetype: 'application/pdf', fileName: 'surat.pdf' } },
+    ]);
+    // Tepat di batas masih menjadi caption.
+    contents.length = 0;
+    await client.sendMessage(WA, 'y'.repeat(WA_CAPTION_MAX), png);
+    expect(contents).toHaveLength(1);
   });
 });

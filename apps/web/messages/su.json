@@ -1530,6 +1530,11 @@
     "daily_limit": "Ngaleuwihan wates pesen poéan sakola.",
     "queue_full": "Antrian pesen sakola pinuh. Antosan nepi ka sawaréhna kakirim.",
     "duplicate_batch": "Pesen anu sarua nembé dikirim. Pariksa Riwayat bets.",
+    "attachment_type": "Lampiran kudu berkas PDF, JPG, atawa PNG anu eusina cocog.",
+    "attachment_too_large": "Lampiran maksimal 2 MB.",
+    "invalid_base64": "Eusi berkas teu tiasa dibaca. Pilih berkas deui.",
+    "attachment_invalid": "Lampiran teu kapanggih atawa geus kadaluwarsa. Pilih lampiran deui.",
+    "attachment_expired": "Eusi lampiran geus dihapus (disimpen 7 poé sanggeus bets réngsé).",
     "invalid_daily_limit": "Wates poéan ngaleuwihan wates anu ditetepkeun platform.",
     "batch_cancelled": "Bets ieu parantos dibatalkeun.",
     "invalid_range": "Rentang teu valid: tanggal awal kudu saméméh tanggal akhir sarta rentangna ulah panjang teuing.",
@@ -5346,9 +5351,25 @@
         "cancelled": "Dibatalkeun",
         "expired": "Kadaluwarsa",
         "not_on_whatsapp": "Lain nomer WhatsApp",
-        "disabled": "Pangiriman dipareuman"
+        "disabled": "Pangiriman dipareuman",
+        "attachment_expired": "Lampiran kadaluwarsa"
       },
-      "loadMore": "Muat langkung seueur"
+      "loadMore": "Muat langkung seueur",
+      "attachment": "Lampiran (pilihan)",
+      "attachmentPick": "Pilih berkas",
+      "attachmentUploading": "Ngunggah...",
+      "attachmentRemove": "Piceun lampiran",
+      "attachmentHint": "PDF, JPG, atawa PNG, maksimal 2 MB. Eusi pesen jadi katerangan (caption) berkas. Berkas dihapus tina server 7 poé sanggeus bets réngsé; salinanana tetep aya di ponsél panampi.",
+      "attachmentIssue": {
+        "empty": "Berkasna kosong.",
+        "tooLarge": "Berkasna langkung ti 2 MB.",
+        "badType": "Ngan berkas PDF, JPG, atawa PNG anu valid anu tiasa dilampirkeun."
+      },
+      "captionLong": "Pesen langkung ti {max} karakter dikirim minangka téks nu misah, tuluy berkas nuturkeun tanpa katerangan.",
+      "hasAttachment": "Aya lampiran",
+      "attachmentPurged": "Eusi berkas geus dihapus",
+      "attachmentDownload": "Unduh lampiran",
+      "attachmentDownloadFailed": "Lampiran teu tiasa diunduh."
     },
     "delayInvalid": "Jeda minimum teu meunang leuwih ti maksimum.",
     "absentAt": "Jam panginget acan datang",
