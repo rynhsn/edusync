@@ -1,10 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import {
+  composeMessage,
   DEFAULT_TEMPLATES,
   EVENT_KEYS,
   EVENT_PLACEHOLDERS,
+  MESSAGE_TOTAL_MAX,
   normalizePhone,
   renderTemplate,
+  unknownFramePlaceholders,
   unknownPlaceholders,
 } from './messaging';
 
@@ -78,5 +81,26 @@ describe('format', () => {
     expect(formatMonthYearId('2026-08')).toBe('Agustus 2026');
     expect(formatMonthYearId('2026-05')).toBe('Mei 2026');
     expect(formatMonthYearId('xx')).toBe('xx');
+  });
+});
+
+describe('composeMessage', () => {
+  it('tanpa header/footer isi tidak berubah', () => {
+    expect(composeMessage('Halo', {})).toBe('Halo');
+    expect(composeMessage('Halo', { headerText: '  ', footerText: null })).toBe('Halo');
+  });
+  it('header + isi + footer, pengganti sekolah, bagian kosong dilewati', () => {
+    expect(
+      composeMessage('Isi', { headerText: '*{{school}}*', footerText: 'Salam', schoolName: 'SMP 1' }),
+    ).toBe('*SMP 1*\n\nIsi\n\nSalam');
+    expect(composeMessage('Isi', { footerText: 'Salam' })).toBe('Isi\n\nSalam');
+    expect(composeMessage('Isi', { headerText: 'Atas\nBaris 2' })).toBe('Atas\nBaris 2\n\nIsi');
+  });
+  it('melebihi batas total: isi dikirim apa adanya', () => {
+    const body = 'x'.repeat(MESSAGE_TOTAL_MAX - 5);
+    expect(composeMessage(body, { headerText: 'header panjang' })).toBe(body);
+  });
+  it('unknownFramePlaceholders', () => {
+    expect(unknownFramePlaceholders('{{school}} {{student}}')).toEqual(['student']);
   });
 });

@@ -1,4 +1,4 @@
-import { DEFAULT_TIMEZONE, localParts, zonedTimeToDate } from '@edusync/contracts';
+import { composeMessage, DEFAULT_TIMEZONE, localParts, zonedTimeToDate } from '@edusync/contracts';
 import {
   and,
   asc,
@@ -168,7 +168,7 @@ export class Dispatcher {
     }
 
     const [sch] = await this.db
-      .select({ timezone: school.timezone })
+      .select({ timezone: school.timezone, name: school.name })
       .from(school)
       .where(eq(school.id, schoolId));
     const window = sendWindow(now, setting.windowStart, setting.windowEnd, sch?.timezone);
@@ -205,7 +205,13 @@ export class Dispatcher {
 
     let result: Awaited<ReturnType<MessageSender['send']>>;
     try {
-      result = await this.sender.send(schoolId, msg.to_phone, msg.body);
+      // Header/footer dipasang di sini: pesan antre ikut berubah dan msg_message.body tetap isi asli.
+      const text = composeMessage(msg.body, {
+        headerText: setting.headerText,
+        footerText: setting.footerText,
+        schoolName: sch?.name ?? null,
+      });
+      result = await this.sender.send(schoolId, msg.to_phone, text);
     } catch (error) {
       result = { ok: false, retryable: true, error: error instanceof Error ? error.message : String(error) };
     }

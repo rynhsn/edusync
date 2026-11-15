@@ -799,6 +799,13 @@
       "when": 1798075800000,
       "tag": "0113_wa_auth_state",
       "breakpoints": true
+    },
+    {
+      "idx": 114,
+      "version": "7",
+      "when": 1798162200000,
+      "tag": "0114_msg_frame",
+      "breakpoints": true
     }
   ]
 }

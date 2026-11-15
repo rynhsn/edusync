@@ -3,7 +3,9 @@ import {
   EVENT_KEYS,
   EVENT_PLACEHOLDERS,
   type EventKey,
+  MESSAGE_FRAME_MAX,
   normalizePhone,
+  unknownFramePlaceholders,
   unknownPlaceholders,
 } from '@edusync/contracts';
 import {
@@ -48,6 +50,8 @@ const DEFAULT_SETTINGS = {
   windowStart: '06:00',
   windowEnd: '20:00',
   absentNoticeAt: '09:00' as string | null,
+  headerText: null as string | null,
+  footerText: null as string | null,
 };
 
 const settingsSchema = z.object({
@@ -57,6 +61,22 @@ const settingsSchema = z.object({
   windowStart: hhmm.describe('Awal jendela kirim (zona waktu sekolah)'),
   windowEnd: hhmm.describe('Akhir jendela kirim (zona waktu sekolah)'),
   absentNoticeAt: hhmm.nullable().describe('Jam pengingat "belum tiba"; null = nonaktif'),
+  headerText: z.string().nullable().describe('Teks pembuka semua pesan sekolah; null = tanpa'),
+  footerText: z.string().nullable().describe('Teks penutup semua pesan sekolah; null = tanpa'),
+});
+
+const frameText = (what: string) =>
+  z
+    .string()
+    .max(MESSAGE_FRAME_MAX)
+    .nullish()
+    .describe(
+      `${what} semua pesan sekolah (maks ${MESSAGE_FRAME_MAX} karakter, boleh beberapa baris dan format WhatsApp; ` +
+        'pengganti hanya `{{school}}`). Kosong/null = tanpa; dihilangkan = tidak diubah.',
+    );
+const settingsBodySchema = settingsSchema.extend({
+  headerText: frameText('Teks pembuka'),
+  footerText: frameText('Teks penutup'),
 });
 
 const templateSchema = z.object({
@@ -133,6 +153,8 @@ export async function messagingRoutes(instance: FastifyInstance, options: { env:
               windowStart: row.windowStart,
               windowEnd: row.windowEnd,
               absentNoticeAt: row.absentNoticeAt,
+              headerText: row.headerText,
+              footerText: row.footerText,
             }
           : DEFAULT_SETTINGS;
       }),
@@ -149,9 +171,10 @@ export async function messagingRoutes(instance: FastifyInstance, options: { env:
           'Izin: `message:manage`; modul `messaging`. `delayMaxSeconds` harus >= `delayMinSeconds` (400 ' +
           '`invalid_delay`) dan `windowStart` harus lebih awal dari `windowEnd` (400 `invalid_window`). Saat ' +
           '`enabled` pertama kali menjadi true dan sekolah belum punya templat sama sekali, seluruh templat bawaan ' +
-          'dibuat dan diaktifkan.',
+          'dibuat dan diaktifkan. `headerText`/`footerText` (maks 300 karakter) dipasang di awal/akhir semua pesan saat ' +
+          'dikirim; pengganti selain `{{school}}` ditolak (400 `invalid_placeholder`).',
         headers: schoolHeader,
-        body: settingsSchema,
+        body: settingsBodySchema,
         response: { 200: settingsSchema, 400: errorSchema, ...guarded },
       },
     },
@@ -164,11 +187,25 @@ export async function messagingRoutes(instance: FastifyInstance, options: { env:
       if (b.windowStart >= b.windowEnd) {
         throw new HttpError(400, 'invalid_window', 'Jam mulai kirim harus lebih awal dari jam akhir.');
       }
+      const frame: { headerText?: string | null; footerText?: string | null } = {};
+      for (const k of ['headerText', 'footerText'] as const) {
+        const v = b[k];
+        if (v === undefined) continue;
+        frame[k] = v?.trim() ? v.trim() : null;
+        if (frame[k] && unknownFramePlaceholders(frame[k]).length) {
+          throw new HttpError(
+            400,
+            'invalid_placeholder',
+            'Header/footer hanya boleh memakai pengganti {{school}}.',
+          );
+        }
+      }
+      const values = { ...b, ...frame };
       return tenant(request, async (tx) => {
         await tx
           .insert(msgSetting)
-          .values({ schoolId: ctx.schoolId, ...b })
-          .onConflictDoUpdate({ target: msgSetting.schoolId, set: { ...b, updatedAt: new Date() } });
+          .values({ schoolId: ctx.schoolId, ...values })
+          .onConflictDoUpdate({ target: msgSetting.schoolId, set: { ...values, updatedAt: new Date() } });
         if (b.enabled) {
           const [{ n } = { n: 0 }] = await tx.select({ n: count() }).from(msgTemplate);
           if (n === 0) {
@@ -182,8 +219,9 @@ export async function messagingRoutes(instance: FastifyInstance, options: { env:
             );
           }
         }
-        await audit(tx, ctx, 'messaging.settings', 'msg_setting', ctx.schoolId, b);
-        return b;
+        await audit(tx, ctx, 'messaging.settings', 'msg_setting', ctx.schoolId, values);
+        const [row] = await tx.select().from(msgSetting);
+        return { ...b, headerText: row?.headerText ?? null, footerText: row?.footerText ?? null };
       });
     },
   );

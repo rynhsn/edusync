@@ -55718,6 +55718,10 @@ export interface paths {
                             windowEnd: string;
                             /** @description Jam pengingat "belum tiba"; null = nonaktif */
                             absentNoticeAt: string | null;
+                            /** @description Teks pembuka semua pesan sekolah; null = tanpa */
+                            headerText: string | null;
+                            /** @description Teks penutup semua pesan sekolah; null = tanpa */
+                            footerText: string | null;
                         };
                     };
                 };
@@ -55753,7 +55757,7 @@ export interface paths {
         };
         /**
          * Ubah pengaturan notifikasi
-         * @description Izin: `message:manage`; modul `messaging`. `delayMaxSeconds` harus >= `delayMinSeconds` (400 `invalid_delay`) dan `windowStart` harus lebih awal dari `windowEnd` (400 `invalid_window`). Saat `enabled` pertama kali menjadi true dan sekolah belum punya templat sama sekali, seluruh templat bawaan dibuat dan diaktifkan.
+         * @description Izin: `message:manage`; modul `messaging`. `delayMaxSeconds` harus >= `delayMinSeconds` (400 `invalid_delay`) dan `windowStart` harus lebih awal dari `windowEnd` (400 `invalid_window`). Saat `enabled` pertama kali menjadi true dan sekolah belum punya templat sama sekali, seluruh templat bawaan dibuat dan diaktifkan. `headerText`/`footerText` (maks 300 karakter) dipasang di awal/akhir semua pesan saat dikirim; pengganti selain `{{school}}` ditolak (400 `invalid_placeholder`).
          */
         put: {
             parameters: {
@@ -55780,6 +55784,10 @@ export interface paths {
                         windowEnd: string;
                         /** @description Jam pengingat "belum tiba"; null = nonaktif */
                         absentNoticeAt: string | null;
+                        /** @description Teks pembuka semua pesan sekolah (maks 300 karakter, boleh beberapa baris dan format WhatsApp; pengganti hanya `{{school}}`). Kosong/null = tanpa; dihilangkan = tidak diubah. */
+                        headerText?: string | null;
+                        /** @description Teks penutup semua pesan sekolah (maks 300 karakter, boleh beberapa baris dan format WhatsApp; pengganti hanya `{{school}}`). Kosong/null = tanpa; dihilangkan = tidak diubah. */
+                        footerText?: string | null;
                     };
                 };
             };
@@ -55803,6 +55811,10 @@ export interface paths {
                             windowEnd: string;
                             /** @description Jam pengingat "belum tiba"; null = nonaktif */
                             absentNoticeAt: string | null;
+                            /** @description Teks pembuka semua pesan sekolah; null = tanpa */
+                            headerText: string | null;
+                            /** @description Teks penutup semua pesan sekolah; null = tanpa */
+                            footerText: string | null;
                         };
                     };
                 };

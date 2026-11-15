@@ -141,3 +141,30 @@ export function formatMonthYearId(period: string): string {
   if (Number.isNaN(d.getTime())) return period;
   return new Intl.DateTimeFormat('id-ID', { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(d);
 }
+
+/** Batas teks header dan footer pesan sekolah (karakter, masing-masing). */
+export const MESSAGE_FRAME_MAX = 300;
+/** Batas praktis panjang pesan akhir (header + isi + footer). */
+export const MESSAGE_TOTAL_MAX = 4000;
+
+/** Pengganti yang boleh dipakai di header/footer: hanya yang bernilai sama untuk semua pesan sekolah. */
+export const FRAME_PLACEHOLDERS = ['school'] as const;
+
+/** Pengganti di header/footer yang tidak diizinkan (mis. {{student}} yang kosong di header). */
+export function unknownFramePlaceholders(text: string): string[] {
+  return placeholdersIn(text).filter((p) => !(FRAME_PLACEHOLDERS as readonly string[]).includes(p));
+}
+
+/**
+ * Pesan yang dikirim: header + "\n\n" + isi + "\n\n" + footer; bagian kosong dilewati. Dipakai worker saat kirim dan
+ * pratinjau web. Bila hasil melebihi MESSAGE_TOTAL_MAX, pesan dikirim apa adanya (tanpa header/footer) agar tidak
+ * ditolak atau terpotong.
+ */
+export function composeMessage(
+  body: string,
+  frame: { headerText?: string | null; footerText?: string | null; schoolName?: string | null },
+): string {
+  const part = (t: string | null | undefined) => renderTemplate(t ?? '', { school: frame.schoolName });
+  const out = [part(frame.headerText), body, part(frame.footerText)].filter((s) => s !== '').join('\n\n');
+  return out.length > MESSAGE_TOTAL_MAX ? body : out;
+}

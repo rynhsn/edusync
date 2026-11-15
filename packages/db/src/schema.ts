@@ -2798,6 +2798,9 @@ export const msgSetting = pgTable('msg_setting', {
   windowEnd: text('window_end').notNull().default('20:00'),
   /** Jam pengingat "belum tiba" (HH:MM); null = nonaktif. */
   absentNoticeAt: text('absent_notice_at').default('09:00'),
+  /** Teks pembuka/penutup semua pesan sekolah (beberapa baris, boleh format WhatsApp); null = tanpa. Dipasang saat kirim. */
+  headerText: text('header_text'),
+  footerText: text('footer_text'),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
 

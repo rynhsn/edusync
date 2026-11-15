@@ -1,5 +1,6 @@
 'use client';
 
+import { composeMessage, MESSAGE_FRAME_MAX } from '@edusync/contracts';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import { useRef, useState } from 'react';
@@ -339,6 +340,92 @@ function GeneralSettings() {
   );
 }
 
+function FrameCard() {
+  const t = useTranslations('messaging');
+  const te = useTranslations();
+  const { school, header, canManage } = useMessagingCtx();
+  const queryClient = useQueryClient();
+  const settings = useQuery({
+    queryKey: ['messaging-settings', school.schoolId],
+    queryFn: async () => unwrap(await api.GET('/v1/messaging/settings', { params: header })),
+  });
+  const [draft, setDraft] = useState<{ headerText: string; footerText: string } | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const save = useMutation({
+    mutationFn: async () => {
+      const s = settings.data;
+      if (!s || !draft) return;
+      return unwrap(await api.PUT('/v1/messaging/settings', { params: header, body: { ...s, ...draft } }));
+    },
+    onSuccess: () => {
+      setError(null);
+      setDraft(null);
+      toast.success(t('frameSaved'));
+      queryClient.invalidateQueries({ queryKey: ['messaging-settings', school.schoolId] });
+    },
+    onError: (e) => setError(te(errorKey(e))),
+  });
+
+  if (!settings.data) return <Skeleton className="h-72 w-full" />;
+  const value = draft ?? {
+    headerText: settings.data.headerText ?? '',
+    footerText: settings.data.footerText ?? '',
+  };
+  const set = (patch: Partial<typeof value>) => setDraft({ ...value, ...patch });
+  const fields = [
+    { id: 'msg-frame-header', label: t('frameHeader'), key: 'headerText' },
+    { id: 'msg-frame-footer', label: t('frameFooter'), key: 'footerText' },
+  ] as const;
+
+  return (
+    <Card className="grid gap-4 p-5">
+      <div className="grid content-start gap-1">
+        <h2 className="font-heading text-lg font-semibold">{t('frameTitle')}</h2>
+        <p className="text-muted-foreground max-w-2xl text-sm">{t('frameHint')}</p>
+      </div>
+      <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid content-start gap-4">
+          {fields.map((f) => (
+            <div key={f.id} className="grid content-start gap-2">
+              <Label htmlFor={f.id}>{f.label}</Label>
+              <textarea
+                id={f.id}
+                rows={3}
+                maxLength={MESSAGE_FRAME_MAX}
+                disabled={!canManage}
+                value={value[f.key]}
+                onChange={(e) => set({ [f.key]: e.target.value })}
+                className="border-input placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 dark:bg-input/30 min-h-16 w-full rounded-lg border bg-transparent px-2.5 py-2 text-base outline-none focus-visible:ring-3 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+              />
+              <p className="text-muted-foreground text-xs">
+                {t('frameCount', { count: value[f.key].length, max: MESSAGE_FRAME_MAX })}
+              </p>
+            </div>
+          ))}
+          <p className="text-muted-foreground text-xs">{t('frameFormatHint', { tag: '{{school}}' })}</p>
+        </div>
+        <div className="grid content-start gap-1">
+          <p className="text-muted-foreground text-xs font-medium">{t('preview')}</p>
+          <WaBubble body={composeMessage(t('frameSample'), { ...value, schoolName: school.schoolName })} />
+        </div>
+      </div>
+      {error && (
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+      {canManage && (
+        <div>
+          <Button disabled={!draft || save.isPending} onClick={() => save.mutate()}>
+            {t('save')}
+          </Button>
+        </div>
+      )}
+    </Card>
+  );
+}
+
 export function SettingsPanel() {
   const t = useTranslations('messaging');
   const { school, header, canManage } = useMessagingCtx();
@@ -353,6 +440,7 @@ export function SettingsPanel() {
   return (
     <div className="grid gap-6">
       <GeneralSettings />
+      <FrameCard />
       <div className="grid content-start gap-1">
         <h2 className="font-heading text-lg font-semibold">{t('templatesTitle')}</h2>
         <p className="text-muted-foreground max-w-2xl text-sm">{t('templatesHint')}</p>

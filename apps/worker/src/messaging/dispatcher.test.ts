@@ -287,3 +287,30 @@ describe('Dispatcher', () => {
     expect(sender.calls.map((c) => c.text).sort()).toEqual(['a1', 'b1']);
   });
 });
+
+describe('header dan footer pesan', () => {
+  it('dipasang saat kirim; body di riwayat tetap asli; pesan uji ikut', async () => {
+    const sid = await fx.newSchool({
+      name: 'SMP Contoh',
+      setting: { headerText: '*{{school}}*', footerText: 'Salam hangat' },
+    });
+    const m = await fx.addMessage(sid, { eventKey: 'arrival', body: 'Halo' });
+    const t = await fx.addMessage(sid, { eventKey: 'test', body: 'Uji' });
+    const sender = new FakeSender();
+    await make(sender, { now: NOW }).tick();
+    await make(sender, { now: NOW }).tick();
+    expect(sender.calls.map((c) => c.text).sort()).toEqual([
+      '*SMP Contoh*\n\nHalo\n\nSalam hangat',
+      '*SMP Contoh*\n\nUji\n\nSalam hangat',
+    ]);
+    expect((await fx.getMessage(m.id)).body).toBe('Halo');
+    expect((await fx.getMessage(t.id)).body).toBe('Uji');
+  });
+  it('kosong: isi tidak berubah', async () => {
+    const sid = await fx.newSchool({ setting: { headerText: null, footerText: '  ' } });
+    await fx.addMessage(sid, { body: 'Halo' });
+    const sender = new FakeSender();
+    await make(sender, { now: NOW }).tick();
+    expect(sender.calls.map((c) => c.text)).toEqual(['Halo']);
+  });
+});

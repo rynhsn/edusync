@@ -128342,6 +128342,16 @@
                       "description": "Jam pengingat \"belum tiba\"; null = nonaktif",
                       "type": "string",
                       "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                    },
+                    "headerText": {
+                      "nullable": true,
+                      "description": "Teks pembuka semua pesan sekolah; null = tanpa",
+                      "type": "string"
+                    },
+                    "footerText": {
+                      "nullable": true,
+                      "description": "Teks penutup semua pesan sekolah; null = tanpa",
+                      "type": "string"
                     }
                   },
                   "required": [
@@ -128350,7 +128360,9 @@
                     "delayMaxSeconds",
                     "windowStart",
                     "windowEnd",
-                    "absentNoticeAt"
+                    "absentNoticeAt",
+                    "headerText",
+                    "footerText"
                   ],
                   "additionalProperties": false
                 }
@@ -128428,7 +128440,7 @@
         "tags": [
           "Messaging"
         ],
-        "description": "Izin: `message:manage`; modul `messaging`. `delayMaxSeconds` harus >= `delayMinSeconds` (400 `invalid_delay`) dan `windowStart` harus lebih awal dari `windowEnd` (400 `invalid_window`). Saat `enabled` pertama kali menjadi true dan sekolah belum punya templat sama sekali, seluruh templat bawaan dibuat dan diaktifkan.",
+        "description": "Izin: `message:manage`; modul `messaging`. `delayMaxSeconds` harus >= `delayMinSeconds` (400 `invalid_delay`) dan `windowStart` harus lebih awal dari `windowEnd` (400 `invalid_window`). Saat `enabled` pertama kali menjadi true dan sekolah belum punya templat sama sekali, seluruh templat bawaan dibuat dan diaktifkan. `headerText`/`footerText` (maks 300 karakter) dipasang di awal/akhir semua pesan saat dikirim; pengganti selain `{{school}}` ditolak (400 `invalid_placeholder`).",
         "requestBody": {
           "required": true,
           "content": {
@@ -128467,6 +128479,18 @@
                     "description": "Jam pengingat \"belum tiba\"; null = nonaktif",
                     "type": "string",
                     "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                  },
+                  "headerText": {
+                    "description": "Teks pembuka semua pesan sekolah (maks 300 karakter, boleh beberapa baris dan format WhatsApp; pengganti hanya `{{school}}`). Kosong/null = tanpa; dihilangkan = tidak diubah.",
+                    "nullable": true,
+                    "type": "string",
+                    "maxLength": 300
+                  },
+                  "footerText": {
+                    "description": "Teks penutup semua pesan sekolah (maks 300 karakter, boleh beberapa baris dan format WhatsApp; pengganti hanya `{{school}}`). Kosong/null = tanpa; dihilangkan = tidak diubah.",
+                    "nullable": true,
+                    "type": "string",
+                    "maxLength": 300
                   }
                 },
                 "required": [
@@ -128533,6 +128557,16 @@
                       "description": "Jam pengingat \"belum tiba\"; null = nonaktif",
                       "type": "string",
                       "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                    },
+                    "headerText": {
+                      "nullable": true,
+                      "description": "Teks pembuka semua pesan sekolah; null = tanpa",
+                      "type": "string"
+                    },
+                    "footerText": {
+                      "nullable": true,
+                      "description": "Teks penutup semua pesan sekolah; null = tanpa",
+                      "type": "string"
                     }
                   },
                   "required": [
@@ -128541,7 +128575,9 @@
                     "delayMaxSeconds",
                     "windowStart",
                     "windowEnd",
-                    "absentNoticeAt"
+                    "absentNoticeAt",
+                    "headerText",
+                    "footerText"
                   ],
                   "additionalProperties": false
                 }

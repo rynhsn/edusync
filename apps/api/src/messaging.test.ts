@@ -330,6 +330,28 @@ describe('pengaturan dan templat', () => {
     ).toBe(400);
   });
 
+  it('header/footer: simpan, ubah, dihilangkan = tetap, kosong = null, validasi, RBAC', async () => {
+    // enabled=false: jangan membuat templat bawaan (dipakai tes sesudahnya)
+    const put = (body: object, cookie = adminCookie) =>
+      call('PUT', '/v1/messaging/settings', cookie, { ...body, enabled: false });
+    const r = await put(settings({ headerText: ' *{{school}}*\nBaris 2 ', footerText: 'Salam' }));
+    expect(r.statusCode).toBe(200);
+    expect(r.json()).toMatchObject({ headerText: '*{{school}}*\nBaris 2', footerText: 'Salam' });
+    // klien lama tanpa kedua kolom: tidak mengubahnya
+    const keep = await put(settings({ delayMinSeconds: 6 }));
+    expect(keep.json()).toMatchObject({ headerText: '*{{school}}*\nBaris 2', footerText: 'Salam' });
+    expect((await call('GET', '/v1/messaging/settings', principalCookie)).json()).toMatchObject({
+      headerText: '*{{school}}*\nBaris 2',
+    });
+    const clear = await put(settings({ headerText: '  ', footerText: null }));
+    expect(clear.json()).toMatchObject({ headerText: null, footerText: null });
+    expect((await put(settings({ headerText: 'x'.repeat(301) }))).statusCode).toBe(400);
+    const bad = await put(settings({ footerText: 'Halo {{student}}' }));
+    expect(bad.statusCode).toBe(400);
+    expect(bad.json().error.code).toBe('invalid_placeholder');
+    expect((await put(settings({ headerText: 'x' }), principalCookie)).statusCode).toBe(403);
+  });
+
   it('templat awal bawaan dan mati; mengaktifkan pertama kali membuat semua templat bawaan', async () => {
     const before = (await call('GET', '/v1/messaging/templates', teacherCookie)).statusCode;
     expect(before).toBe(403);
