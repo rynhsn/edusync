@@ -9,6 +9,20 @@ Cara merilis: tulis bagian baru di bawah "Belum dirilis" lalu ganti judulnya men
 
 ## [0.6.3] - 2026-11-15
 
+
+### Diubah
+
+- Satu sumber data kepala sekolah untuk dokumen. Menu Surat > Penandatangan kini punya penanda **Kepala Sekolah**
+  (paling banyak satu penandatangan aktif per sekolah; menandai yang baru melepas tanda yang lama setelah konfirmasi).
+  Nama dan NIP-nya dipakai di rapor, SKL kelulusan, dan sertifikat PKL. Sekolah yang tidak menandai siapa pun tidak
+  berubah: isian kepala sekolah di Pengaturan rapor tetap menjadi cadangan (dan tetap tersimpan bila penanda dipasang).
+  Pengaturan rapor menampilkan kepala sekolah dari Penandatangan sebagai keterangan baca saja dengan tautan ke menu itu.
+  Rapor yang sudah final tidak berubah (snapshot tetap membekukan nilai yang berlaku saat finalisasi). Migrasi 0118
+  aditif (kolom `signer_credential.is_principal` dan indeks unik parsial). API: penandatangan memuat `isPrincipal`
+  (`POST/PUT /v1/letters/signers`), pengaturan rapor memuat `signerPrincipal` (baca saja), dan lembar nilai PKL memuat
+  `principal`.
+
+
 ### Diperbaiki
 
 - Rapor dan leger: wali kelas tidak lagi langsung melihat galat "Anda tidak punya izin" karena kelas pertama pada daftar

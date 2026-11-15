@@ -494,7 +494,7 @@ export const ACADEMIC_DOCS: DocArticle[] = [
           },
           {
             heading: 'Mengatur nama penandatangan dan kalimat deskripsi rapor',
-            body: 'Di Pengaturan rapor Anda mengisi nama dan NIP kepala sekolah, kota, dan alamat sekolah yang tercetak di rapor, serta kalimat deskripsi capaian untuk predikat A sampai D. Deskripsi capaian wajib diisi, sedangkan nama, NIP, kota, dan alamat boleh dikosongkan.',
+            body: 'Di Pengaturan rapor Anda mengisi nama dan NIP kepala sekolah, kota, dan alamat sekolah yang tercetak di rapor, serta kalimat deskripsi capaian untuk predikat A sampai D. Deskripsi capaian wajib diisi, sedangkan nama, NIP, kota, dan alamat boleh dikosongkan. Bila kepala sekolah sudah ditandai di menu Surat > Penandatangan, nama dan NIP-nya yang dipakai di rapor dan isian di sini hanya cadangan.',
             steps: [
               'Buka Pengaturan rapor.',
               'Isi nama dan NIP kepala sekolah, kota, dan alamat.',
@@ -631,7 +631,7 @@ export const ACADEMIC_DOCS: DocArticle[] = [
           },
           {
             heading: 'Setting the signer name and the report card descriptions',
-            body: 'In Report card settings you enter the principal name and NIP, the city, and the school address printed on the report card, plus the achievement description sentences for predicates A to D. Achievement descriptions are required, while name, NIP, city, and address may be left empty.',
+            body: 'In Report card settings you enter the principal name and NIP, the city, and the school address printed on the report card, plus the achievement description sentences for predicates A to D. Achievement descriptions are required, while name, NIP, city, and address may be left empty. If the principal is already marked in Letters > Signers, that name and NIP are used on the report card and the fields here are only a fallback.',
             steps: [
               'Open Report card settings.',
               'Fill in the principal name and NIP, the city, and the address.',
@@ -768,7 +768,7 @@ export const ACADEMIC_DOCS: DocArticle[] = [
           },
           {
             heading: 'Nyetél nami nu nandatanganan sareng kalimah déskripsi rapor',
-            body: 'Dina Pengaturan rapor anjeun ngeusian nami sareng NIP kepala sakola, kota, sareng alamat sakola nu dicitak dina rapor, ogé kalimah déskripsi capaian kanggo predikat A dugi ka D. Déskripsi capaian kedah kaeusi, sedengkeun nami, NIP, kota, sareng alamat tiasa dikosongkeun.',
+            body: 'Dina Pengaturan rapor anjeun ngeusian nami sareng NIP kepala sakola, kota, sareng alamat sakola nu dicitak dina rapor, ogé kalimah déskripsi capaian kanggo predikat A dugi ka D. Déskripsi capaian kedah kaeusi, sedengkeun nami, NIP, kota, sareng alamat tiasa dikosongkeun. Upami kepala sakola parantos ditandaan dina ménu Surat > Panandatangan, nami sareng NIP-na anu dipaké dina rapor sareng eusian di dieu ngan cadangan.',
             steps: [
               'Buka Pengaturan rapor.',
               'Eusian nami sareng NIP kepala sakola, kota, sareng alamat.',

@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { FileText, ListChecks, PenLine, Settings2, Signature } from 'lucide-react';
+import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -106,6 +107,12 @@ export function ReportCardSettingsView() {
     enabled: manage,
     queryFn: async () => unwrap(await api.GET('/v1/report-cards/settings', { params: header })),
   });
+  const signerPrincipal = settings.data?.signerPrincipal ?? null;
+  const signersLink = can('letter:read') ? (
+    <Link href="/letters/signers" className="text-primary font-medium underline underline-offset-2">
+      {t('principalSignersLink')}
+    </Link>
+  ) : null;
   useEffect(() => {
     const d = settings.data;
     if (!d) return;
@@ -203,6 +210,24 @@ export function ReportCardSettingsView() {
                 <p className="text-muted-foreground text-sm">{t('signerHint')}</p>
               </div>
             </div>
+            {signerPrincipal ? (
+              <Alert>
+                <AlertDescription className="grid gap-1">
+                  <span>
+                    {t('principalFromSigner', {
+                      name: signerPrincipal.name,
+                      nip: signerPrincipal.nip ?? '-',
+                    })}
+                  </span>
+                  <span className="text-muted-foreground">{t('principalFallbackNote')}</span>
+                  {signersLink}
+                </AlertDescription>
+              </Alert>
+            ) : (
+              <p className="text-muted-foreground text-sm">
+                {t('principalSetInSigners')} {signersLink}
+              </p>
+            )}
             <div className="grid gap-4 sm:grid-cols-2">
               {TEXT_KEYS.map((k) => (
                 <div
@@ -217,6 +242,7 @@ export function ReportCardSettingsView() {
                     className={TOUCH_INPUT}
                     autoComplete="off"
                     maxLength={k === 'address' ? 200 : 100}
+                    disabled={!!signerPrincipal && (k === 'principalName' || k === 'principalNip')}
                     value={form[k]}
                     onChange={(e) => patch({ [k]: e.target.value })}
                   />

@@ -49,7 +49,7 @@ import {
 } from '../graduation-lib';
 import { errorSchema, HttpError } from '../http-error';
 import { requireModule, requirePermission, type TenantContext } from '../identity/guards';
-import { loadReportSettings } from '../report-card-lib';
+import { loadEffectiveReportSettings } from '../report-card-lib';
 import { audit, conflictAs409, guarded, idParams, ok, schoolHeader } from './helpers';
 
 /**
@@ -903,7 +903,7 @@ export async function graduationRoutes(instance: FastifyInstance) {
         const config = parseConfig(policy.config);
         const list = await buildGraduationList(tx, year, config, { classId: request.query.classId });
         const [sch] = await tx.select({ name: school.name, npsn: school.npsn }).from(school);
-        const settings = await loadReportSettings(tx);
+        const settings = await loadEffectiveReportSettings(tx, (request.ctx as TenantContext).schoolId);
         const exams = await policySnapshot(tx, year.id, config);
         const summary = {
           total: list.students.length,

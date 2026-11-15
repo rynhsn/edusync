@@ -59,6 +59,7 @@ import {
   saveScores,
   scoreRecordsBody,
 } from '../pkl-lib';
+import { resolvePrincipal } from '../principal-lib';
 import { assertStudentsReportNotFinal } from '../report-lock-lib';
 import { audit, conflictAs409, guarded, idParams, isUniqueViolation, ok, schoolHeader } from './helpers';
 
@@ -240,6 +241,12 @@ const sheetSchema = z.object({
     .nullable()
     .describe('Bobot penilai sekolah:industri yang berlaku; null = rata-rata penilai yang ada'),
   certificateNo: z.string().nullable(),
+  principal: z
+    .object({ name: z.string(), nip: z.string().nullable(), source: z.enum(['signer', 'report_setting']) })
+    .nullable()
+    .describe(
+      'Kepala sekolah untuk sertifikat: penandatangan aktif bertanda kepala sekolah (`signer`) atau cadangan dari pengaturan rapor; null bila belum diatur',
+    ),
   reportLinked: z
     .boolean()
     .describe(
@@ -278,7 +285,7 @@ async function periodOrThrow(tx: Tx, id: string) {
 }
 
 /** Susun lembar nilai (aspek + nilai kedua penilai + hasil) satu penempatan. */
-async function buildSheet(tx: Tx, placementId: string) {
+async function buildSheet(tx: Tx, schoolId: string, placementId: string) {
   const { aspects, scores } = await loadSheet(tx, placementId);
   const weights = await pklWeights(tx);
   const [link] = await tx
@@ -309,6 +316,7 @@ async function buildSheet(tx: Tx, placementId: string) {
     },
     weights: weights ?? null,
     certificateNo: link?.certificateNo ?? null,
+    principal: await resolvePrincipal(tx, schoolId),
     reportLinked: link?.semesterId != null,
   };
 }
@@ -1547,7 +1555,7 @@ export async function pklRoutes(instance: FastifyInstance) {
     async (request) =>
       tenant(request, async (tx) => {
         const p = await placementOrThrow(tx, request.params.id);
-        return buildSheet(tx, p.id);
+        return buildSheet(tx, ctxOf(request).schoolId, p.id);
       }),
   );
 
@@ -1575,7 +1583,7 @@ export async function pklRoutes(instance: FastifyInstance) {
         await audit(tx, ctxOf(request), 'pkl.score.save', 'pkl_placement', p.id, {
           count: request.body.records.length,
         });
-        return buildSheet(tx, p.id);
+        return buildSheet(tx, ctxOf(request).schoolId, p.id);
       }),
   );
 

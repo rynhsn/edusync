@@ -814,6 +814,7 @@ export const SERVICE_DOCS: DocArticle[] = [
             steps: [
               'Pengelola surat membuka menu Penandatangan, lalu klik Tambah penandatangan.',
               'Pilih Anggota, lalu isi Nama pada surat dan Jabatan.',
+              'Untuk Kepala sekolah, centang Kepala Sekolah (dipakai juga di rapor, SKL, dan sertifikat PKL). Hanya satu yang bisa ditandai; menandai yang baru melepas tanda pada yang lama setelah Anda mengonfirmasi.',
               'Penandatangan membuka Penandatangan, pada kartu Tanda tangan saya memilih Gambar atau Unggah, lalu klik Simpan tanda tangan.',
             ],
             tip: 'Untuk unggahan, pakai foto tanda tangan di kertas putih. Gambar PNG atau JPG otomatis diperkecil hingga maksimal 150 KB.',
@@ -907,6 +908,7 @@ export const SERVICE_DOCS: DocArticle[] = [
             steps: [
               'The letter manager opens the Signers menu, then clicks Add signer.',
               'Pick a Member, then fill in the Name on letter and the Title.',
+              'For the Principal, tick Principal (also used on report cards, graduation letters, and internship certificates). Only one can be marked; marking a new one removes the mark from the old one after you confirm.',
               'The signer opens Signers, and in the My signature card chooses Draw or Upload, then clicks Save signature.',
             ],
             tip: 'For an upload, use a photo of the signature on white paper. PNG or JPG images are automatically reduced to at most 150 KB.',
@@ -1001,6 +1003,7 @@ export const SERVICE_DOCS: DocArticle[] = [
             steps: [
               'Pangurus surat muka menu Panandatangan, tuluy klik Tambah panandatangan.',
               'Pilih Anggota, tuluy eusian Nami dina surat jeung Jabatan.',
+              'Pikeun Kepala sakola, centang Kepala Sakola (dipaké ogé dina rapor, SKL, sareng sertifikat PKL). Ngan hiji nu tiasa ditandaan; nandaan nu énggal ngalepas tanda nu lami saatos anjeun ngonfirmasi.',
               'Panandatangan muka Panandatangan, dina kartu Tanda tangan abdi milih Gambar atawa Unggah, tuluy klik Simpen tanda tangan.',
             ],
             tip: 'Pikeun unggahan, paké poto tanda tangan dina kertas bodas. Gambar PNG atawa JPG otomatis dialitkeun paling ageung 150 KB.',

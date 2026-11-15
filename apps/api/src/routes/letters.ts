@@ -32,6 +32,7 @@ import {
   letterTemplate,
   lte,
   member,
+  ne,
   or,
   school,
   signedDocument,
@@ -107,6 +108,11 @@ const signerSchema = z.object({
   nip: z.string().nullable(),
   title: z.string(),
   active: z.boolean(),
+  isPrincipal: z
+    .boolean()
+    .describe(
+      'Kepala sekolah: nama/NIP-nya dipakai di rapor, SKL, dan sertifikat PKL (paling banyak satu yang aktif)',
+    ),
   hasSignature: z
     .boolean()
     .describe('Gambar tanda tangan sudah diunggah (gambarnya tidak pernah ada di daftar)'),
@@ -126,6 +132,13 @@ const signerCreateBody = z.object({
   title: z.string().trim().min(1).max(120),
   signatureData: signatureField.default(null),
   active: z.boolean().default(true),
+  isPrincipal: z
+    .boolean()
+    .optional()
+    .describe(
+      'Tandai sebagai kepala sekolah (bawaan false). Menandai yang aktif otomatis melepas tanda pada penandatangan lain. ' +
+        'Pada ubah: dihilangkan = tidak berubah.',
+    ),
 });
 
 const signerUpdateBody = z.object({
@@ -134,6 +147,13 @@ const signerUpdateBody = z.object({
   title: z.string().trim().min(1).max(120),
   signatureData: signatureField.optional().describe('Dihilangkan = tidak diubah; null = hapus gambar'),
   active: z.boolean().default(true),
+  isPrincipal: z
+    .boolean()
+    .optional()
+    .describe(
+      'Tandai sebagai kepala sekolah (bawaan false). Menandai yang aktif otomatis melepas tanda pada penandatangan lain. ' +
+        'Pada ubah: dihilangkan = tidak berubah.',
+    ),
 });
 
 const letterListItem = z.object({
@@ -261,6 +281,7 @@ function signerView(s: {
   nip: string | null;
   title: string;
   active: boolean;
+  isPrincipal: boolean;
   hasSignature: boolean;
 }) {
   return {
@@ -270,6 +291,7 @@ function signerView(s: {
     nip: s.nip,
     title: s.title,
     active: s.active,
+    isPrincipal: s.isPrincipal,
     hasSignature: s.hasSignature,
   };
 }
@@ -282,6 +304,7 @@ const signerColumns = {
   nip: signerCredential.nip,
   title: signerCredential.title,
   active: signerCredential.active,
+  isPrincipal: signerCredential.isPrincipal,
   hasSignature: sql<boolean>`${signerCredential.signatureData} is not null`,
 };
 
@@ -289,6 +312,20 @@ async function signerOrThrow(tx: Tx, id: string) {
   const [row] = await tx.select(signerColumns).from(signerCredential).where(eq(signerCredential.id, id));
   if (!row) throw notFound('Penandatangan');
   return row;
+}
+
+/** Lepas tanda kepala sekolah dari penandatangan lain di sekolah ini (kecuali `exceptId`). */
+async function releasePrincipal(tx: Tx, schoolId: string, exceptId?: string) {
+  await tx
+    .update(signerCredential)
+    .set({ isPrincipal: false })
+    .where(
+      and(
+        eq(signerCredential.schoolId, schoolId),
+        eq(signerCredential.isPrincipal, true),
+        exceptId ? ne(signerCredential.id, exceptId) : undefined,
+      ),
+    );
 }
 
 async function myCredential(tx: Tx, ctx: TenantContext) {
@@ -673,7 +710,8 @@ export async function letterRoutes(instance: FastifyInstance) {
         description:
           'Izin: `letter:manage`; modul `administration`. `memberId` harus anggota aktif sekolah ini ' +
           '(400 `invalid_reference`); satu anggota satu kredensial (409 `conflict`). Gambar tanda tangan: lihat ' +
-          '`PUT /v1/letters/signers/me/signature` (400 `invalid_signature`).',
+          '`PUT /v1/letters/signers/me/signature` (400 `invalid_signature`). `isPrincipal: true` menandai kepala sekolah ' +
+          '(sumber nama/NIP rapor, SKL, dan sertifikat PKL); tanda pada penandatangan aktif lain otomatis dilepas.',
         headers: schoolHeader,
         body: signerCreateBody,
         response: { 201: signerSchema, 400: errorSchema, 409: errorSchema, ...guarded },
@@ -689,9 +727,11 @@ export async function letterRoutes(instance: FastifyInstance) {
             .from(member)
             .where(and(eq(member.id, request.body.memberId), eq(member.status, 'active')));
           if (!m) throw invalidRef('Anggota tidak ditemukan atau tidak aktif.');
+          const isPrincipal = request.body.isPrincipal ?? false;
+          if (isPrincipal && request.body.active) await releasePrincipal(tx, ctx.schoolId);
           const [row] = await tx
             .insert(signerCredential)
-            .values({ schoolId: ctx.schoolId, ...request.body })
+            .values({ schoolId: ctx.schoolId, ...request.body, isPrincipal })
             .returning({ id: signerCredential.id });
           await audit(tx, ctx, 'signer.create', 'signer_credential', row!.id, { name: request.body.name });
           return signerOrThrow(tx, row!.id);
@@ -710,7 +750,9 @@ export async function letterRoutes(instance: FastifyInstance) {
         summary: 'Ubah penandatangan',
         description:
           'Izin: `letter:manage`; modul `administration`. `signatureData` dihilangkan = gambar tidak diubah, ' +
-          '`null` = hapus. Tautan anggota tidak dapat diubah.',
+          '`null` = hapus. Tautan anggota tidak dapat diubah. `isPrincipal` dihilangkan = tidak berubah; `true` pada ' +
+          'penandatangan aktif melepas tanda dari yang lain. Kepala sekolah yang dinonaktifkan tidak lagi dipakai dokumen ' +
+          '(kembali ke pengaturan rapor).',
         headers: schoolHeader,
         params: idParams,
         body: signerUpdateBody,
@@ -721,15 +763,19 @@ export async function letterRoutes(instance: FastifyInstance) {
       const ctx = request.ctx as TenantContext;
       checkSignature(request.body.signatureData);
       return tenant(request, async (tx) => {
-        await signerOrThrow(tx, request.params.id);
-        const { signatureData, ...rest } = request.body;
+        const current = await signerOrThrow(tx, request.params.id);
+        const { signatureData, isPrincipal: flag, ...rest } = request.body;
+        const isPrincipal = flag ?? current.isPrincipal;
+        // Hanya satu kepala sekolah aktif: yang lain dilepas dulu (indeks unik parsial menjaga balapan).
+        if (isPrincipal && rest.active) await releasePrincipal(tx, ctx.schoolId, request.params.id);
         await tx
           .update(signerCredential)
-          .set({ ...rest, ...(signatureData !== undefined ? { signatureData } : {}) })
+          .set({ ...rest, isPrincipal, ...(signatureData !== undefined ? { signatureData } : {}) })
           .where(eq(signerCredential.id, request.params.id));
         await audit(tx, ctx, 'signer.update', 'signer_credential', request.params.id, {
           name: request.body.name,
           active: request.body.active,
+          isPrincipal,
         });
         return signerView(await signerOrThrow(tx, request.params.id));
       });

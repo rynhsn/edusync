@@ -30329,6 +30329,8 @@ export interface paths {
                             nip: string | null;
                             title: string;
                             active: boolean;
+                            /** @description Kepala sekolah: nama/NIP-nya dipakai di rapor, SKL, dan sertifikat PKL (paling banyak satu yang aktif) */
+                            isPrincipal: boolean;
                             /** @description Gambar tanda tangan sudah diunggah (gambarnya tidak pernah ada di daftar) */
                             hasSignature: boolean;
                         }[];
@@ -30367,7 +30369,7 @@ export interface paths {
         put?: never;
         /**
          * Tambah penandatangan
-         * @description Izin: `letter:manage`; modul `administration`. `memberId` harus anggota aktif sekolah ini (400 `invalid_reference`); satu anggota satu kredensial (409 `conflict`). Gambar tanda tangan: lihat `PUT /v1/letters/signers/me/signature` (400 `invalid_signature`).
+         * @description Izin: `letter:manage`; modul `administration`. `memberId` harus anggota aktif sekolah ini (400 `invalid_reference`); satu anggota satu kredensial (409 `conflict`). Gambar tanda tangan: lihat `PUT /v1/letters/signers/me/signature` (400 `invalid_signature`). `isPrincipal: true` menandai kepala sekolah (sumber nama/NIP rapor, SKL, dan sertifikat PKL); tanda pada penandatangan aktif lain otomatis dilepas.
          */
         post: {
             parameters: {
@@ -30392,6 +30394,8 @@ export interface paths {
                         signatureData?: string | null;
                         /** @default true */
                         active?: boolean;
+                        /** @description Tandai sebagai kepala sekolah (bawaan false). Menandai yang aktif otomatis melepas tanda pada penandatangan lain. Pada ubah: dihilangkan = tidak berubah. */
+                        isPrincipal?: boolean;
                     };
                 };
             };
@@ -30411,6 +30415,8 @@ export interface paths {
                             nip: string | null;
                             title: string;
                             active: boolean;
+                            /** @description Kepala sekolah: nama/NIP-nya dipakai di rapor, SKL, dan sertifikat PKL (paling banyak satu yang aktif) */
+                            isPrincipal: boolean;
                             /** @description Gambar tanda tangan sudah diunggah (gambarnya tidak pernah ada di daftar) */
                             hasSignature: boolean;
                         };
@@ -30519,6 +30525,8 @@ export interface paths {
                                 nip: string | null;
                                 title: string;
                                 active: boolean;
+                                /** @description Kepala sekolah: nama/NIP-nya dipakai di rapor, SKL, dan sertifikat PKL (paling banyak satu yang aktif) */
+                                isPrincipal: boolean;
                                 /** @description Gambar tanda tangan sudah diunggah (gambarnya tidak pernah ada di daftar) */
                                 hasSignature: boolean;
                                 /** @description Data URL gambar tanda tangan; hanya untuk pemiliknya sendiri */
@@ -30610,6 +30618,8 @@ export interface paths {
                             nip: string | null;
                             title: string;
                             active: boolean;
+                            /** @description Kepala sekolah: nama/NIP-nya dipakai di rapor, SKL, dan sertifikat PKL (paling banyak satu yang aktif) */
+                            isPrincipal: boolean;
                             /** @description Gambar tanda tangan sudah diunggah (gambarnya tidak pernah ada di daftar) */
                             hasSignature: boolean;
                             /** @description Data URL gambar tanda tangan; hanya untuk pemiliknya sendiri */
@@ -30692,7 +30702,7 @@ export interface paths {
         get?: never;
         /**
          * Ubah penandatangan
-         * @description Izin: `letter:manage`; modul `administration`. `signatureData` dihilangkan = gambar tidak diubah, `null` = hapus. Tautan anggota tidak dapat diubah.
+         * @description Izin: `letter:manage`; modul `administration`. `signatureData` dihilangkan = gambar tidak diubah, `null` = hapus. Tautan anggota tidak dapat diubah. `isPrincipal` dihilangkan = tidak berubah; `true` pada penandatangan aktif melepas tanda dari yang lain. Kepala sekolah yang dinonaktifkan tidak lagi dipakai dokumen (kembali ke pengaturan rapor).
          */
         put: {
             parameters: {
@@ -30717,6 +30727,8 @@ export interface paths {
                         signatureData?: string | null;
                         /** @default true */
                         active?: boolean;
+                        /** @description Tandai sebagai kepala sekolah (bawaan false). Menandai yang aktif otomatis melepas tanda pada penandatangan lain. Pada ubah: dihilangkan = tidak berubah. */
+                        isPrincipal?: boolean;
                     };
                 };
             };
@@ -30736,6 +30748,8 @@ export interface paths {
                             nip: string | null;
                             title: string;
                             active: boolean;
+                            /** @description Kepala sekolah: nama/NIP-nya dipakai di rapor, SKL, dan sertifikat PKL (paling banyak satu yang aktif) */
+                            isPrincipal: boolean;
                             /** @description Gambar tanda tangan sudah diunggah (gambarnya tidak pernah ada di daftar) */
                             hasSignature: boolean;
                         };
@@ -38578,6 +38592,11 @@ export interface paths {
                             /** @description Nama kepala sekolah untuk tanda tangan */
                             principalName: string | null;
                             principalNip: string | null;
+                            /** @description Dihilangkan bila belum ada kepala sekolah ditandai di menu Surat > Penandatangan. Bila ada, dokumen memakainya dan `principalName`/`principalNip` hanya cadangan. Hanya baca. */
+                            signerPrincipal?: {
+                                name: string;
+                                nip: string | null;
+                            };
                             /** @description Kota tempat rapor diterbitkan */
                             city: string | null;
                             /** @description Alamat sekolah pada kop rapor */
@@ -38691,6 +38710,11 @@ export interface paths {
                             /** @description Nama kepala sekolah untuk tanda tangan */
                             principalName: string | null;
                             principalNip: string | null;
+                            /** @description Dihilangkan bila belum ada kepala sekolah ditandai di menu Surat > Penandatangan. Bila ada, dokumen memakainya dan `principalName`/`principalNip` hanya cadangan. Hanya baca. */
+                            signerPrincipal?: {
+                                name: string;
+                                nip: string | null;
+                            };
                             /** @description Kota tempat rapor diterbitkan */
                             city: string | null;
                             /** @description Alamat sekolah pada kop rapor */
@@ -54926,6 +54950,13 @@ export interface paths {
                                 industry: number;
                             } | null;
                             certificateNo: string | null;
+                            /** @description Kepala sekolah untuk sertifikat: penandatangan aktif bertanda kepala sekolah (`signer`) atau cadangan dari pengaturan rapor; null bila belum diatur */
+                            principal: {
+                                name: string;
+                                nip: string | null;
+                                /** @enum {string} */
+                                source: "signer" | "report_setting";
+                            } | null;
                             /** @description Periode tertaut ke rapor: nilai ini menjadi nilai mapel PKL dan terkunci saat rapor final (409 `report_final`) */
                             reportLinked: boolean;
                         };
@@ -55041,6 +55072,13 @@ export interface paths {
                                 industry: number;
                             } | null;
                             certificateNo: string | null;
+                            /** @description Kepala sekolah untuk sertifikat: penandatangan aktif bertanda kepala sekolah (`signer`) atau cadangan dari pengaturan rapor; null bila belum diatur */
+                            principal: {
+                                name: string;
+                                nip: string | null;
+                                /** @enum {string} */
+                                source: "signer" | "report_setting";
+                            } | null;
                             /** @description Periode tertaut ke rapor: nilai ini menjadi nilai mapel PKL dan terkunci saat rapor final (409 `report_final`) */
                             reportLinked: boolean;
                         };

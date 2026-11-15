@@ -30,6 +30,7 @@ import { errorSchema, HttpError } from '../http-error';
 import { requireModule, requirePermission, type TenantContext } from '../identity/guards';
 import { buildLedger } from '../ledger-lib';
 import { notifyReportCards } from '../messaging-lib';
+import { resolvePrincipal } from '../principal-lib';
 import {
   canViewClass,
   canWriteClass,
@@ -56,11 +57,27 @@ import { audit, guarded, schoolHeader } from './helpers';
 const tag = ['Report cards'];
 const MODULE = 'grades';
 
+/** Pengaturan mentah + kepala sekolah dari Penandatangan (hanya bila ditandai; cadangan tidak diulang di sini). */
+async function settingsView(tx: Tx, schoolId: string) {
+  const p = await resolvePrincipal(tx, schoolId);
+  return {
+    ...(await loadReportSettings(tx)),
+    ...(p?.source === 'signer' ? { signerPrincipal: { name: p.name, nip: p.nip } } : {}),
+  };
+}
+
 const readGate = [requirePermission('report_card:read'), requireModule(MODULE)];
 
 const settingsSchema = z.object({
   principalName: z.string().nullable().describe('Nama kepala sekolah untuk tanda tangan'),
   principalNip: z.string().nullable(),
+  signerPrincipal: z
+    .object({ name: z.string(), nip: z.string().nullable() })
+    .optional()
+    .describe(
+      'Dihilangkan bila belum ada kepala sekolah ditandai di menu Surat > Penandatangan. Bila ada, dokumen memakainya dan ' +
+        '`principalName`/`principalNip` hanya cadangan. Hanya baca.',
+    ),
   city: z.string().nullable().describe('Kota tempat rapor diterbitkan'),
   address: z.string().nullable().describe('Alamat sekolah pada kop rapor'),
   descA: z.string().describe('Deskripsi capaian untuk predikat A'),
@@ -203,7 +220,7 @@ export async function reportCardRoutes(instance: FastifyInstance) {
         response: { 200: settingsSchema, ...guarded },
       },
     },
-    async (request) => tenant(request, (tx) => loadReportSettings(tx)),
+    async (request) => tenant(request, (tx) => settingsView(tx, (request.ctx as TenantContext).schoolId)),
   );
 
   app.put(
@@ -259,7 +276,7 @@ export async function reportCardRoutes(instance: FastifyInstance) {
           showRank: request.body.showRank,
           ...optional,
         });
-        return loadReportSettings(tx);
+        return settingsView(tx, ctx.schoolId);
       });
     },
   );

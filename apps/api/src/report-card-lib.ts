@@ -64,6 +64,7 @@ import { type EffectiveGradingConfig, loadGradingConfig, remedialContextFor } fr
 import { assessedSubjects, computeGrades, notCountedComponentIds, type StudentGrade } from './grading-lib';
 import { HttpError } from './http-error';
 import { pklThresholds, pklWeights } from './pkl-lib';
+import { resolvePrincipal } from './principal-lib';
 import { isNarrativeStale, loadObjectiveNarratives, type ObjectiveNarratives } from './report-narrative-lib';
 import { semesterRosterOf } from './student-mobility-lib';
 import { type SubjectTakers, takersOf, takes } from './subject-roster-lib';
@@ -128,6 +129,12 @@ export async function loadReportSettings(tx: Tx): Promise<ReportSettings> {
     narrativeHighTemplate: s.narrativeHighTemplate,
     narrativeLowTemplate: s.narrativeLowTemplate,
   };
+}
+
+/** Pengaturan rapor dengan kepala sekolah dari sumber tunggal (`resolvePrincipal`); dipakai dokumen, bukan layar pengaturan. */
+export async function loadEffectiveReportSettings(tx: Tx, schoolId: string): Promise<ReportSettings> {
+  const [settings, principal] = await Promise.all([loadReportSettings(tx), resolvePrincipal(tx, schoolId)]);
+  return { ...settings, principalName: principal?.name ?? null, principalNip: principal?.nip ?? null };
 }
 
 /**
@@ -378,7 +385,7 @@ export async function loadClassContext(
     .where(eq(academicYear.id, sem.academicYearId));
   const cfg = await loadGradingConfig(tx, sem.id);
   const { settings, components, kkmResolver } = cfg;
-  const reportSettings = await loadReportSettings(tx);
+  const reportSettings = await loadEffectiveReportSettings(tx, cls.schoolId);
   const assessed = await assessedSubjects(tx, sem.id, cls.id, notCountedComponentIds(components));
   const studentIds = [...new Set([...roster.map((s) => s.id), ...extraStudentIds])];
   // PKL (5.4): periode yang ditautkan ke semester ini menambah mapel PKL; tanpa tautan hasilnya null dan semua di bawah identik.

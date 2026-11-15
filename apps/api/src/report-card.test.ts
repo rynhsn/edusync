@@ -20,6 +20,7 @@ import {
   score,
   seedSchoolRoles,
   semester,
+  signerCredential,
   sql,
   student,
   subject,
@@ -59,6 +60,7 @@ let noModuleCookie = '';
 let otherCookie = '';
 
 const ids = {
+  principalSigner: '',
   semester: '',
   otherYearSemester: '',
   foreignSemester: '',
@@ -355,6 +357,7 @@ afterAll(async () => {
       'report_card_snapshot',
       'report_card',
       'report_setting',
+      'signer_credential',
       'extracurricular_assessment',
       'extracurricular_member',
       'extracurricular',
@@ -894,6 +897,47 @@ describe('finalisasi, snapshot, dan buka kembali', () => {
     ).toBe(200);
   });
 
+  it('kepala sekolah dari Penandatangan menggantikan pengaturan rapor; cadangan dipakai bila tidak aktif', async () => {
+    const [m] = await app.platformDb
+      .select({ id: member.id })
+      .from(member)
+      .where(eq(member.schoolId, schoolId));
+    const [sg] = await app.platformDb
+      .insert(signerCredential)
+      .values({
+        schoolId,
+        memberId: m!.id,
+        name: 'Dra. Penandatangan',
+        nip: '1980',
+        title: 'Kepala Sekolah',
+        isPrincipal: true,
+      })
+      .returning();
+    ids.principalSigner = sg!.id;
+    const doc = (await call('GET', docUrl(ids.ani), adminCookie)).json();
+    expect(doc.principal).toEqual({ name: 'Dra. Penandatangan', nip: '1980' });
+    // Pengaturan mentah tetap tersimpan sebagai cadangan; layar pengaturan melihat keduanya.
+    expect((await call('GET', '/v1/report-cards/settings', adminCookie)).json()).toMatchObject({
+      principalName: 'Pengganti',
+      signerPrincipal: { name: 'Dra. Penandatangan', nip: '1980' },
+    });
+    await app.platformDb
+      .update(signerCredential)
+      .set({ active: false })
+      .where(eq(signerCredential.id, ids.principalSigner));
+    expect((await call('GET', docUrl(ids.ani), adminCookie)).json().principal).toEqual({
+      name: 'Pengganti',
+      nip: null,
+    });
+    expect(
+      (await call('GET', '/v1/report-cards/settings', adminCookie)).json().signerPrincipal,
+    ).toBeUndefined();
+    await app.platformDb
+      .update(signerCredential)
+      .set({ active: true })
+      .where(eq(signerCredential.id, ids.principalSigner));
+  });
+
   it('finalisasi tanpa force berhasil bila nilai lengkap, dan dapat difinalkan ulang', async () => {
     await setScore(ids.ipaTugas, ids.budi, 85);
     const res = await finalize(waliCookie);
@@ -911,6 +955,20 @@ describe('finalisasi, snapshot, dan buka kembali', () => {
     );
     // Finalisasi ulang menimpa snapshot tanpa gagal.
     expect((await finalize(adminCookie)).statusCode).toBe(200);
+  });
+
+  it('snapshot final membekukan kepala sekolah; mengganti penandatangan sesudahnya tidak mengubahnya', async () => {
+    expect((await call('GET', docUrl(ids.ani), adminCookie)).json().principal).toEqual({
+      name: 'Dra. Penandatangan',
+      nip: '1980',
+    });
+    await app.platformDb
+      .update(signerCredential)
+      .set({ name: 'Nama Baru', isPrincipal: false })
+      .where(eq(signerCredential.id, ids.principalSigner));
+    const frozen = (await call('GET', docUrl(ids.ani), adminCookie)).json();
+    expect(frozen.status).toBe('final');
+    expect(frozen.principal).toEqual({ name: 'Dra. Penandatangan', nip: '1980' });
   });
 });
 

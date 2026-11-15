@@ -219,6 +219,7 @@ export function ScoresPanel({ placement, period }: { placement: PklPlacement; pe
               period={period}
               final={result.final}
               certificateNo={sheet.data.certificateNo}
+              principalSource={sheet.data.principal}
               predicate={result.predicate}
               aspects={aspects.map((a) => ({
                 name: a.name,
@@ -342,10 +343,13 @@ function CertificateDialog({
   predicate,
   aspects,
   certificateNo,
+  principalSource,
 }: {
   placement: PklPlacement;
   period: Period | null;
   certificateNo: string | null;
+  /** Kepala sekolah dari sumber tunggal dokumen; `signer` = dari Surat > Penandatangan (dikunci). */
+  principalSource: { name: string; source: 'signer' | 'report_setting' } | null;
   final: number;
   predicate: 'A' | 'B' | 'C' | 'D';
   aspects: { name: string; weight: number; value: number | null }[];
@@ -369,9 +373,9 @@ function CertificateDialog({
     try {
       const saved = JSON.parse(localStorage.getItem(key) ?? '{}') as { place?: string; principal?: string };
       setPlace(saved.place ?? '');
-      setPrincipal(saved.principal ?? '');
+      setPrincipal(principalSource?.name ?? saved.principal ?? '');
     } catch {
-      // Penyimpanan tidak tersedia: isian kosong.
+      setPrincipal(principalSource?.name ?? '');
     }
   }
 
@@ -451,8 +455,12 @@ function CertificateDialog({
           autoComplete="off"
           maxLength={120}
           value={principal}
+          readOnly={principalSource?.source === 'signer'}
           onChange={(e) => setPrincipal(e.target.value)}
         />
+        {principalSource?.source === 'signer' && (
+          <p className="text-muted-foreground text-xs">{t('certificatePrincipalFromSigner')}</p>
+        )}
         <FieldError id={validation.idOf('principal')} issue={validation.issue('principal')} />
       </div>
       <p className="text-muted-foreground flex items-center gap-1.5 text-xs">

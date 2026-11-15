@@ -3173,9 +3173,14 @@ export const signerCredential = pgTable(
     title: text('title').notNull(),
     signatureData: text('signature_data'),
     active: boolean('active').notNull().default(true),
+    /** Kepala sekolah: sumber nama/NIP untuk rapor, SKL, dan sertifikat PKL. Paling banyak satu yang aktif per sekolah. */
+    isPrincipal: boolean('is_principal').notNull().default(false),
     createdAt: createdAt(),
   },
-  (t) => [unique('signer_member_uq').on(t.schoolId, t.memberId)],
+  (t) => [
+    unique('signer_member_uq').on(t.schoolId, t.memberId),
+    uniqueIndex('signer_principal_uq').on(t.schoolId).where(sql`${t.isPrincipal} and ${t.active}`),
+  ],
 );
 
 /** Surat keluar/masuk. Nomor surat berurutan per arah per tahun. */

@@ -39,8 +39,17 @@ interface SignerForm {
   nip: string;
   title: string;
   active: boolean;
+  isPrincipal: boolean;
 }
-const EMPTY: SignerForm = { id: null, memberId: '', name: '', nip: '', title: '', active: true };
+const EMPTY: SignerForm = {
+  id: null,
+  memberId: '',
+  name: '',
+  nip: '',
+  title: '',
+  active: true,
+  isPrincipal: false,
+};
 
 /** Penandatangan: kartu daftar, pengelolaan (letter:manage), dan tanda tangan milik sendiri (gambar atau unggah). */
 export function SignersView() {
@@ -57,6 +66,7 @@ export function SignersView() {
 
   const [form, setForm] = useState<SignerForm | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [confirmReplace, setConfirmReplace] = useState(false);
   const validation = useFormValidation<SignerField>({
     errors: form
       ? validateSigner(
@@ -74,7 +84,12 @@ export function SignersView() {
     queryFn: async () => unwrap(await api.GET('/v1/members', { params: { header } })),
   });
 
-  const refresh = () => queryClient.invalidateQueries({ queryKey: key });
+  const refresh = () => {
+    queryClient.invalidateQueries({ queryKey: key });
+    // Kepala sekolah di pengaturan rapor dan lembar nilai PKL bergantung pada penanda ini.
+    queryClient.invalidateQueries({ queryKey: ['report-card-settings', school.schoolId] });
+    queryClient.invalidateQueries({ queryKey: ['pkl', school.schoolId] });
+  };
 
   const save = useMutation({
     mutationFn: async (f: SignerForm) => {
@@ -83,6 +98,7 @@ export function SignersView() {
         nip: f.nip.trim() || null,
         title: f.title.trim(),
         active: f.active,
+        isPrincipal: f.isPrincipal,
       };
       if (f.id) {
         return unwrap(
@@ -113,6 +129,11 @@ export function SignersView() {
     onError: (e) => toast.error(te(errorKey(e))),
   });
 
+  // Kepala sekolah aktif lain yang tandanya akan terlepas bila formulir ini menandai kepala sekolah.
+  const replaced =
+    form?.isPrincipal && form.active
+      ? (signers.data ?? []).find((s) => s.isPrincipal && s.active && s.id !== form.id)
+      : undefined;
   const taken = new Set((signers.data ?? []).map((s) => s.memberId));
   const memberChoices = (members.data ?? []).filter((m) => m.status === 'active' && !taken.has(m.id));
 
@@ -127,6 +148,7 @@ export function SignersView() {
               <Button
                 onClick={() => {
                   setError(null);
+                  setConfirmReplace(false);
                   setForm(EMPTY);
                 }}
               >
@@ -176,6 +198,7 @@ export function SignersView() {
               <Badge variant={s.active ? 'secondary' : 'outline'}>
                 {s.active ? t('active') : t('inactive')}
               </Badge>
+              {s.isPrincipal && <Badge>{t('principalBadge')}</Badge>}
               <span
                 className={cn(
                   'inline-flex items-center gap-1 text-xs',
@@ -198,6 +221,7 @@ export function SignersView() {
                   aria-label={t('edit')}
                   onClick={() => {
                     setError(null);
+                    setConfirmReplace(false);
                     setForm({
                       id: s.id,
                       memberId: s.memberId,
@@ -205,6 +229,7 @@ export function SignersView() {
                       nip: s.nip ?? '',
                       title: s.title,
                       active: s.active,
+                      isPrincipal: s.isPrincipal,
                     });
                   }}
                 >
@@ -242,6 +267,7 @@ export function SignersView() {
           submitLabel={t('save')}
           error={error}
           validation={validation}
+          disabled={!!replaced && !confirmReplace}
           onSubmit={async () => {
             if (!form) return;
             setError(null);
@@ -321,6 +347,37 @@ export function SignersView() {
                 />
                 <Label htmlFor="sg-active">{t('signerActive')}</Label>
               </div>
+              <div className="flex items-start gap-2">
+                <Checkbox
+                  id="sg-principal"
+                  className="mt-0.5"
+                  checked={form.isPrincipal}
+                  onCheckedChange={(v) => {
+                    setConfirmReplace(false);
+                    setForm({ ...form, isPrincipal: v === true });
+                  }}
+                />
+                <Label htmlFor="sg-principal" className="leading-snug">
+                  {t('signerPrincipal')}
+                </Label>
+              </div>
+              {replaced && (
+                <Alert>
+                  <AlertDescription className="grid gap-2">
+                    <span>{t('signerPrincipalReplace', { name: replaced.name })}</span>
+                    <span className="flex items-center gap-2">
+                      <Checkbox
+                        id="sg-replace"
+                        checked={confirmReplace}
+                        onCheckedChange={(v) => setConfirmReplace(v === true)}
+                      />
+                      <Label htmlFor="sg-replace">
+                        {t('signerPrincipalConfirm', { name: replaced.name })}
+                      </Label>
+                    </span>
+                  </AlertDescription>
+                </Alert>
+              )}
             </div>
           )}
         </FormDialog>

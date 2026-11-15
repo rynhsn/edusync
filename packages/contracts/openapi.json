@@ -72495,6 +72495,10 @@
                       "active": {
                         "type": "boolean"
                       },
+                      "isPrincipal": {
+                        "type": "boolean",
+                        "description": "Kepala sekolah: nama/NIP-nya dipakai di rapor, SKL, dan sertifikat PKL (paling banyak satu yang aktif)"
+                      },
                       "hasSignature": {
                         "type": "boolean",
                         "description": "Gambar tanda tangan sudah diunggah (gambarnya tidak pernah ada di daftar)"
@@ -72507,6 +72511,7 @@
                       "nip",
                       "title",
                       "active",
+                      "isPrincipal",
                       "hasSignature"
                     ],
                     "additionalProperties": false
@@ -72586,7 +72591,7 @@
         "tags": [
           "Administration"
         ],
-        "description": "Izin: `letter:manage`; modul `administration`. `memberId` harus anggota aktif sekolah ini (400 `invalid_reference`); satu anggota satu kredensial (409 `conflict`). Gambar tanda tangan: lihat `PUT /v1/letters/signers/me/signature` (400 `invalid_signature`).",
+        "description": "Izin: `letter:manage`; modul `administration`. `memberId` harus anggota aktif sekolah ini (400 `invalid_reference`); satu anggota satu kredensial (409 `conflict`). Gambar tanda tangan: lihat `PUT /v1/letters/signers/me/signature` (400 `invalid_signature`). `isPrincipal: true` menandai kepala sekolah (sumber nama/NIP rapor, SKL, dan sertifikat PKL); tanda pada penandatangan aktif lain otomatis dilepas.",
         "requestBody": {
           "required": true,
           "content": {
@@ -72624,6 +72629,10 @@
                   },
                   "active": {
                     "default": true,
+                    "type": "boolean"
+                  },
+                  "isPrincipal": {
+                    "description": "Tandai sebagai kepala sekolah (bawaan false). Menandai yang aktif otomatis melepas tanda pada penandatangan lain. Pada ubah: dihilangkan = tidak berubah.",
                     "type": "boolean"
                   }
                 },
@@ -72680,6 +72689,10 @@
                     "active": {
                       "type": "boolean"
                     },
+                    "isPrincipal": {
+                      "type": "boolean",
+                      "description": "Kepala sekolah: nama/NIP-nya dipakai di rapor, SKL, dan sertifikat PKL (paling banyak satu yang aktif)"
+                    },
                     "hasSignature": {
                       "type": "boolean",
                       "description": "Gambar tanda tangan sudah diunggah (gambarnya tidak pernah ada di daftar)"
@@ -72692,6 +72705,7 @@
                     "nip",
                     "title",
                     "active",
+                    "isPrincipal",
                     "hasSignature"
                   ],
                   "additionalProperties": false
@@ -72885,6 +72899,10 @@
                         "active": {
                           "type": "boolean"
                         },
+                        "isPrincipal": {
+                          "type": "boolean",
+                          "description": "Kepala sekolah: nama/NIP-nya dipakai di rapor, SKL, dan sertifikat PKL (paling banyak satu yang aktif)"
+                        },
                         "hasSignature": {
                           "type": "boolean",
                           "description": "Gambar tanda tangan sudah diunggah (gambarnya tidak pernah ada di daftar)"
@@ -72902,6 +72920,7 @@
                         "nip",
                         "title",
                         "active",
+                        "isPrincipal",
                         "hasSignature",
                         "signatureData"
                       ],
@@ -73054,6 +73073,10 @@
                     "active": {
                       "type": "boolean"
                     },
+                    "isPrincipal": {
+                      "type": "boolean",
+                      "description": "Kepala sekolah: nama/NIP-nya dipakai di rapor, SKL, dan sertifikat PKL (paling banyak satu yang aktif)"
+                    },
                     "hasSignature": {
                       "type": "boolean",
                       "description": "Gambar tanda tangan sudah diunggah (gambarnya tidak pernah ada di daftar)"
@@ -73071,6 +73094,7 @@
                     "nip",
                     "title",
                     "active",
+                    "isPrincipal",
                     "hasSignature",
                     "signatureData"
                   ],
@@ -73216,7 +73240,7 @@
         "tags": [
           "Administration"
         ],
-        "description": "Izin: `letter:manage`; modul `administration`. `signatureData` dihilangkan = gambar tidak diubah, `null` = hapus. Tautan anggota tidak dapat diubah.",
+        "description": "Izin: `letter:manage`; modul `administration`. `signatureData` dihilangkan = gambar tidak diubah, `null` = hapus. Tautan anggota tidak dapat diubah. `isPrincipal` dihilangkan = tidak berubah; `true` pada penandatangan aktif melepas tanda dari yang lain. Kepala sekolah yang dinonaktifkan tidak lagi dipakai dokumen (kembali ke pengaturan rapor).",
         "requestBody": {
           "required": true,
           "content": {
@@ -73249,6 +73273,10 @@
                   },
                   "active": {
                     "default": true,
+                    "type": "boolean"
+                  },
+                  "isPrincipal": {
+                    "description": "Tandai sebagai kepala sekolah (bawaan false). Menandai yang aktif otomatis melepas tanda pada penandatangan lain. Pada ubah: dihilangkan = tidak berubah.",
                     "type": "boolean"
                   }
                 },
@@ -73314,6 +73342,10 @@
                     "active": {
                       "type": "boolean"
                     },
+                    "isPrincipal": {
+                      "type": "boolean",
+                      "description": "Kepala sekolah: nama/NIP-nya dipakai di rapor, SKL, dan sertifikat PKL (paling banyak satu yang aktif)"
+                    },
                     "hasSignature": {
                       "type": "boolean",
                       "description": "Gambar tanda tangan sudah diunggah (gambarnya tidak pernah ada di daftar)"
@@ -73326,6 +73358,7 @@
                     "nip",
                     "title",
                     "active",
+                    "isPrincipal",
                     "hasSignature"
                   ],
                   "additionalProperties": false
@@ -90520,6 +90553,24 @@
                       "nullable": true,
                       "type": "string"
                     },
+                    "signerPrincipal": {
+                      "description": "Dihilangkan bila belum ada kepala sekolah ditandai di menu Surat > Penandatangan. Bila ada, dokumen memakainya dan `principalName`/`principalNip` hanya cadangan. Hanya baca.",
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string"
+                        },
+                        "nip": {
+                          "nullable": true,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "name",
+                        "nip"
+                      ],
+                      "additionalProperties": false
+                    },
                     "city": {
                       "nullable": true,
                       "description": "Kota tempat rapor diterbitkan",
@@ -90801,6 +90852,24 @@
                     "principalNip": {
                       "nullable": true,
                       "type": "string"
+                    },
+                    "signerPrincipal": {
+                      "description": "Dihilangkan bila belum ada kepala sekolah ditandai di menu Surat > Penandatangan. Bila ada, dokumen memakainya dan `principalName`/`principalNip` hanya cadangan. Hanya baca.",
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string"
+                        },
+                        "nip": {
+                          "nullable": true,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "name",
+                        "nip"
+                      ],
+                      "additionalProperties": false
                     },
                     "city": {
                       "nullable": true,
@@ -126609,6 +126678,33 @@
                       "nullable": true,
                       "type": "string"
                     },
+                    "principal": {
+                      "nullable": true,
+                      "description": "Kepala sekolah untuk sertifikat: penandatangan aktif bertanda kepala sekolah (`signer`) atau cadangan dari pengaturan rapor; null bila belum diatur",
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string"
+                        },
+                        "nip": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "source": {
+                          "type": "string",
+                          "enum": [
+                            "signer",
+                            "report_setting"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "name",
+                        "nip",
+                        "source"
+                      ],
+                      "additionalProperties": false
+                    },
                     "reportLinked": {
                       "type": "boolean",
                       "description": "Periode tertaut ke rapor: nilai ini menjadi nilai mapel PKL dan terkunci saat rapor final (409 `report_final`)"
@@ -126619,6 +126715,7 @@
                     "result",
                     "weights",
                     "certificateNo",
+                    "principal",
                     "reportLinked"
                   ],
                   "additionalProperties": false
@@ -126947,6 +127044,33 @@
                       "nullable": true,
                       "type": "string"
                     },
+                    "principal": {
+                      "nullable": true,
+                      "description": "Kepala sekolah untuk sertifikat: penandatangan aktif bertanda kepala sekolah (`signer`) atau cadangan dari pengaturan rapor; null bila belum diatur",
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string"
+                        },
+                        "nip": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "source": {
+                          "type": "string",
+                          "enum": [
+                            "signer",
+                            "report_setting"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "name",
+                        "nip",
+                        "source"
+                      ],
+                      "additionalProperties": false
+                    },
                     "reportLinked": {
                       "type": "boolean",
                       "description": "Periode tertaut ke rapor: nilai ini menjadi nilai mapel PKL dan terkunci saat rapor final (409 `report_final`)"
@@ -126957,6 +127081,7 @@
                     "result",
                     "weights",
                     "certificateNo",
+                    "principal",
                     "reportLinked"
                   ],
                   "additionalProperties": false
