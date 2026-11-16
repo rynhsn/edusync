@@ -7,6 +7,15 @@ memutus kompatibilitas. Produksi hanya berubah saat tag `vX.Y.Z` dikirim; tulis 
 Cara merilis: tulis bagian baru di bawah "Belum dirilis" lalu ganti judulnya menjadi `## [x.y.z] - tanggal`, kemudian
 `pnpm release x.y.z` dan `git push edusync HEAD:main vx.y.z`.
 
+## [0.6.5] - 2026-11-16
+
+### Ditambahkan
+
+- Bank kurikulum referensi dilengkapi (migrasi 0119, hanya menambah baris; baris lama tidak diubah): Kurikulum 2013 untuk
+  SD/MI, SMA/MA, dan SMK/MAK; Kurikulum madrasah (KMA) untuk SMK/MAK (lima mapel PAI/Arab, rumpun `pai_arabic` ikut
+  tertaut lewat adopsi seperti kurikulum madrasah lain); Kurikulum Merdeka untuk SD/MI. Hanya kode dan nama mapel, tanpa
+  JP. Ini contoh struktur umum, sesuaikan dengan kebijakan sekolah; bukan klaim isi resmi regulasi.
+
 ## [0.6.4] - 2026-11-15
 
 ### Diperbaiki
