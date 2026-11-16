@@ -27,10 +27,44 @@ describe('parseWhatsApp', () => {
     expect(nodes[1]).toEqual({ type: 'text', text: '\nbaris dua' });
   });
 
-  it('bukan pemformatan: spasi di dalam penanda, butir daftar, penanda di tengah kata', () => {
-    for (const s of ['* butir', '2 * 3 * 4', 'snake_case_name', '*  spasi *', '- butir']) {
+  it('bukan pemformatan: spasi di dalam penanda dan penanda di tengah kata', () => {
+    for (const s of ['2 * 3 * 4', 'snake_case_name', 'a *  spasi *', '-tanpa spasi', '1.tanpa spasi']) {
       expect(parseWhatsApp(s)).toEqual([{ type: 'text', text: s }]);
     }
+  });
+
+  it('butir daftar "- " dan "* " menjadi satu daftar, berurutan dengan teks di sekitarnya', () => {
+    expect(parseWhatsApp('Isi:\n- satu *tebal*\n* dua\nTutup')).toEqual([
+      { type: 'text', text: 'Isi:' },
+      {
+        type: 'bullets',
+        items: [
+          [
+            { type: 'text', text: 'satu ' },
+            { type: 'bold', children: [{ type: 'text', text: 'tebal' }] },
+          ],
+          [{ type: 'text', text: 'dua' }],
+        ],
+      },
+      { type: 'text', text: 'Tutup' },
+    ]);
+  });
+
+  it('daftar bernomor mengikuti nomor awal', () => {
+    expect(parseWhatsApp('3. tiga\n4. empat')).toEqual([
+      {
+        type: 'numbered',
+        start: 3,
+        items: [[{ type: 'text', text: 'tiga' }], [{ type: 'text', text: 'empat' }]],
+      },
+    ]);
+  });
+
+  it('kutipan dan daftar berganti blok', () => {
+    expect(parseWhatsApp('> kutip\n- butir')).toEqual([
+      { type: 'quote', children: [{ type: 'text', text: 'kutip' }] },
+      { type: 'bullets', items: [[{ type: 'text', text: 'butir' }]] },
+    ]);
   });
 
   it('blok kode tidak diformat di dalamnya', () => {

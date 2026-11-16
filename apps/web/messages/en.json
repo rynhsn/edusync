@@ -5250,7 +5250,7 @@
     "templateDefault": "Default",
     "templateBody": "Message text",
     "insertPlaceholder": "Insert",
-    "formatHint": "Press Enter for a new line. WhatsApp formatting applies: *bold*, _italic_, ~strikethrough~, ```code```, and > quote (start the line with > and a space).",
+    "formatHint": "Press Enter for a new line. WhatsApp formatting applies: *bold*, _italic_, ~strikethrough~, ```code```, > quote, - bullet, and 1. numbered list (start the line with the mark and a space).",
     "preview": "Preview (sample data)",
     "save": "Save",
     "resetDefault": "Reset to default",

@@ -7,6 +7,8 @@ export type WaNode =
   | { type: 'bold' | 'italic' | 'strike'; children: WaNode[] }
   | { type: 'code'; text: string }
   | { type: 'quote'; children: WaNode[] }
+  | { type: 'bullets'; items: WaNode[][] }
+  | { type: 'numbered'; start: number; items: WaNode[][] }
   | { type: 'block'; text: string };
 
 const MARK = { '*': 'bold', _: 'italic', '~': 'strike' } as const;
@@ -33,31 +35,58 @@ function inline(text: string): WaNode[] {
   return out;
 }
 
-/** Baris berawalan "> " menjadi kutipan: blok sendiri, tanpa baris baru tambahan di sekelilingnya. */
-function withQuotes(text: string): WaNode[] {
-  if (!/(^|\n)> /.test(text)) return inline(text);
+/**
+ * Blok seperti di WhatsApp: baris berawalan "> " menjadi kutipan, "- " atau "* " butir daftar, "1. " daftar bernomor.
+ * Baris biasa tetap teks (baris baru dipertahankan); blok tidak menambah baris baru di sekelilingnya.
+ */
+const BLOCK_LINE = /^(?:> |[-*] |\d+\. )/;
+
+function withBlocks(text: string): WaNode[] {
+  if (!text.split('\n').some((l) => BLOCK_LINE.test(l))) return inline(text);
   const out: WaNode[] = [];
   let plain: string[] = [];
-  let quote: string[] = [];
+  let run: { kind: 'quote' | 'bullets' | 'numbered'; lines: string[]; start: number } | null = null;
   const flushPlain = () => {
     if (plain.length) out.push(...inline(plain.join('\n')));
     plain = [];
   };
-  const flushQuote = () => {
-    if (quote.length) out.push({ type: 'quote', children: inline(quote.join('\n')) });
-    quote = [];
+  const flushRun = () => {
+    if (!run) return;
+    if (run.kind === 'quote') out.push({ type: 'quote', children: inline(run.lines.join('\n')) });
+    else if (run.kind === 'bullets') out.push({ type: 'bullets', items: run.lines.map(inline) });
+    else out.push({ type: 'numbered', start: run.start, items: run.lines.map(inline) });
+    run = null;
   };
   for (const line of text.split('\n')) {
+    let kind: 'quote' | 'bullets' | 'numbered' | null = null;
+    let content = line;
+    let start = 1;
     if (line.startsWith('> ')) {
-      flushPlain();
-      quote.push(line.slice(2));
+      kind = 'quote';
+      content = line.slice(2);
+    } else if (/^[-*] /.test(line)) {
+      kind = 'bullets';
+      content = line.slice(2);
     } else {
-      flushQuote();
-      plain.push(line);
+      const m = /^(\d+)\. (.*)$/.exec(line);
+      if (m) {
+        kind = 'numbered';
+        start = Number(m[1]);
+        content = m[2] ?? '';
+      }
     }
+    if (!kind) {
+      flushRun();
+      plain.push(line);
+      continue;
+    }
+    flushPlain();
+    if (run && run.kind !== kind) flushRun();
+    if (!run) run = { kind, lines: [], start };
+    run.lines.push(content);
   }
   flushPlain();
-  flushQuote();
+  flushRun();
   return out;
 }
 
@@ -69,10 +98,10 @@ export function parseWhatsApp(body: string): WaNode[] {
     const open = rest.indexOf('```');
     const close = open < 0 ? -1 : rest.indexOf('```', open + 3);
     if (open < 0 || close < 0) break;
-    if (open > 0) out.push(...withQuotes(rest.slice(0, open)));
+    if (open > 0) out.push(...withBlocks(rest.slice(0, open)));
     out.push({ type: 'block', text: rest.slice(open + 3, close).replace(/^\n|\n$/g, '') });
     rest = rest.slice(close + 3);
   }
-  out.push(...withQuotes(rest));
+  out.push(...withBlocks(rest));
   return out;
 }

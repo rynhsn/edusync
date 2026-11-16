@@ -36,6 +36,24 @@ function render(nodes: WaNode[]): ReactNode[] {
             {render(n.children)}
           </blockquote>
         );
+      case 'bullets':
+        return (
+          <ul key={key} className="my-1 list-disc space-y-0.5 pl-5">
+            {n.items.map((item, j) => (
+              // biome-ignore lint/suspicious/noArrayIndexKey: butir daftar pratinjau statis
+              <li key={j}>{render(item)}</li>
+            ))}
+          </ul>
+        );
+      case 'numbered':
+        return (
+          <ol key={key} start={n.start} className="my-1 list-decimal space-y-0.5 pl-5">
+            {n.items.map((item, j) => (
+              // biome-ignore lint/suspicious/noArrayIndexKey: butir daftar pratinjau statis
+              <li key={j}>{render(item)}</li>
+            ))}
+          </ol>
+        );
       default:
         return null;
     }
