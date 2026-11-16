@@ -1,6 +1,6 @@
 {
   "name": "edusync",
-  "version": "0.6.4",
+  "version": "0.6.5",
   "private": true,
   "description": "Edusync: platform manajemen sekolah multi-tenant",
   "packageManager": "pnpm@12.16.1",
