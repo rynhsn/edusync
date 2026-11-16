@@ -6,6 +6,7 @@ export type WaNode =
   | { type: 'text'; text: string }
   | { type: 'bold' | 'italic' | 'strike'; children: WaNode[] }
   | { type: 'code'; text: string }
+  | { type: 'quote'; children: WaNode[] }
   | { type: 'block'; text: string };
 
 const MARK = { '*': 'bold', _: 'italic', '~': 'strike' } as const;
@@ -32,6 +33,34 @@ function inline(text: string): WaNode[] {
   return out;
 }
 
+/** Baris berawalan "> " menjadi kutipan: blok sendiri, tanpa baris baru tambahan di sekelilingnya. */
+function withQuotes(text: string): WaNode[] {
+  if (!/(^|\n)> /.test(text)) return inline(text);
+  const out: WaNode[] = [];
+  let plain: string[] = [];
+  let quote: string[] = [];
+  const flushPlain = () => {
+    if (plain.length) out.push(...inline(plain.join('\n')));
+    plain = [];
+  };
+  const flushQuote = () => {
+    if (quote.length) out.push({ type: 'quote', children: inline(quote.join('\n')) });
+    quote = [];
+  };
+  for (const line of text.split('\n')) {
+    if (line.startsWith('> ')) {
+      flushPlain();
+      quote.push(line.slice(2));
+    } else {
+      flushQuote();
+      plain.push(line);
+    }
+  }
+  flushPlain();
+  flushQuote();
+  return out;
+}
+
 /** Memecah teks menjadi simpul tampilan; baris baru tetap ada di simpul teks (tampilkan dengan whitespace-pre-wrap). */
 export function parseWhatsApp(body: string): WaNode[] {
   const out: WaNode[] = [];
@@ -40,10 +69,10 @@ export function parseWhatsApp(body: string): WaNode[] {
     const open = rest.indexOf('```');
     const close = open < 0 ? -1 : rest.indexOf('```', open + 3);
     if (open < 0 || close < 0) break;
-    if (open > 0) out.push(...inline(rest.slice(0, open)));
+    if (open > 0) out.push(...withQuotes(rest.slice(0, open)));
     out.push({ type: 'block', text: rest.slice(open + 3, close).replace(/^\n|\n$/g, '') });
     rest = rest.slice(close + 3);
   }
-  out.push(...inline(rest));
+  out.push(...withQuotes(rest));
   return out;
 }

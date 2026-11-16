@@ -40,4 +40,23 @@ describe('parseWhatsApp', () => {
       { type: 'text', text: ' b' },
     ]);
   });
+
+  it('kutipan dengan "> " menjadi blok sendiri', () => {
+    expect(parseWhatsApp('Halo\n> satu *tebal*\n> dua\nPenutup')).toEqual([
+      { type: 'text', text: 'Halo' },
+      {
+        type: 'quote',
+        children: [
+          { type: 'text', text: 'satu ' },
+          { type: 'bold', children: [{ type: 'text', text: 'tebal' }] },
+          { type: 'text', text: '\ndua' },
+        ],
+      },
+      { type: 'text', text: 'Penutup' },
+    ]);
+  });
+
+  it('tanda > tanpa spasi atau di tengah baris bukan kutipan', () => {
+    for (const s of ['>tanpa spasi', 'a > b']) expect(parseWhatsApp(s)).toEqual([{ type: 'text', text: s }]);
+  });
 });

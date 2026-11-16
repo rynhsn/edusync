@@ -5250,7 +5250,7 @@
     "templateDefault": "Bawaan",
     "templateBody": "Isi pesan",
     "insertPlaceholder": "Sisipkan",
-    "formatHint": "Tekan Enter untuk baris baru. Format WhatsApp berlaku: *tebal*, _miring_, ~coret~, ```kode```.",
+    "formatHint": "Tekan Enter untuk baris baru. Format WhatsApp berlaku: *tebal*, _miring_, ~coret~, ```kode```, dan > kutipan (awali baris dengan > lalu spasi).",
     "preview": "Pratinjau (data contoh)",
     "save": "Simpan",
     "resetDefault": "Kembalikan ke bawaan",

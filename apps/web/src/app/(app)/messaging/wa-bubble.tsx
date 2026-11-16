@@ -27,6 +27,15 @@ function render(nodes: WaNode[]): ReactNode[] {
             {n.text}
           </code>
         );
+      case 'quote':
+        return (
+          <blockquote
+            key={key}
+            className="my-1 rounded border-l-4 border-[#06cf9c] bg-black/5 py-1 pr-2 pl-2 dark:bg-white/10"
+          >
+            {render(n.children)}
+          </blockquote>
+        );
       default:
         return null;
     }
