@@ -79,9 +79,10 @@ export function useSchoolGate(): { state: 'ok' | 'checking' | 'missing'; mainUrl
     enabled: !!slug,
     staleTime: 5 * 60_000,
     retry: false,
+    // Gagal (galat jaringan/API, batas laju) dianggap ada: query tidak boleh mengembalikan undefined.
     queryFn: async () =>
       (await api.GET('/v1/public/school-exists', { params: { query: { slug: slug as string } } })).data
-        ?.exists,
+        ?.exists ?? true,
   });
   return {
     state: schoolGate(parsed, { pending: check.isPending, exists: check.data }),

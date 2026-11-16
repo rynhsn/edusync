@@ -9,6 +9,13 @@ Cara merilis: tulis bagian baru di bawah "Belum dirilis" lalu ganti judulnya men
 
 ## [0.6.6] - 2026-11-16
 
+### Diperbaiki
+
+- **Layar kosong (hijau) sampai halaman dimuat ulang** saat membuka dasbor sekolah setelah masuk, atau tautan undangan. Penjaga
+  "Sekolah tidak ditemukan" (0.6.4) melepas seluruh halaman selama memeriksa sekolah lalu memasangnya ulang, sehingga halaman
+  yang memakai token satu-kali (perpindahan sekolah, penerimaan undangan) kehilangan keadaannya. Kini halaman tetap tampil selama
+  pengecekan dan hanya diganti bila sekolahnya memang tidak ada.
+
 ### Ditambahkan
 
 - **Pratinjau pesan WhatsApp mengikuti tampilan WhatsApp**: baris berawalan `> ` tampil sebagai kutipan, `- ` atau `* ` sebagai daftar

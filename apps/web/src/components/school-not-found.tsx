@@ -13,8 +13,9 @@ import { useSchoolGate } from '@/lib/site';
 export function SchoolGate({ children }: { children: ReactNode }) {
   const t = useTranslations('schoolNotFound');
   const { state, mainUrl } = useSchoolGate();
-  if (state === 'checking') return <div className="flex-1" aria-busy="true" />;
-  if (state === 'ok') return children;
+  // Selama pengecekan, halaman tetap dirender (jangan dilepas lalu dipasang ulang: halaman satu-kali seperti /auth/handoff
+  // dan penerimaan undangan akan memakai token dua kali atau kehilangan keadaannya, dan layar kosong sampai dimuat ulang).
+  if (state !== 'missing') return children;
   return (
     <main className="mx-auto flex w-full max-w-lg flex-1 flex-col items-center justify-center gap-4 p-6 text-center">
       <span className="bg-muted text-muted-foreground flex size-14 items-center justify-center rounded-full">
