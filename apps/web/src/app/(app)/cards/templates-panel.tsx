@@ -1,13 +1,8 @@
 'use client';
 
-import {
-  type CardKind,
-  type CardLayout,
-  DEFAULT_EXAM_SLIP_TEMPLATE_NAME,
-  defaultExamSlipLayout,
-} from '@edusync/contracts';
+import type { CardKind, CardLayout } from '@edusync/contracts';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Copy, FileText, Pencil, Plus, Printer, Star, Trash2, WandSparkles } from 'lucide-react';
+import { Copy, Pencil, Plus, Printer, Star, Trash2, WandSparkles } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
@@ -115,7 +110,6 @@ export function TemplatesPanel({ kind, templates, system, selectedId, onPrint }:
           <p className="text-muted-foreground text-sm">
             {shown.length === 0 ? t('noTemplatesHint') : t('templatesHint')}
           </p>
-          {manage && kind === 'exam' && <p className="text-muted-foreground mt-1 text-xs">{t('slipHint')}</p>}
         </div>
         {manage && (
           <div className="flex flex-wrap gap-2">
@@ -126,21 +120,6 @@ export function TemplatesPanel({ kind, templates, system, selectedId, onPrint }:
             >
               <WandSparkles className="size-4" /> {t('addFromDefault')}
             </Button>
-            {kind === 'exam' && (
-              <Button
-                variant="outline"
-                disabled={fromDefault.isPending}
-                title={t('slipHint')}
-                onClick={() =>
-                  fromDefault.mutate({
-                    name: DEFAULT_EXAM_SLIP_TEMPLATE_NAME,
-                    layout: defaultExamSlipLayout(),
-                  })
-                }
-              >
-                <FileText className="size-4" /> {t('addSlip')}
-              </Button>
-            )}
             <Link href={`/cards/new?kind=${kind}`} className={buttonVariants()}>
               <Plus className="size-4" /> {t('newTemplate')}
             </Link>

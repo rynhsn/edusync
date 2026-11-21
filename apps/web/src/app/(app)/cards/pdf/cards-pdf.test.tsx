@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { defaultExamCardLayout, defaultExamSlipLayout, defaultStudentCardLayout } from '@edusync/contracts';
+import { type CardLayout, defaultExamCardLayout, defaultStudentCardLayout } from '@edusync/contracts';
 import { renderToBuffer } from '@react-pdf/renderer';
 import { describe, expect, it, vi } from 'vitest';
 import { ensureIds, sampleCardData, scheduleGeometry } from '../../../../lib/cards/elements';
@@ -23,6 +23,41 @@ async function render(name: string, input: CardsPdfInput): Promise<Buffer> {
   }
   return buf;
 }
+
+const a7Layout = (): CardLayout => ({
+  widthMm: 74,
+  heightMm: 105,
+  elements: [
+    {
+      type: 'field',
+      field: 'room',
+      prefix: 'Ruang: ',
+      x: 4,
+      y: 4,
+      w: 66,
+      h: 6,
+      fontSize: 9,
+      bold: true,
+      align: 'left',
+      color: '#111111',
+    },
+    {
+      type: 'schedule',
+      x: 4,
+      y: 14,
+      w: 66,
+      h: 80,
+      fontSize: 8,
+      color: '#111111',
+      headerFill: '#f1f5f9',
+      borderColor: '#111111',
+      borderWidth: 0.2,
+      columns: ['dayDate', 'time', 'subject'],
+      mergeDays: true,
+      showHeader: true,
+    },
+  ],
+});
 
 const cards = (kind: 'student' | 'exam', n: number) =>
   Array.from({ length: n }, (_, i) => ({
@@ -73,20 +108,19 @@ describe('PDF kartu', () => {
     expect(pageCount(buf)).toBe(1);
   });
 
-  it('tanda peserta A4 dengan tabel jadwal: satu halaman A4 per kartu', async () => {
-    const layout = defaultExamSlipLayout();
-    const buf = await render('tanda-peserta-a4', {
-      title: 'Tanda peserta',
+  it('kartu A7 tegak dengan ruang dan tabel jadwal: satu halaman seukuran kartu per kartu', async () => {
+    const layout = a7Layout();
+    const buf = await render('kartu-a7-tegak', {
+      title: 'Kartu peserta',
       layout: { ...layout, elements: ensureIds(layout.elements) },
       assets: { background: null, images: {} },
       cards: cards('exam', 2),
-      // mode lembar pada kartu A4 jatuh ke satu kartu per halaman seukuran kartu
-      mode: 'sheet',
+      mode: 'single',
       sheet: DEFAULT_SHEET,
     });
     expect(pageCount(buf)).toBe(2);
-    // A4 = 595.28 x 841.89 pt
-    expect(buf.toString('latin1')).toMatch(/\/MediaBox \[\s*0 0 595\.2\d* 841\.8\d*\s*\]/);
+    // 74 x 105 mm = 209.76 x 297.64 pt
+    expect(buf.toString('latin1')).toMatch(/\/MediaBox \[\s*0 0 209\.7\d* 297\.6\d*\s*\]/);
   });
 
   it('tabel jadwal dengan kolom dan judul kustom, tanpa jadwal, dan jadwal sangat panjang tidak melempar', async () => {
@@ -95,7 +129,7 @@ describe('PDF kartu', () => {
       date: `2026-10-${String(12 + (i % 5)).padStart(2, '0')}`,
       time: '07.30 - 09.00 WIB',
     }));
-    const base = defaultExamSlipLayout();
+    const base = { widthMm: 210, heightMm: 297 };
     const table = {
       type: 'schedule' as const,
       x: 10,

@@ -1,7 +1,6 @@
 import {
   type CardElement,
   defaultExamCardLayout,
-  defaultExamSlipLayout,
   defaultStudentCardLayout,
   type ScheduleColumn,
 } from '@edusync/contracts';
@@ -241,8 +240,18 @@ describe('tabel jadwal', () => {
     expect(toggleScheduleColumn({ columns: ['subject'] }, 'subject', false).columns).toEqual(['subject']);
   });
 
-  it('templat tanda peserta A4 bawaan sah', () => {
-    expect(validateLayout(defaultExamSlipLayout())).toEqual([]);
+  it('tabel jadwal dan kolom ruang pada kartu A7 tegak (74 x 105 mm) sah dan muat', () => {
+    const canvas = { w: 74, h: 105 };
+    const schedule = createElement('schedule', 'exam', canvas);
+    const room = createElement('field', 'exam', canvas);
+    const layout = { widthMm: 74, heightMm: 105, elements: [schedule, { ...room, field: 'room' as const }] };
+    expect(validateLayout(layout)).toEqual([]);
+    const g = scheduleGeometry(
+      schedule as Extract<CardElement, { type: 'schedule' }>,
+      sampleCardData('exam'),
+    );
+    expect(g.fontSize).toBeGreaterThanOrEqual(4);
+    expect(g.cells.every((c) => c.x + c.w <= schedule.w + 0.01)).toBe(true);
   });
 });
 

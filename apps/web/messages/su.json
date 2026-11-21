@@ -8583,8 +8583,6 @@
     "templatesHint": "Pilih templat pikeun dicitak, atawa robah rarancangna.",
     "noTemplatesHint": "Can aya templat anu disimpen. Nyitak maké rarancang bawaan sistem.",
     "addFromDefault": "Tambah tina bawaan",
-    "addSlip": "Tanda pamilon A4 bawaan",
-    "slipHint": "Opsional: titik awal hiji kaca A4 jeung kop, kotak rohangan, tabel jadwal, jeung tanda tangan. Sanggeus ditambahkeun, sakabéh bagianna bisa dirobah atawa dipiceun dina éditor.",
     "newTemplate": "Templat anyar",
     "systemDefault": "Bawaan sistem",
     "default": "Bawaan",

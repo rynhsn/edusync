@@ -9,6 +9,13 @@ Cara merilis: tulis bagian baru di bawah "Belum dirilis" lalu ganti judulnya men
 
 ## Belum dirilis
 
+### Diubah
+
+- **Kartu peserta ujian hanya lewat templat dinamis**: tombol "Tanda peserta A4 bawaan" dan templat A4 bawaannya dihapus
+  (tidak sesuai kaidah templat dinamis; ukuran kartu bebas, mis. A7 tegak). Ruang ujian (kolom data `room`) dan Tabel jadwal
+  tetap menjadi item dinamis di editor templat kartu ujian dan mengikuti ukuran kotaknya. Templat tersimpan tidak berubah;
+  tidak ada migrasi.
+
 ### Ditambahkan
 
 - **Ruang ujian (opsional)**: sekolah dapat mendaftar ruang (nama, kapasitas), menempatkan siswa per semester dan jenis ujian

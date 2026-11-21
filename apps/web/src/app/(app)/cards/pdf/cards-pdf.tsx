@@ -272,7 +272,7 @@ export function CardFace({
 export function CardsDocument({ input }: { input: CardsPdfInput }) {
   const { layout, cards, assets } = input;
   const sheetGrid = bestSheetGrid(layout.widthMm, layout.heightMm, input.sheet);
-  // Kartu besar (mis. tanda peserta A4) yang tidak muat di lembar dicetak satu per halaman seukuran kartu.
+  // Kartu besar (mis. A4) yang tidak muat di lembar dicetak satu per halaman seukuran kartu.
   if (input.mode === 'single' || sheetGrid.perPage === 0) {
     return (
       <Document title={input.title}>

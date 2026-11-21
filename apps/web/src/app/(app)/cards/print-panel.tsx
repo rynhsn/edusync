@@ -130,7 +130,7 @@ export function PrintPanel({ kind, templates, selectedId, onSelect }: Props) {
   const fits = !!grid && grid.perPage > 0;
   const sheets = grid ? pagesNeeded(items.length, grid.perPage) : 0;
   const busy = progress !== null;
-  // Kartu yang tidak muat di lembar (mis. tanda peserta A4) otomatis dicetak satu per halaman seukuran kartu.
+  // Kartu yang tidak muat di lembar (mis. A4) otomatis dicetak satu per halaman seukuran kartu.
   const oversized = mode === 'sheet' && !!grid && !fits;
   const canDownload = !!template && items.length > 0 && !busy;
 

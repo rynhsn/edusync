@@ -8583,8 +8583,6 @@
     "templatesHint": "Pick a template to print, or edit its design.",
     "noTemplatesHint": "No saved templates yet. Printing uses the built-in system design.",
     "addFromDefault": "Add from default",
-    "addSlip": "Default A4 exam slip",
-    "slipHint": "Optional: a starting point for a one-page A4 slip with letterhead, room box, schedule table and signature. Once added, every part can be edited or removed in the editor.",
     "newTemplate": "New template",
     "systemDefault": "System default",
     "default": "Default",

@@ -8586,8 +8586,6 @@
     "templatesHint": "Pilih templat untuk dicetak, atau ubah rancangannya.",
     "noTemplatesHint": "Belum ada templat tersimpan. Pencetakan memakai rancangan bawaan sistem.",
     "addFromDefault": "Tambah dari bawaan",
-    "addSlip": "Tanda peserta A4 bawaan",
-    "slipHint": "Opsional: titik awal satu halaman A4 dengan kop, kotak ruang, tabel jadwal, dan tanda tangan. Setelah ditambahkan, semua bagiannya bisa diubah atau dihapus di editor.",
     "newTemplate": "Templat baru",
     "systemDefault": "Bawaan sistem",
     "default": "Bawaan",

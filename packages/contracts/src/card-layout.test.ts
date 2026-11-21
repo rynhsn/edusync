@@ -5,7 +5,6 @@ import {
   cardLayoutSchema,
   codeFieldsFor,
   defaultExamCardLayout,
-  defaultExamSlipLayout,
   defaultStudentCardLayout,
   fitScheduleFont,
   formatIdentityPayload,
@@ -141,13 +140,18 @@ describe('card-layout', () => {
   });
 });
 
-describe('tanda peserta A4 dan tabel jadwal', () => {
-  it('tata letak A4 bawaan lolos skema dan hanya untuk kartu ujian', () => {
-    const layout = defaultExamSlipLayout();
+describe('tabel jadwal dan ruang pada kartu ukuran bebas', () => {
+  it('kartu A7 tegak dengan ruang dan tabel jadwal lolos skema dan hanya untuk kartu ujian', () => {
+    const layout = {
+      widthMm: 74,
+      heightMm: 105,
+      elements: [
+        cardElementSchema.parse({ type: 'field', field: 'room', x: 4, y: 4, w: 66, h: 6 }),
+        cardElementSchema.parse({ type: 'schedule', x: 4, y: 14, w: 66, h: 80 }),
+      ],
+    };
     const parsed = cardLayoutSchema.safeParse(layout);
     expect(parsed.success, JSON.stringify(parsed.error?.issues)).toBe(true);
-    expect(layout).toMatchObject({ widthMm: 210, heightMm: 297 });
-    expect(layout.elements.some((e) => e.type === 'schedule')).toBe(true);
     expect(invalidFieldsForKind('exam', layout.elements)).toEqual([]);
     // Elemen tabel jadwal dan kolom khusus ujian ditolak pada kartu siswa.
     expect(invalidFieldsForKind('student', layout.elements)).toContain('schedule');
