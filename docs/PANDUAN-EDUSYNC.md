@@ -2,15 +2,15 @@
 
 Edusync menghubungkan pekerjaan sekolah dari penerimaan murid, kegiatan belajar, dan kehadiran hingga pelaporan kepada wali. Satu yayasan dapat mengelola beberapa unit. Saat bekerja, perhatikan **sekolah aktif**, **periode akademik**, dan **siswa atau kelas yang dipilih**. Ketiganya menentukan data yang sedang Anda lihat.
 
-| Saya ingin… | Mulai di sini |
-| --- | --- |
-| Masuk atau menemukan sekolah saya | [Akun dan tujuan](#akun-dan-tujuan) |
-| Menyiapkan unit untuk pertama kali | [Persiapan sekolah](#persiapan-sekolah) |
-| Mencatat kehadiran, menyusun jadwal, atau mengolah nilai | [Kegiatan belajar](#kegiatan-belajar) |
-| Mengelola pendaftar, tagihan, surat, atau PKL | [Layanan sekolah](#layanan-sekolah) |
-| Memeriksa informasi anak atau mengikuti ujian | [Portal wali dan siswa](#portal-wali-dan-siswa) |
-| Mengatasi kendala | [Bantuan berdasarkan gejala](#bantuan-berdasarkan-gejala) |
-| Menjalankan atau mengembangkan aplikasi | [Panduan tim teknis](#panduan-tim-teknis) |
+| Saya ingin…                                              | Mulai di sini                                             |
+| -------------------------------------------------------- | --------------------------------------------------------- |
+| Masuk atau menemukan sekolah saya                        | [Akun dan tujuan](#akun-dan-tujuan)                       |
+| Menyiapkan unit untuk pertama kali                       | [Persiapan sekolah](#persiapan-sekolah)                   |
+| Mencatat kehadiran, menyusun jadwal, atau mengolah nilai | [Kegiatan belajar](#kegiatan-belajar)                     |
+| Mengelola pendaftar, tagihan, surat, atau PKL            | [Layanan sekolah](#layanan-sekolah)                       |
+| Memeriksa informasi anak atau mengikuti ujian            | [Portal wali dan siswa](#portal-wali-dan-siswa)           |
+| Mengatasi kendala                                        | [Bantuan berdasarkan gejala](#bantuan-berdasarkan-gejala) |
+| Menjalankan atau mengembangkan aplikasi                  | [Panduan tim teknis](#panduan-tim-teknis)                 |
 
 ## Akun dan tujuan
 
@@ -25,14 +25,14 @@ Edusync menghubungkan pekerjaan sekolah dari penerimaan murid, kegiatan belajar,
 
 Urutan berikut membantu admin menyiapkan data yang akan dipakai bersama oleh guru dan petugas.
 
-| Tahap | Yang dikerjakan | Cara memeriksa hasil |
-| --- | --- | --- |
-| Identitas | Di **Pengaturan sekolah**, isi identitas, NPSN, jenjang, dan logo unit. | Cocokkan nama dan jenjang dengan unit yang sedang dikelola. |
-| Periode | Siapkan **Tahun ajaran**, semester, dan hari libur pada **Kalender**. | Pastikan label semester menyebut tahun ajaran yang dimaksud. |
-| Data belajar | Isi **Guru**, **Kelas**, dan **Mata pelajaran**. Tetapkan wali kelas dan pengampu. | Buka satu kelas dan cocokkan guru serta mapelnya. |
-| Peserta didik | Tambah siswa atau impor melalui **Siswa**. Tempatkan siswa di kelas dan hubungkan data wali. | Cari satu siswa hasil input atau impor, lalu periksa kelas dan walinya. |
-| Akses | Undang staf melalui **Anggota**, tinjau **Peran**, lalu kelola undangan keluarga melalui **Akun portal**. | Periksa status undangan atau akun dan pastikan unitnya benar. |
-| Modul | Siapkan aturan untuk layanan yang akan digunakan, misalnya jam absensi, jam pelajaran, tarif, dan komponen nilai. | Coba satu alur pada data contoh sebelum dipakai satu sekolah. |
+| Tahap         | Yang dikerjakan                                                                                                   | Cara memeriksa hasil                                                    |
+| ------------- | ----------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| Identitas     | Di **Pengaturan sekolah**, isi identitas, NPSN, jenjang, dan logo unit.                                           | Cocokkan nama dan jenjang dengan unit yang sedang dikelola.             |
+| Periode       | Siapkan **Tahun ajaran**, semester, dan hari libur pada **Kalender**.                                             | Pastikan label semester menyebut tahun ajaran yang dimaksud.            |
+| Data belajar  | Isi **Guru**, **Kelas**, dan **Mata pelajaran**. Tetapkan wali kelas dan pengampu.                                | Buka satu kelas dan cocokkan guru serta mapelnya.                       |
+| Peserta didik | Tambah siswa atau impor melalui **Siswa**. Tempatkan siswa di kelas dan hubungkan data wali.                      | Cari satu siswa hasil input atau impor, lalu periksa kelas dan walinya. |
+| Akses         | Undang staf melalui **Anggota**, tinjau **Peran**, lalu kelola undangan keluarga melalui **Akun portal**.         | Periksa status undangan atau akun dan pastikan unitnya benar.           |
+| Modul         | Siapkan aturan untuk layanan yang akan digunakan, misalnya jam absensi, jam pelajaran, tarif, dan komponen nilai. | Coba satu alur pada data contoh sebelum dipakai satu sekolah.           |
 
 **Contoh hari pertama.** Untuk memulai absensi kelas VII A, admin menyiapkan kelas dan daftar siswanya, petugas menautkan kartu jika memakai RFID, lalu guru memeriksa apakah nama siswa muncul di kelas tersebut. Setelah satu kedatangan dicatat, cocokkan nama, tanggal, dan waktu di rekap.
 
@@ -57,13 +57,13 @@ Siapkan jam pelajaran beserta waktu mulai dan selesai. Di **Jadwal pelajaran**, 
 
 ## Layanan sekolah
 
-| Pekerjaan | Alur dari awal sampai pemeriksaan hasil |
-| --- | --- |
-| Penerimaan murid | Panitia menyiapkan **Periode SPMB**, jalur, dan dokumen. Calon murid membuka `/apply` pada alamat sekolah. Panitia memeriksa pendaftar di **SPMB**, memverifikasi berkas, lalu memproses seleksi dan daftar ulang. |
-| Pembayaran siswa | Bendahara menyiapkan **Jenis biaya & tarif** dan menentukan penerimanya. Periksa **Tagihan** siswa sebelum menerima pembayaran di **Kasir**. Cocokkan struk dan **Laporan keuangan**. Untuk pembayaran daring, telusuri **Transaksi online** sebelum meminta wali membayar kembali. |
-| Praktik kerja lapangan | Pengelola menyiapkan **Mitra industri**, periode, dan aspek penilaian. Di **PKL**, atur penempatan dan pembimbing, pantau jurnal, lalu periksa penilaian serta laporan. Mitra menggunakan halaman `/pkl`. |
-| Persuratan | Siapkan **Templat surat** dan **Penandatangan**. Buat surat, periksa penerima, nomor, serta pejabat yang menandatangani. Penerima dapat memeriksa keaslian melalui tautan atau QR verifikasi pada dokumen. |
-| Komunikasi | Gunakan **Pengumuman** untuk informasi sekolah. Untuk pesan ke wali, periksa antrean dan log pada **Notifikasi WhatsApp**. Pengiriman nyata bergantung pada konfigurasi penyedia. |
+| Pekerjaan              | Alur dari awal sampai pemeriksaan hasil                                                                                                                                                                                                                                             |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Penerimaan murid       | Panitia menyiapkan **Periode SPMB**, jalur, dan dokumen. Calon murid membuka `/apply` pada alamat sekolah. Panitia memeriksa pendaftar di **SPMB**, memverifikasi berkas, lalu memproses seleksi dan daftar ulang.                                                                  |
+| Pembayaran siswa       | Bendahara menyiapkan **Jenis biaya & tarif** dan menentukan penerimanya. Periksa **Tagihan** siswa sebelum menerima pembayaran di **Kasir**. Cocokkan struk dan **Laporan keuangan**. Untuk pembayaran daring, telusuri **Transaksi online** sebelum meminta wali membayar kembali. |
+| Praktik kerja lapangan | Pengelola menyiapkan **Mitra industri**, periode, dan aspek penilaian. Di **PKL**, atur penempatan dan pembimbing, pantau jurnal, lalu periksa penilaian serta laporan. Mitra menggunakan halaman `/pkl`.                                                                           |
+| Persuratan             | Siapkan **Templat surat** dan **Penandatangan**. Buat surat, periksa penerima, nomor, serta pejabat yang menandatangani. Penerima dapat memeriksa keaslian melalui tautan atau QR verifikasi pada dokumen.                                                                          |
+| Komunikasi             | Gunakan **Pengumuman** untuk informasi sekolah. Untuk pesan ke wali, periksa antrean dan log pada **Notifikasi WhatsApp**. Pengiriman nyata bergantung pada konfigurasi penyedia.                                                                                                   |
 
 ## Portal wali dan siswa
 
@@ -71,14 +71,14 @@ Buka alamat sekolah dan masuk ke **Portal**. Wali memilih anak yang hendak diper
 
 ## Bantuan berdasarkan gejala
 
-| Yang terlihat | Yang dapat dilakukan |
-| --- | --- |
-| Lupa kata sandi | Gunakan **Lupa kata sandi** dan ikuti metode pemulihan yang ditampilkan. Jika akses ke kontak pemulihan hilang, gunakan bantuan sandi atau laporkan ke admin sekolah. Admin meninjau **Permintaan reset sandi**. |
-| Menu rekan kerja berbeda | Pastikan unit sama. Minta admin memeriksa peran pada **Anggota**, izin pada **Peran**, dan modul yang aktif. Beberapa menu juga mengikuti jenjang sekolah. |
-| Daftar siswa atau nilai kosong | Periksa unit, tahun ajaran, semester, kelas, dan mapel. Admin dapat memeriksa penempatan siswa serta pengampu. |
-| Absensi belum terlihat | Periksa antrean di perangkat pencatat dan sambungan jaringan. Setelah sinkron, cocokkan rekap dengan tanggal kejadian. Bila catatan ditolak, periksa pesan serta aturan hari libur. |
-| Wali tidak melihat anaknya | Periksa tujuan sekolah dan akun yang menerima undangan. Minta admin mencocokkan hubungan wali dengan siswa serta status akun portal. |
-| Unit menampilkan layar penangguhan | Pemilik lembaga memeriksa status unit dan langganan. Admin dapat meneruskan alasan yang tampil kepada pengelola lembaga. |
+| Yang terlihat                      | Yang dapat dilakukan                                                                                                                                                                                             |
+| ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Lupa kata sandi                    | Gunakan **Lupa kata sandi** dan ikuti metode pemulihan yang ditampilkan. Jika akses ke kontak pemulihan hilang, gunakan bantuan sandi atau laporkan ke admin sekolah. Admin meninjau **Permintaan reset sandi**. |
+| Menu rekan kerja berbeda           | Pastikan unit sama. Minta admin memeriksa peran pada **Anggota**, izin pada **Peran**, dan modul yang aktif. Beberapa menu juga mengikuti jenjang sekolah.                                                       |
+| Daftar siswa atau nilai kosong     | Periksa unit, tahun ajaran, semester, kelas, dan mapel. Admin dapat memeriksa penempatan siswa serta pengampu.                                                                                                   |
+| Absensi belum terlihat             | Periksa antrean di perangkat pencatat dan sambungan jaringan. Setelah sinkron, cocokkan rekap dengan tanggal kejadian. Bila catatan ditolak, periksa pesan serta aturan hari libur.                              |
+| Wali tidak melihat anaknya         | Periksa tujuan sekolah dan akun yang menerima undangan. Minta admin mencocokkan hubungan wali dengan siswa serta status akun portal.                                                                             |
+| Unit menampilkan layar penangguhan | Pemilik lembaga memeriksa status unit dan langganan. Admin dapat meneruskan alasan yang tampil kepada pengelola lembaga.                                                                                         |
 
 Jika perlu bantuan tim platform, admin sekolah dapat membuka **Laporan**. Sertakan nama menu, unit, waktu kejadian, langkah terakhir, pesan yang tampil, dan hasil yang diharapkan. Tutupi NIK, kontak pribadi, serta informasi siswa lain pada tangkapan layar.
 
@@ -102,14 +102,14 @@ Seed menyediakan data contoh lokal. Untuk sesi berikutnya, nyalakan Docker, cek 
 
 Contohnya, ketika guru menyimpan kehadiran manual, web mengirim catatan ke `/v1/gate/manual` dengan sesi pengguna dan header `x-school-id`. Jika koneksi terputus, layar manual dapat menyimpan catatan untuk dikirim ulang. Di sisi server, keanggotaan menentukan sekolah yang dapat diakses, sedangkan izin dan status modul menentukan operasi yang tersedia. Saat membaca rekap, periksa konteks sekolah dan tanggal yang sama dengan pencatatan.
 
-| Komponen | Tanggung jawab dan titik masuk |
-| --- | --- |
-| Web Next.js | Menu, konteks sekolah, dan penyaringan navigasi di [app shell](../apps/web/src/components/app-shell.tsx). Permintaan memakai [klien bertipe OpenAPI](../apps/web/src/lib/api.ts). |
-| API Fastify | [Bootstrap API](../apps/api/src/app.ts) mendaftarkan layanan dan rute. [Pemeriksaan akses](../apps/api/src/identity/guards.ts) memvalidasi sesi, keanggotaan, izin, dan modul. |
-| PostgreSQL dan Drizzle | [Klien database](../packages/db/src/client.ts) mengikat transaksi pada sekolah melalui `withTenant`. Kebijakan akses per baris membaca konteks tersebut. Pool untuk operasi platform memiliki cakupan berbeda. |
-| Kontrak bersama | [Paket contracts](../packages/contracts) menyimpan definisi bersama, termasuk aturan domain yang diperlukan beberapa komponen. Setelah mengubah kontrak HTTP, perbarui tipe klien dengan `pnpm --filter @edusync/web gen:api`. |
-| Pekerjaan latar belakang | [Worker](../apps/worker) memproses pekerjaan melalui antrean PostgreSQL. Saat menyelidiki pengiriman pesan, periksa konfigurasi penyedia dan log worker selain respons API. |
-| Langganan dan pekerjaan terjadwal | [Billing](../packages/billing) memuat logika langganan platform. [Jobs](../packages/jobs) memuat kode antrean bersama. |
+| Komponen                          | Tanggung jawab dan titik masuk                                                                                                                                                                                                 |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Web Next.js                       | Menu, konteks sekolah, dan penyaringan navigasi di [app shell](../apps/web/src/components/app-shell.tsx). Permintaan memakai [klien bertipe OpenAPI](../apps/web/src/lib/api.ts).                                              |
+| API Fastify                       | [Bootstrap API](../apps/api/src/app.ts) mendaftarkan layanan dan rute. [Pemeriksaan akses](../apps/api/src/identity/guards.ts) memvalidasi sesi, keanggotaan, izin, dan modul.                                                 |
+| PostgreSQL dan Drizzle            | [Klien database](../packages/db/src/client.ts) mengikat transaksi pada sekolah melalui `withTenant`. Kebijakan akses per baris membaca konteks tersebut. Pool untuk operasi platform memiliki cakupan berbeda.                 |
+| Kontrak bersama                   | [Paket contracts](../packages/contracts) menyimpan definisi bersama, termasuk aturan domain yang diperlukan beberapa komponen. Setelah mengubah kontrak HTTP, perbarui tipe klien dengan `pnpm --filter @edusync/web gen:api`. |
+| Pekerjaan latar belakang          | [Worker](../apps/worker) memproses pekerjaan melalui antrean PostgreSQL. Saat menyelidiki pengiriman pesan, periksa konfigurasi penyedia dan log worker selain respons API.                                                    |
+| Langganan dan pekerjaan terjadwal | [Billing](../packages/billing) memuat logika langganan platform. [Jobs](../packages/jobs) memuat kode antrean bersama.                                                                                                         |
 
 ### Memeriksa perubahan
 
