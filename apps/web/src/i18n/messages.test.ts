@@ -1,3 +1,4 @@
+import { createTranslator } from 'next-intl';
 import { describe, expect, it } from 'vitest';
 import en from '../../messages/en.json';
 import id from '../../messages/id.json';
@@ -83,4 +84,26 @@ describe('pemilihan bahasa', () => {
     expect(matchAcceptLanguage(null)).toBeNull();
     expect(defaultLocale).toBe('id');
   });
+});
+
+describe('sintaks pesan ICU', () => {
+  // Kurung kurawal ganda ({{nama}}) bukan sintaks ICU: harus dikutip ('{{nama}}'), kalau tidak galat INVALID_MESSAGE saat dipakai.
+  for (const [locale, messages] of [
+    ['id', id],
+    ['en', en],
+    ['su', su],
+  ] as const) {
+    it(`${locale}: semua pesan dapat diurai`, () => {
+      const bad: string[] = [];
+      const t = createTranslator({
+        locale,
+        messages: messages as never,
+        onError: (e) => {
+          if (e.code === 'INVALID_MESSAGE') bad.push(e.message);
+        },
+      }) as unknown as (key: string) => string;
+      for (const key of Object.keys(catalogs[locale])) t(key);
+      expect(bad).toEqual([]);
+    });
+  }
 });

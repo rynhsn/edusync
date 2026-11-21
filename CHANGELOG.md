@@ -79,6 +79,10 @@ Cara merilis: tulis bagian baru di bawah "Belum dirilis" lalu ganti judulnya men
   atau "Nomor Induk Siswa" tetap diterima. Templat dan kartu yang sudah tersimpan di sekolah tidak berubah; hanya
   bawaan baru yang memakai istilah baru. Bahasa Inggris dan Sunda tidak diubah.
 
+### Diperbaiki
+
+- Halaman Templat surat menampilkan galat `INVALID_MESSAGE: MALFORMED_ARGUMENT`: teks bantuan memuat `{{nama}}` yang bukan sintaks pesan ICU. Kini dikutip (`'{{nama}}'`) di tiga bahasa, dan tes baru memastikan semua pesan terjemahan dapat diurai.
+
 ## [0.6.6] - 2026-11-16
 
 ### Diperbaiki
