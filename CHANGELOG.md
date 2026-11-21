@@ -18,6 +18,14 @@ Cara merilis: tulis bagian baru di bawah "Belum dirilis" lalu ganti judulnya men
 
 ### Ditambahkan
 
+- **Perencanaan pembelajaran (opsional, tahap 3.6.1)**: tab Perencanaan di Perangkat ajar saya untuk menyusun tujuan, langkah, dan
+  asesmen per mata pelajaran dan tahun ajaran (boleh khusus satu semester atau tingkat), dengan tautan https ke berkas
+  pendukung dan maksimal 20 TP terkait. Mati bawaan: admin sekolah atau kurikulum menyalakannya per sekolah lewat sakelar baru
+  (`GET/PUT /v1/learning-plan/settings`, izin `curriculum:manage`; baris tidak ada = semua mati). Endpoint baru
+  `/v1/learning-plans` (modul `grades`; baca `subject:read`, tulis `teaching_plan:write` dan pengampu mapel) menjawab 403
+  `feature_disabled` selama sakelar mati. Sekolah yang tidak menyalakannya tidak berubah; tidak memengaruhi nilai, rapor, atau
+  kenaikan, dan tidak disalin saat rollover. Tabel `learning_plan_setting` (sudah memuat sakelar jurnal dan penilaian proses untuk
+  tahap 3.6.2 dan 3.6.3), `learning_plan`, dan `learning_plan_objective`; migrasi 0122 (aditif).
 - **Ruang ujian (opsional)**: sekolah dapat mendaftar ruang (nama, kapasitas), menempatkan siswa per semester dan jenis ujian
   (pindah manual atau penempatan otomatis menurut kapasitas, dengan semua-atau-tidak-sama-sekali bila kapasitas kurang), dan
   mengosongkannya. Sekolah yang tidak memakai ruang tidak terpengaruh. Kolom `room` pada data kartu peserta ujian kini diisi dari

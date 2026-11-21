@@ -69905,6 +69905,776 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/learning-plan/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Sakelar fitur perencanaan, jurnal, dan penilaian proses
+         * @description Izin: `subject:read`. Tiga sakelar per sekolah; sekolah yang belum pernah mengaturnya mendapat semuanya `false` (baris tidak ada = mati). Dipakai web untuk menampilkan atau menyembunyikan menu dan bagian layar.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            planEnabled: boolean;
+                            journalEnabled: boolean;
+                            reviewEnabled: boolean;
+                            reviewMinPerSemester: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        /**
+         * Ubah sakelar fitur perencanaan, jurnal, dan penilaian proses
+         * @description Izin: `curriculum:manage`. Field yang dihilangkan tidak berubah (bawaan: semua mati, `reviewMinPerSemester` 1). `journalEnabled` dan `reviewEnabled` dipakai tahap berikutnya. Dicatat di audit (`learning_plan.settings_update`).
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        planEnabled?: boolean;
+                        journalEnabled?: boolean;
+                        reviewEnabled?: boolean;
+                        reviewMinPerSemester?: number;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            planEnabled: boolean;
+                            journalEnabled: boolean;
+                            reviewEnabled: boolean;
+                            reviewMinPerSemester: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/learning-plans": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Daftar perencanaan pembelajaran
+         * @description Izin: `subject:read`. Sakelar perencanaan harus hidup (403 `feature_disabled`); modul `grades`. Filter opsional `subjectId`, `academicYearId`, `semesterId`.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    subjectId?: string;
+                    academicYearId?: string;
+                    semesterId?: string;
+                };
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            plans: {
+                                /** Format: uuid */
+                                id: string;
+                                /** Format: uuid */
+                                subjectId: string;
+                                subjectCode: string;
+                                subjectName: string;
+                                /** Format: uuid */
+                                academicYearId: string;
+                                /**
+                                 * Format: uuid
+                                 * @description Kosong = setahun
+                                 */
+                                semesterId: string | null;
+                                semesterName: string | null;
+                                /** @description Kosong = semua tingkat */
+                                levelCode: string | null;
+                                /**
+                                 * Format: uuid
+                                 * @description Guru pemilik; kosong = milik sekolah
+                                 */
+                                teacherId: string | null;
+                                teacherName: string | null;
+                                title: string;
+                                goals: string;
+                                steps: string;
+                                assessmentPlan: string;
+                                linkUrl: string | null;
+                                objectives: {
+                                    /** Format: uuid */
+                                    id: string;
+                                    code: string | null;
+                                    description: string;
+                                    active: boolean;
+                                }[];
+                                updatedAt: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Buat perencanaan pembelajaran
+         * @description Izin: `teaching_plan:write`. Sakelar perencanaan harus hidup (403 `feature_disabled`); modul `grades`. Pemegang `curriculum:manage` boleh untuk semua mapel; guru hanya untuk mapel yang ia ampu pada tahun ajaran perencanaan (403 `not_subject_teacher`). Minimal tujuan, langkah, dan asesmen (masing-masing wajib, maks 8000 karakter); `linkUrl` opsional (https saja, 400 `invalid_link`). `semesterId` kosong = setahun (semester harus milik tahun ajaran: 400 `invalid_reference`); `levelCode` kosong = semua tingkat (400 `invalid_level`). `objectiveIds` opsional (maks 20, TP aktif milik mapel itu: 400 `objective_subject_mismatch`, `objective_inactive`, `too_many_objectives`). Pemilik = guru pembuat bila ia terdaftar sebagai guru, selain itu milik sekolah. Tidak disalin saat rollover tahun ajaran.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        subjectId: string;
+                        /** Format: uuid */
+                        academicYearId: string;
+                        title: string;
+                        goals: string;
+                        steps: string;
+                        assessmentPlan: string;
+                        linkUrl?: string | null;
+                        levelCode?: string | null;
+                        /** Format: uuid */
+                        semesterId?: string | null;
+                        objectiveIds?: string[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            subjectId: string;
+                            subjectCode: string;
+                            subjectName: string;
+                            /** Format: uuid */
+                            academicYearId: string;
+                            /**
+                             * Format: uuid
+                             * @description Kosong = setahun
+                             */
+                            semesterId: string | null;
+                            semesterName: string | null;
+                            /** @description Kosong = semua tingkat */
+                            levelCode: string | null;
+                            /**
+                             * Format: uuid
+                             * @description Guru pemilik; kosong = milik sekolah
+                             */
+                            teacherId: string | null;
+                            teacherName: string | null;
+                            title: string;
+                            goals: string;
+                            steps: string;
+                            assessmentPlan: string;
+                            linkUrl: string | null;
+                            objectives: {
+                                /** Format: uuid */
+                                id: string;
+                                code: string | null;
+                                description: string;
+                                active: boolean;
+                            }[];
+                            updatedAt: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/learning-plans/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Ubah perencanaan pembelajaran
+         * @description Izin: `teaching_plan:write`. Sakelar perencanaan harus hidup (403 `feature_disabled`); modul `grades`. Pemegang `curriculum:manage` boleh untuk semua mapel; guru hanya untuk mapel yang ia ampu pada tahun ajaran perencanaan (403 `not_subject_teacher`). Perencanaan boleh disunting bebas (tanpa versi atau penerbitan). Field yang dihilangkan tidak berubah; `semesterId`, `levelCode`, `linkUrl` null mengosongkan. Mapel dan tahun ajaran tidak bisa diubah. `objectiveIds` bila dikirim mengganti seluruh himpunan TP. Validasi seperti pada POST.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        title?: string;
+                        goals?: string;
+                        steps?: string;
+                        assessmentPlan?: string;
+                        linkUrl?: string | null;
+                        levelCode?: string | null;
+                        /** Format: uuid */
+                        semesterId?: string | null;
+                        objectiveIds?: string[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            subjectId: string;
+                            subjectCode: string;
+                            subjectName: string;
+                            /** Format: uuid */
+                            academicYearId: string;
+                            /**
+                             * Format: uuid
+                             * @description Kosong = setahun
+                             */
+                            semesterId: string | null;
+                            semesterName: string | null;
+                            /** @description Kosong = semua tingkat */
+                            levelCode: string | null;
+                            /**
+                             * Format: uuid
+                             * @description Guru pemilik; kosong = milik sekolah
+                             */
+                            teacherId: string | null;
+                            teacherName: string | null;
+                            title: string;
+                            goals: string;
+                            steps: string;
+                            assessmentPlan: string;
+                            linkUrl: string | null;
+                            objectives: {
+                                /** Format: uuid */
+                                id: string;
+                                code: string | null;
+                                description: string;
+                                active: boolean;
+                            }[];
+                            updatedAt: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        /**
+         * Hapus perencanaan pembelajaran
+         * @description Izin: `teaching_plan:write`. Sakelar perencanaan harus hidup (403 `feature_disabled`); modul `grades`. Pemegang `curriculum:manage` boleh untuk semua mapel; guru hanya untuk mapel yang ia ampu pada tahun ajaran perencanaan (403 `not_subject_teacher`). Relasi TP ikut terhapus.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: true;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/learning-plans/{id}/objectives": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Ganti himpunan TP perencanaan
+         * @description Izin: `teaching_plan:write`. Sakelar perencanaan harus hidup (403 `feature_disabled`); modul `grades`. Pemegang `curriculum:manage` boleh untuk semua mapel; guru hanya untuk mapel yang ia ampu pada tahun ajaran perencanaan (403 `not_subject_teacher`). Mengganti SELURUH himpunan TP (kosong = melepas semua). Maks 20; TP aktif milik mapel perencanaan (TP lama yang sudah terkait boleh tetap): 400 `objective_subject_mismatch`, `objective_inactive`, `too_many_objectives`, `invalid_reference`.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        objectiveIds: string[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            subjectId: string;
+                            subjectCode: string;
+                            subjectName: string;
+                            /** Format: uuid */
+                            academicYearId: string;
+                            /**
+                             * Format: uuid
+                             * @description Kosong = setahun
+                             */
+                            semesterId: string | null;
+                            semesterName: string | null;
+                            /** @description Kosong = semua tingkat */
+                            levelCode: string | null;
+                            /**
+                             * Format: uuid
+                             * @description Guru pemilik; kosong = milik sekolah
+                             */
+                            teacherId: string | null;
+                            teacherName: string | null;
+                            title: string;
+                            goals: string;
+                            steps: string;
+                            assessmentPlan: string;
+                            linkUrl: string | null;
+                            objectives: {
+                                /** Format: uuid */
+                                id: string;
+                                code: string | null;
+                                description: string;
+                                active: boolean;
+                            }[];
+                            updatedAt: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/achievement-criteria": {
         parameters: {
             query?: never;

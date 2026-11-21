@@ -14,6 +14,11 @@ import {
   createDb,
   foundation,
   guardian,
+  learningObjective,
+  learningOutcome,
+  learningPlan,
+  learningPlanObjective,
+  learningPlanSetting,
   msgAttachment,
   msgBatch,
   msgDirectTemplate,
@@ -1113,6 +1118,120 @@ describe('tabel tenant siaran pengumuman (migrasi 0117)', () => {
         await platform.db.delete(msgOptOut).where(eq(msgOptOut.schoolId, sid));
         await platform.db.delete(announcement).where(eq(announcement.schoolId, sid));
         await platform.db.delete(guardian).where(eq(guardian.schoolId, sid));
+      }
+    }
+  });
+});
+
+describe('tabel tenant perencanaan pembelajaran (tahap 3.6.1, migrasi 0122)', () => {
+  it('sakelar, perencanaan, dan relasi TP terisolasi; FK komposit, CHECK tautan, SET NULL guru, CASCADE', async () => {
+    const seed = async (sid: string, n: number) => {
+      const [year] = await platform.db.select().from(academicYear).where(eq(academicYear.schoolId, sid));
+      const [subj] = await platform.db
+        .insert(subject)
+        .values({ schoolId: sid, code: `RP${n}`, name: `Mapel ${n}` })
+        .returning();
+      const [tch] = await platform.db
+        .insert(teacher)
+        .values({ schoolId: sid, name: `Guru ${n}` })
+        .returning();
+      const [cp] = await platform.db
+        .insert(learningOutcome)
+        .values({ schoolId: sid, subjectId: subj!.id, phase: 'D', description: 'CP' })
+        .returning();
+      const [tp] = await platform.db
+        .insert(learningObjective)
+        .values({ schoolId: sid, outcomeId: cp!.id, description: 'TP' })
+        .returning();
+      await platform.db.insert(learningPlanSetting).values({ schoolId: sid, planEnabled: true });
+      const plan = (extra: Partial<typeof learningPlan.$inferInsert> = {}) => ({
+        schoolId: sid,
+        subjectId: subj!.id,
+        academicYearId: year!.id,
+        title: 'Rencana',
+        goals: 'g',
+        steps: 's',
+        assessmentPlan: 'a',
+        ...extra,
+      });
+      const [p] = await platform.db
+        .insert(learningPlan)
+        .values(plan({ teacherId: tch!.id }))
+        .returning();
+      await platform.db
+        .insert(learningPlanObjective)
+        .values({ schoolId: sid, planId: p!.id, objectiveId: tp!.id });
+      return { year: year!.id, subj: subj!.id, tch: tch!.id, tp: tp!.id, plan: p!.id, make: plan };
+    };
+    const a = await seed(schoolA1, 1);
+    const b = await seed(schoolB, 2);
+    try {
+      for (const t of [learningPlanSetting, learningPlan, learningPlanObjective] as const) {
+        const rows = await withTenant(app.db, [schoolA1], (tx) => tx.select().from(t));
+        expect(rows.map((r) => r.schoolId)).toEqual([schoolA1]);
+        expect(await app.db.select().from(t)).toHaveLength(0);
+      }
+      // Tulis lintas sekolah ditolak RLS.
+      await expect(
+        withTenant(app.db, [schoolA1], (tx) => tx.insert(learningPlan).values(b.make())),
+      ).rejects.toThrow();
+      await expect(
+        withTenant(app.db, [schoolA1], (tx) => tx.insert(learningPlanSetting).values({ schoolId: schoolB })),
+      ).rejects.toThrow();
+      // FK komposit: mapel, tahun ajaran, guru, dan TP sekolah B tidak boleh dipakai perencanaan sekolah A walau id valid.
+      await expect(
+        platform.db.insert(learningPlan).values({ ...a.make(), subjectId: b.subj }),
+      ).rejects.toThrow();
+      await expect(
+        platform.db.insert(learningPlan).values({ ...a.make(), academicYearId: b.year }),
+      ).rejects.toThrow();
+      await expect(
+        platform.db.insert(learningPlan).values({ ...a.make(), teacherId: b.tch }),
+      ).rejects.toThrow();
+      await expect(
+        platform.db
+          .insert(learningPlanObjective)
+          .values({ schoolId: schoolA1, planId: a.plan, objectiveId: b.tp }),
+      ).rejects.toThrow();
+      // CHECK: tautan hanya https, teks maksimal 8000, review_min 1..4.
+      await expect(
+        platform.db.insert(learningPlan).values(a.make({ linkUrl: 'http://x.example.com' })),
+      ).rejects.toThrow();
+      await expect(
+        platform.db.insert(learningPlan).values(a.make({ goals: 'x'.repeat(8001) })),
+      ).rejects.toThrow();
+      await expect(
+        platform.db
+          .update(learningPlanSetting)
+          .set({ reviewMinPerSemester: 5 })
+          .where(eq(learningPlanSetting.schoolId, schoolA1)),
+      ).rejects.toThrow();
+      // Guru dihapus: perencanaan tetap, hanya teacher_id yang dikosongkan.
+      await platform.db.delete(teacher).where(eq(teacher.id, a.tch));
+      const [kept] = await platform.db.select().from(learningPlan).where(eq(learningPlan.id, a.plan));
+      expect(kept).toMatchObject({ schoolId: schoolA1, teacherId: null });
+      // Hapus perencanaan: relasi TP ikut terhapus; hapus tahun ajaran: perencanaan ikut terhapus.
+      await platform.db.delete(learningPlan).where(eq(learningPlan.id, a.plan));
+      expect(
+        await platform.db
+          .select()
+          .from(learningPlanObjective)
+          .where(eq(learningPlanObjective.schoolId, schoolA1)),
+      ).toHaveLength(0);
+      await platform.db.insert(learningPlan).values(a.make());
+      await platform.db.delete(academicYear).where(eq(academicYear.id, a.year));
+      expect(
+        await platform.db.select().from(learningPlan).where(eq(learningPlan.schoolId, schoolA1)),
+      ).toHaveLength(0);
+    } finally {
+      for (const sid of [schoolA1, schoolB]) {
+        await platform.db.delete(learningPlanObjective).where(eq(learningPlanObjective.schoolId, sid));
+        await platform.db.delete(learningPlan).where(eq(learningPlan.schoolId, sid));
+        await platform.db.delete(learningPlanSetting).where(eq(learningPlanSetting.schoolId, sid));
+        await platform.db.delete(learningObjective).where(eq(learningObjective.schoolId, sid));
+        await platform.db.delete(learningOutcome).where(eq(learningOutcome.schoolId, sid));
+        await platform.db.delete(teacher).where(eq(teacher.schoolId, sid));
+        await platform.db.delete(subject).where(eq(subject.schoolId, sid));
       }
     }
   });

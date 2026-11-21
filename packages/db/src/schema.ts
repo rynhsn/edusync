@@ -4819,3 +4819,70 @@ export const passwordResetLink = pgTable(
   },
   (t) => [index('password_reset_link_school_idx').on(t.schoolId, t.userId)],
 );
+
+/**
+ * Sakelar fitur 3.6 per sekolah (sparse: baris tidak ada = semua mati). `journal_enabled` dan `review_enabled` dipakai tahap
+ * 3.6.2 dan 3.6.3. CHECK `review_min_per_semester` 1..4 ada di SQL tangan 0122.
+ */
+export const learningPlanSetting = pgTable('learning_plan_setting', {
+  schoolId: uuid('school_id')
+    .primaryKey()
+    .references(() => school.id),
+  planEnabled: boolean('plan_enabled').notNull().default(false),
+  journalEnabled: boolean('journal_enabled').notNull().default(false),
+  reviewEnabled: boolean('review_enabled').notNull().default(false),
+  reviewMinPerSemester: smallint('review_min_per_semester').notNull().default(1),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+/**
+ * Perencanaan pembelajaran (tahap 3.6.1): tujuan, langkah, asesmen, dan tautan berkas https opsional. Boleh disunting bebas
+ * (tanpa versi). FK komposit (mapel, tahun, semester, guru), CHECK panjang/tautan ada di SQL tangan 0122.
+ */
+export const learningPlan = pgTable(
+  'learning_plan',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    subjectId: uuid('subject_id')
+      .notNull()
+      .references(() => subject.id),
+    academicYearId: uuid('academic_year_id')
+      .notNull()
+      .references(() => academicYear.id),
+    /** NULL = setahun. */
+    semesterId: uuid('semester_id').references(() => semester.id),
+    /** NULL = semua tingkat. */
+    levelCode: text('level_code'),
+    /** Pemilik (guru); NULL = milik sekolah. */
+    teacherId: uuid('teacher_id').references(() => teacher.id),
+    title: text('title').notNull(),
+    goals: text('goals').notNull(),
+    steps: text('steps').notNull(),
+    assessmentPlan: text('assessment_plan').notNull(),
+    linkUrl: text('link_url'),
+    createdBy: text('created_by'),
+    createdAt: createdAt(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index('learning_plan_subject_idx').on(t.schoolId, t.subjectId, t.academicYearId)],
+);
+
+/** Relasi perencanaan - TP (ternormalisasi). Plan CASCADE, TP NO ACTION; FK komposit di SQL tangan 0122. */
+export const learningPlanObjective = pgTable(
+  'learning_plan_objective',
+  {
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    planId: uuid('plan_id')
+      .notNull()
+      .references(() => learningPlan.id),
+    objectiveId: uuid('objective_id')
+      .notNull()
+      .references(() => learningObjective.id),
+  },
+  (t) => [primaryKey({ columns: [t.planId, t.objectiveId], name: 'learning_plan_objective_pk' })],
+);

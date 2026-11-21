@@ -62,7 +62,7 @@ async function requireSubject(tx: Tx, id: string) {
  * termasuk, karena rollover menyalin penugasan ke tahun baru sebelum diaktifkan). Untuk ATP (`academicYearId` diberikan)
  * penugasan harus di kelas tahun ajaran ATP itu.
  */
-async function assertCanWrite(tx: Tx, ctx: TenantContext, subjectId: string, academicYearId?: string) {
+export async function assertCanWrite(tx: Tx, ctx: TenantContext, subjectId: string, academicYearId?: string) {
   if (ctx.permissions.has('curriculum:manage')) return;
   const conditions = [
     eq(teacher.memberId, ctx.memberId),
@@ -430,7 +430,7 @@ async function replaceItems(tx: Tx, ctx: TenantContext, flowId: string, items: I
   );
 }
 
-async function requireLevel(tx: Tx, levelCode: string | null | undefined) {
+export async function requireLevel(tx: Tx, levelCode: string | null | undefined) {
   if (!levelCode) return;
   const [row] = await tx
     .select({ code: schoolLevel.code })

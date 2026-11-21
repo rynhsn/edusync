@@ -4,6 +4,7 @@ import {
   gradeFromLevelCode,
   isPhase,
   isValidFlowQuantity,
+  isValidPlanLink,
   MAX_FLOW_ITEMS,
   PHASES,
   phaseForGrade,
@@ -63,5 +64,22 @@ describe('isi ATP', () => {
   it('memvalidasi jumlah minggu dan JP', () => {
     for (const ok of [null, undefined, 0, 4, 9999]) expect(isValidFlowQuantity(ok)).toBe(true);
     for (const bad of [-1, 2.5, 10_000]) expect(isValidFlowQuantity(bad)).toBe(false);
+  });
+});
+
+describe('tautan perencanaan', () => {
+  it('hanya menerima https tanpa spasi dan maksimal 500 karakter', () => {
+    expect(isValidPlanLink('https://drive.example.com/folder/abc?x=1')).toBe(true);
+    for (const bad of [
+      'http://a.com',
+      'javascript:alert(1)',
+      'https://a b.com',
+      'https://',
+      'ftp://a.com',
+      '',
+    ]) {
+      expect(isValidPlanLink(bad)).toBe(false);
+    }
+    expect(isValidPlanLink(`https://a.com/${'x'.repeat(500)}`)).toBe(false);
   });
 });

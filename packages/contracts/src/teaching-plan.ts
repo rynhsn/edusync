@@ -67,3 +67,13 @@ export function checkFlowItems(items: readonly FlowItemLike[]): FlowItemsProblem
 export function isValidFlowQuantity(value: number | null | undefined): boolean {
   return value === null || value === undefined || (Number.isInteger(value) && value >= 0 && value <= 9999);
 }
+
+/** Perencanaan pembelajaran (tahap 3.6.1): panjang tiap kolom teks, jumlah TP, dan panjang tautan. */
+export const MAX_PLAN_TEXT = 8000;
+export const MAX_PLAN_OBJECTIVES = 20;
+export const MAX_PLAN_LINK = 500;
+
+/** Tautan berkas perencanaan: hanya https (tanpa spasi, maksimal 500 karakter), karena belum ada penyimpanan berkas sekolah. */
+export function isValidPlanLink(value: string): boolean {
+  return value.length <= MAX_PLAN_LINK && /^https:\/\/[^\s/?#]+[^\s]*$/.test(value);
+}

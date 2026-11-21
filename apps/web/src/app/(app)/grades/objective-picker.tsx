@@ -34,8 +34,8 @@ interface Props {
   linked: readonly ObjectiveLite[];
   /** Komponen penilaian formatif: TP hanya menjadi kemajuan, tidak menentukan ketercapaian untuk rapor. */
   feedback: boolean;
-  /** `support` = dipakai di sesi pendampingan (teks tidak menyebut penilaian). Bawaan `assessment`. */
-  variant?: 'assessment' | 'support';
+  /** `support` = sesi pendampingan, `plan` = perencanaan pembelajaran (teks tidak menyebut penilaian). Bawaan `assessment`. */
+  variant?: 'assessment' | 'support' | 'plan';
 }
 
 /**
@@ -50,7 +50,8 @@ export function ObjectivePicker({
   feedback,
   variant = 'assessment',
 }: Props) {
-  const support = variant === 'support';
+  const support = variant !== 'assessment';
+  const prefix = variant === 'plan' ? 'planObj' : 'rmObj';
   const t = useTranslations('grades');
   const te = useTranslations();
   const { school } = useSchool();
@@ -110,12 +111,12 @@ export function ObjectivePicker({
   return (
     <div className="grid content-start gap-2 rounded-xl border p-3">
       <div className="flex flex-wrap items-baseline justify-between gap-x-3">
-        <span className="text-sm font-medium">{t(support ? 'rmObjLabel' : 'objPickerLabel')}</span>
+        <span className="text-sm font-medium">{t(support ? `${prefix}Label` : 'objPickerLabel')}</span>
         <span className="text-muted-foreground text-xs tabular-nums" aria-live="polite">
           {t('objPickerCount', { count: value.length, max: MAX_OBJECTIVES_PER_ASSESSMENT })}
         </span>
       </div>
-      <p className="text-muted-foreground text-xs">{t(support ? 'rmObjHint' : 'objPickerHint')}</p>
+      <p className="text-muted-foreground text-xs">{t(support ? `${prefix}Hint` : 'objPickerHint')}</p>
       {feedback && (
         <p className={cn('rounded-lg px-2.5 py-1.5 text-xs', TONES.slate.soft)}>
           {t('objPickerFeedbackNote')}
@@ -155,7 +156,9 @@ export function ObjectivePicker({
         </ul>
       )}
       {picked.some((o) => !o.active) && (
-        <p className="text-muted-foreground text-xs">{t(support ? 'rmObjOldNote' : 'objPickerOldNote')}</p>
+        <p className="text-muted-foreground text-xs">
+          {t(support ? `${prefix}OldNote` : 'objPickerOldNote')}
+        </p>
       )}
 
       {loading && <Skeleton className="h-11 rounded-lg" aria-busy />}
@@ -211,7 +214,7 @@ export function ObjectivePicker({
               />
               {(limitHit || atLimit) && (
                 <p role="status" className="text-xs text-amber-800 dark:text-amber-300">
-                  {t(support ? 'rmObjLimit' : 'objPickerLimit', { max: MAX_OBJECTIVES_PER_ASSESSMENT })}
+                  {t(support ? `${prefix}Limit` : 'objPickerLimit', { max: MAX_OBJECTIVES_PER_ASSESSMENT })}
                 </p>
               )}
               <div className="max-h-64 overflow-y-auto overscroll-contain rounded-lg border">

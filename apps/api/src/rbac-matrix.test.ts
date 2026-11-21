@@ -341,7 +341,13 @@ describe.each(roleKeys)('matriks izin: peran %s', (role) => {
         }
       })();
       const denied = res.statusCode === 403 && code === 'forbidden';
-      if (allowed && (res.statusCode === 401 || res.statusCode === 403 || res.statusCode >= 500)) {
+      // `feature_disabled` = sakelar fitur sekolah (tahap 3.6) mati: izinnya lolos, fiturnya yang belum dinyalakan.
+      const featureOff = res.statusCode === 403 && code === 'feature_disabled';
+      if (
+        allowed &&
+        !featureOff &&
+        (res.statusCode === 401 || res.statusCode === 403 || res.statusCode >= 500)
+      ) {
         bad.push(`DITOLAK padahal berhak: ${ep.method} ${ep.url} -> ${res.statusCode} ${code}`);
       }
       if (!allowed && !denied) {

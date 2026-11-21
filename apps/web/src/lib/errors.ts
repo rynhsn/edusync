@@ -222,6 +222,8 @@ const KNOWN = [
   'invalid_twin_classes',
   'twin_class_no_takers',
   'twin_blocked',
+  'feature_disabled',
+  'invalid_link',
   'meeting_final',
   'meeting_not_final',
   'graduation_final',

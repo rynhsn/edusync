@@ -1,7 +1,7 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { BookOpen, GitBranch, NotebookPen, ShieldCheck, Target } from 'lucide-react';
+import { BookOpen, ClipboardList, GitBranch, NotebookPen, ShieldCheck, Target } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { useSchool } from '@/components/app-shell';
@@ -17,11 +17,12 @@ import { errorKey } from '@/lib/errors';
 import { cn } from '@/lib/utils';
 import { FlowsPanel } from './flows-panel';
 import { OutcomesPanel } from './outcomes-panel';
+import { usePlanSettings } from './plan-settings';
+import { PlansPanel } from './plans-panel';
 
-const TABS = ['outcomes', 'flows'] as const;
-type Tab = (typeof TABS)[number];
-const TAB_ICONS = { outcomes: Target, flows: GitBranch } as const;
-const TAB_LABEL = { outcomes: 'tabOutcomes', flows: 'tabFlows' } as const;
+type Tab = 'outcomes' | 'flows' | 'plans';
+const TAB_ICONS = { outcomes: Target, flows: GitBranch, plans: ClipboardList } as const;
+const TAB_LABEL = { outcomes: 'tabOutcomes', flows: 'tabFlows', plans: 'tabPlans' } as const;
 
 /**
  * Perangkat ajar saya: capaian dan tujuan pembelajaran (CP/TP) serta alur tujuan pembelajaran (ATP) per mapel.
@@ -36,7 +37,12 @@ export function TeachingPlanView() {
   const canWrite = can('teaching_plan:write');
   const manager = can('curriculum:manage');
 
-  const [tab, setTab] = useState<Tab>('outcomes');
+  const planSettings = usePlanSettings();
+  // Tab perencanaan hanya muncul bila sekolah menyalakannya; pengelola kurikulum melihatnya untuk menyalakan sakelar.
+  const TABS: Tab[] =
+    planSettings.data?.planEnabled || manager ? ['outcomes', 'flows', 'plans'] : ['outcomes', 'flows'];
+  const [tabChoice, setTab] = useState<Tab>('outcomes');
+  const tab = TABS.includes(tabChoice) ? tabChoice : 'outcomes';
   const [subjectChoice, setSubjectChoice] = useState('');
 
   const subjects = useQuery({
@@ -157,6 +163,14 @@ export function TeachingPlanView() {
             className="grid gap-4"
           >
             {tab === 'outcomes' && <OutcomesPanel subjectId={subjectId} canWrite={canWrite} />}
+            {tab === 'plans' && (
+              <PlansPanel
+                key={subjectId}
+                subjectId={subjectId}
+                subjectName={`${subject.code} - ${subject.name}`}
+                canWrite={canWrite}
+              />
+            )}
             {tab === 'flows' && (
               <FlowsPanel
                 key={subjectId}

@@ -1953,6 +1953,20 @@ export const ACADEMIC_DOCS: DocArticle[] = [
             href: '/teaching-plan',
           },
           {
+            heading: 'Perencanaan pembelajaran (opsional)',
+            body: 'Perencanaan pembelajaran adalah catatan rencana mengajar yang sederhana: tujuan, langkah, dan asesmen, dengan tautan berkas pendukung bila ada. Fitur ini mati bawaan. Admin sekolah atau kurikulum menyalakannya per sekolah lewat tab Perencanaan; selama belum dinyalakan, tab itu tidak tampil bagi guru dan tidak ada yang berubah di sekolah Anda. Perencanaan dibuat per mata pelajaran dan tahun ajaran, boleh khusus satu semester atau satu tingkat, dan boleh dikaitkan ke maksimal 20 TP aktif mata pelajaran itu. Perencanaan boleh disunting kapan saja (tanpa versi atau penerbitan), tidak memengaruhi nilai, rapor, atau kenaikan kelas, dan tidak disalin otomatis saat pergantian tahun ajaran.',
+            steps: [
+              'Admin sekolah atau kurikulum: buka Perangkat ajar saya, tab Perencanaan, lalu centang Nyalakan perencanaan pembelajaran.',
+              'Guru: pilih mata pelajaran, buka tab Perencanaan, lalu klik Buat perencanaan.',
+              'Isi judul, tujuan, langkah pembelajaran, dan asesmen. Pilih semester dan tingkat bila perlu, serta TP yang dicakup.',
+              'Tempel tautan https ke berkas pendukung bila ada, lalu klik Buat.',
+            ],
+            href: '/teaching-plan',
+            tip: 'Berkas tidak diunggah ke sistem. Cukup tempel tautan https, misalnya folder berbagi milik sekolah.',
+            warning:
+              'Guru hanya bisa membuat dan mengubah perencanaan untuk mata pelajaran yang ia ampu pada tahun ajaran itu; admin sekolah dan kurikulum bisa untuk semua. Mematikan sakelar hanya menyembunyikan fitur, data tetap tersimpan.',
+          },
+          {
             heading: 'Menerbitkan dan membuat versi baru',
             body: 'Bila ATP sudah siap, klik Terbitkan lalu konfirmasi. ATP yang terbit terkunci dan hanya bisa dilihat. Untuk merevisinya, klik Buat versi baru: isinya disalin menjadi draf versi berikutnya, sedangkan versi yang terbit tetap utuh. Draf yang belum terbit bisa dihapus.',
             tip: 'Saat pergantian tahun ajaran, pilih Salin perangkat ajar di langkah menyalin data pada menu Kenaikan kelas. ATP yang terbit disalin sebagai draf ke tahun baru untuk Anda periksa dan terbitkan lagi.',
@@ -2043,6 +2057,20 @@ export const ACADEMIC_DOCS: DocArticle[] = [
             href: '/teaching-plan',
           },
           {
+            heading: 'Lesson planning (optional)',
+            body: 'Lesson planning is a simple record of how you plan to teach: goals, steps, and assessment, with a link to supporting files if you have any. It is off by default. The school admin or curriculum lead turns it on per school in the Lesson plans tab; until then the tab is hidden from teachers and nothing changes at your school. A plan belongs to a subject and an academic year, can be limited to one semester or one level, and can be linked to at most 20 active TP of that subject. Plans can be edited at any time (no versions or publishing), do not affect grades, report cards, or promotion, and are not copied automatically when the academic year rolls over.',
+            steps: [
+              'School admin or curriculum lead: open My teaching materials, the Lesson plans tab, then tick Turn on lesson planning.',
+              'Teacher: pick a subject, open the Lesson plans tab, then click New lesson plan.',
+              'Fill in the title, goals, learning steps, and assessment. Pick a semester and level if needed, and the TP covered.',
+              'Paste an https link to supporting files if you have one, then click Create.',
+            ],
+            href: '/teaching-plan',
+            tip: 'Files are not uploaded to the system. Just paste an https link, such as the shared folder of the school.',
+            warning:
+              'A teacher can only create and edit plans for subjects they teach in that academic year; school admins and curriculum leads can do so for all. Turning the switch off only hides the feature; the data is kept.',
+          },
+          {
             heading: 'Publishing and creating a new version',
             body: 'When the ATP is ready, click Publish and confirm. A published ATP is locked and read-only. To revise it, click Create new version: its contents are copied into a draft of the next version while the published version stays intact. A draft that has not been published can be deleted.',
             tip: 'At the change of school year, tick Copy teaching materials in the copy step of the Promotion menu. Published ATP are copied to the new year as drafts for you to review and publish again.',
@@ -2131,6 +2159,20 @@ export const ACADEMIC_DOCS: DocArticle[] = [
               'Klik Simpen konsép. Parobahan nu acan disimpen ditandaan handapeun tabel.',
             ],
             href: '/teaching-plan',
+          },
+          {
+            heading: 'Rencana pangajaran (opsional)',
+            body: 'Rencana pangajaran téh catetan sederhana ngeunaan cara ngajar: tujuan, léngkah, jeung asesmen, kalawan tautan berkas pangrojong upami aya. Fitur ieu pareum sacara baku. Admin sakola atawa kurikulum ngaktipkeunana per sakola lewat tab Rencana pangajaran; salami can diaktipkeun, tab éta henteu témbong ka guru jeung teu aya nu robah di sakola Anjeun. Rencana dijieun per mata pelajaran jeung taun ajaran, bisa husus hiji semester atawa hiji tingkat, jeung bisa dikaitkeun ka paling loba 20 TP aktip mata pelajaran éta. Rencana bisa dirobah iraha waé (tanpa vérsi atawa nerbitkeun), teu mangaruhan nilai, rapor, atawa kenaikan kelas, jeung henteu disalin otomatis nalika ganti taun ajaran.',
+            steps: [
+              'Admin sakola atawa kurikulum: buka Parabot ngajar kuring, tab Rencana pangajaran, tuluy centang Aktipkeun rencana pangajaran.',
+              'Guru: pilih mata pelajaran, buka tab Rencana pangajaran, tuluy klik Jieun rencana pangajaran.',
+              'Eusian judul, tujuan, léngkah pangajaran, jeung asesmen. Pilih semester jeung tingkat upami perlu, ogé TP nu dicakup.',
+              'Témpélkeun tautan https ka berkas pangrojong upami aya, tuluy klik Jieun.',
+            ],
+            href: '/teaching-plan',
+            tip: 'Berkas teu diunggah ka sistem. Cukup témpélkeun tautan https, upamana folder babagi sakola.',
+            warning:
+              'Guru ngan bisa nyieun jeung ngarobah rencana pikeun mata pelajaran nu diajarna dina taun ajaran éta; admin sakola jeung kurikulum bisa pikeun sadayana. Mareuman sakelar ngan nyumputkeun fitur, datana tetep disimpen.',
           },
           {
             heading: 'Nerbitkeun jeung nyieun vérsi anyar',
