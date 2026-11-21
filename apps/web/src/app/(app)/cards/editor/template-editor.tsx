@@ -13,6 +13,7 @@ import {
   Save,
   ScanBarcode,
   Square,
+  Table2,
   Type,
   Undo2,
   User,
@@ -40,6 +41,7 @@ import {
   CANVAS_PRESETS,
   createElement,
   duplicateElement,
+  elementTypesFor,
   ensureIds,
   type LayoutIssue,
   moveInOrder,
@@ -74,6 +76,7 @@ const ADD_TOOLS = [
   { type: 'barcode', icon: ScanBarcode },
   { type: 'rect', icon: Square },
   { type: 'line', icon: Minus },
+  { type: 'schedule', icon: Table2 },
 ] as const;
 
 const BLANK_LAYOUT: Record<CardKind, CardLayout> = {
@@ -510,17 +513,19 @@ function Workspace({
           <div className="grid content-start gap-2">
             <h2 className="font-heading text-sm font-semibold">{t('editor.addElement')}</h2>
             <div className="grid grid-cols-2 gap-2">
-              {ADD_TOOLS.map(({ type, icon: Icon }) => (
-                <Button
-                  key={type}
-                  variant="outline"
-                  size="sm"
-                  className="min-w-0 justify-start"
-                  onClick={() => (type === 'image' ? pickFile('image-new') : addElement(type))}
-                >
-                  <Icon className="size-4 shrink-0" /> <span className="truncate">{tType(type)}</span>
-                </Button>
-              ))}
+              {ADD_TOOLS.filter(({ type }) => elementTypesFor(kind).includes(type)).map(
+                ({ type, icon: Icon }) => (
+                  <Button
+                    key={type}
+                    variant="outline"
+                    size="sm"
+                    className="min-w-0 justify-start"
+                    onClick={() => (type === 'image' ? pickFile('image-new') : addElement(type))}
+                  >
+                    <Icon className="size-4 shrink-0" /> <span className="truncate">{tType(type)}</span>
+                  </Button>
+                ),
+              )}
             </div>
           </div>
           <div className="grid content-start gap-2">

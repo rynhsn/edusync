@@ -68,8 +68,8 @@ export const STUDENT_COLUMN_WIDTHS = [
 
 export const STUDENT_SPEC: SheetSpec<StudentField> = {
   fields: {
-    name: ['nama', 'nama lengkap', 'nama siswa', 'name'],
-    nis: ['nis', 'nomor induk siswa'],
+    name: ['nama', 'nama lengkap', 'nama murid', 'nama siswa', 'name'],
+    nis: ['nis', 'nomor induk murid', 'nomor induk siswa'],
     nisn: ['nisn'],
     nik: ['nik'],
     gender: ['jenis kelamin', 'jk', 'l/p', 'gender', 'kelamin'],
@@ -99,19 +99,19 @@ export const STUDENT_SPEC: SheetSpec<StudentField> = {
   headers: STUDENT_HEADERS,
   textColumns: STUDENT_TEXT_COLUMNS,
   columnWidths: STUDENT_COLUMN_WIDTHS,
-  sheetName: 'Siswa',
+  sheetName: 'Murid',
   help: [
-    'Isi lembar "Siswa" mulai baris 2. Jangan mengubah judul kolom di baris 1.',
+    'Isi lembar "Murid" mulai baris 2. Jangan mengubah judul kolom di baris 1.',
     'Nama dan Jenis Kelamin (L atau P) wajib. Kolom lain boleh kosong.',
     'Tanggal Lahir: tulis sebagai tanggal Excel, atau teks TTTT-BB-HH (mis. 2013-05-04).',
-    'NIK harus 16 digit dan tidak boleh sama dengan siswa lain. NIK, telepon, dan email dipakai untuk masuk dan pemulihan akun.',
+    'NIK harus 16 digit dan tidak boleh sama dengan murid lain. NIK, telepon, dan email dipakai untuk masuk dan pemulihan akun.',
     'Agama: Islam, Kristen, Katolik, Hindu, Buddha, Konghucu, atau Lainnya.',
     'Telepon/WA boleh ditulis 0812..., 62812..., atau +62 812...; disimpan sebagai angka berawalan 62.',
     'Kelas: harus sama dengan nama kelas pada tahun ajaran aktif. Kosongkan bila belum ditempatkan.',
     'Wali 1 menjadi wali utama. Hubungan: Ayah, Ibu, Wali, atau Lainnya (kosong: Wali 1 = Ayah, Wali 2 = Ibu).',
     'Bila ada isian wali, Nama wali wajib. Wali dengan NIK atau nomor telepon yang sama (mis. kakak-adik) dipakai bersama.',
     'Wali 1/2 NIK: 16 digit (opsional). Wali 1/2 Alamat dan Pekerjaan: opsional.',
-    'NIS dan NISN tidak boleh sama dengan siswa yang sudah ada atau baris lain dalam berkas.',
+    'NIS dan NISN tidak boleh sama dengan murid yang sudah ada atau baris lain dalam berkas.',
     `Maksimal ${MAX_IMPORT_ROWS} baris per berkas.`,
   ],
 };

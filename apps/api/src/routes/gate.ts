@@ -549,7 +549,7 @@ export async function gateRoutes(instance: FastifyInstance) {
       schema: {
         tags: tag,
         summary: 'Daftar kartu RFID',
-        description: 'Izin: `attendance:configure`. Bisa disaring per siswa.',
+        description: 'Izin: `attendance:configure`. Bisa disaring per murid.',
         headers: schoolHeader,
         querystring: z.object({ studentId: z.uuid().optional() }),
         response: { 200: z.array(cardView), ...guarded },
@@ -585,10 +585,10 @@ export async function gateRoutes(instance: FastifyInstance) {
       onRequest: gate('attendance:configure'),
       schema: {
         tags: tag,
-        summary: 'Daftarkan kartu siswa',
+        summary: 'Daftarkan kartu murid',
         description:
           'Izin: `attendance:configure`. Mendaftarkan kartu RFID; `code` adalah UID kartu dari pembaca (disimpan huruf ' +
-          'besar). Kode yang sama tidak boleh dipakai dua siswa (409 `conflict`). Untuk banyak kartu sekaligus ' +
+          'besar). Kode yang sama tidak boleh dipakai dua murid (409 `conflict`). Untuk banyak kartu sekaligus ' +
           'gunakan `/v1/attendance/cards/bulk`.',
         headers: schoolHeader,
         body: z
@@ -612,7 +612,7 @@ export async function gateRoutes(instance: FastifyInstance) {
       const row = await conflictAs409('Kode kartu ini sudah dipakai.', () =>
         tenant(request, async (tx) => {
           const [s] = await tx.select({ id: student.id }).from(student).where(eq(student.id, studentId));
-          if (!s) throw new HttpError(400, 'invalid_reference', 'Siswa tidak ditemukan.');
+          if (!s) throw new HttpError(400, 'invalid_reference', 'Murid tidak ditemukan.');
           const [c] = await tx
             .insert(attendanceCard)
             .values({ schoolId: ctx.schoolId, studentId, kind: 'rfid', code })
@@ -633,14 +633,14 @@ export async function gateRoutes(instance: FastifyInstance) {
       onRequest: gate('attendance:configure'),
       schema: {
         tags: tag,
-        summary: 'Daftarkan kartu RFID siswa secara massal',
+        summary: 'Daftarkan kartu RFID murid secara massal',
         description:
-          'Izin: `attendance:configure`. Maksimal 500 baris `{nis, code}`; siswa dicari lewat NIS di sekolah ini ' +
+          'Izin: `attendance:configure`. Maksimal 500 baris `{nis, code}`; murid dicari lewat NIS di sekolah ini ' +
           'dan harus aktif. Hasilnya sebagian: tiap baris diproses sendiri, baris yang gagal tidak membatalkan ' +
           'baris lain. `created` adalah jumlah kartu yang terdaftar; `failed` memuat `row` (indeks 1-based pada ' +
-          '`items`), `nis`, `code` (sudah huruf besar), dan `reason`: `student_not_found` (NIS tidak ada atau siswa ' +
+          '`items`), `nis`, `code` (sudah huruf besar), dan `reason`: `student_not_found` (NIS tidak ada atau murid ' +
           'tidak aktif), `code_taken` (kode sudah dipakai kartu lain atau muncul lebih dulu dalam batch yang sama), ' +
-          '`student_has_card` (siswa sudah punya kartu RFID aktif), `invalid_code` (kode kurang dari 4 karakter ' +
+          '`student_has_card` (murid sudah punya kartu RFID aktif), `invalid_code` (kode kurang dari 4 karakter ' +
           'atau mengandung spasi). Satu entri audit ringkas dicatat. Kode disimpan huruf besar.',
         headers: schoolHeader,
         body: z.object({
@@ -932,7 +932,7 @@ export async function gateRoutes(instance: FastifyInstance) {
         tags: tag,
         summary: 'Absensi gerbang harian',
         description:
-          'Izin: `attendance:read`. Semua siswa aktif di tahun ajaran aktif (bisa disaring per kelas) dengan status, ' +
+          'Izin: `attendance:read`. Semua murid aktif di tahun ajaran aktif (bisa disaring per kelas) dengan status, ' +
           'jam masuk, dan jam pulang; `status` null berarti belum ada catatan. `summary` menghitung per status.',
         headers: schoolHeader,
         querystring: z.object({ date: dateField, classId: z.uuid().optional() }),

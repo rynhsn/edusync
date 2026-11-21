@@ -83,7 +83,7 @@ const INVOICE_STATUS = z.enum(['unpaid', 'partial', 'paid', 'void']);
 const inviteSchema = z.object({
   id: z.uuid(),
   kind: kindEnum,
-  targetId: z.uuid().describe('Id wali (kind guardian) atau siswa (kind student)'),
+  targetId: z.uuid().describe('Id wali (kind guardian) atau murid (kind student)'),
   targetName: z.string(),
   email: z.string().nullable(),
   expiresAt: iso,
@@ -119,7 +119,7 @@ const createInviteBody = z
       .transform((v) => (v ? v.toLowerCase() : null)),
   })
   .refine((b) => (b.kind === 'guardian' ? !!b.guardianId && !b.studentId : !!b.studentId && !b.guardianId), {
-    message: 'Wali butuh guardianId saja; siswa butuh studentId saja.',
+    message: 'Wali butuh guardianId saja; murid butuh studentId saja.',
   });
 
 /* ---------- Skema baca ---------- */
@@ -306,14 +306,14 @@ export async function portalRoutes(instance: FastifyInstance, options: { env: En
       config: { rateLimit: { max: 60, timeWindow: '1 minute' } },
       schema: {
         tags: tagAdmin,
-        summary: 'Buat undangan portal untuk wali atau siswa',
+        summary: 'Buat undangan portal untuk wali atau murid',
         description:
           `Izin: \`student:manage\`; modul \`parent_portal\`. Membuat undangan sekali pakai yang berlaku ${INVITE_DAYS} hari ` +
-          'untuk satu wali (`kind` guardian + `guardianId`, wali harus punya minimal satu siswa) atau satu siswa ' +
+          'untuk satu wali (`kind` guardian + `guardianId`, wali harus punya minimal satu murid) atau satu murid ' +
           '(`kind` student + `studentId`). Token acak dikembalikan sekali di `token` dan `link` (hanya hash yang ' +
           'disimpan); bila `email` diisi, tautan juga dikirim ke email itu dan akun yang dibuat wajib memakai email itu. ' +
           'Undangan lama yang belum dipakai untuk target yang sama dicabut otomatis. 400 `invalid_reference` bila ' +
-          'wali/siswa tidak ada; 409 `already_linked` bila target sudah punya akun portal.',
+          'wali/murid tidak ada; 409 `already_linked` bila target sudah punya akun portal.',
         headers: schoolHeader,
         body: createInviteBody,
         response: { 201: createdInviteSchema, 400: errorSchema, 409: errorSchema, ...guarded },
@@ -345,14 +345,14 @@ export async function portalRoutes(instance: FastifyInstance, options: { env: En
             .innerJoin(student, eq(student.id, studentGuardian.studentId))
             .where(and(eq(studentGuardian.guardianId, targetId), isNull(student.deletedAt)))
             .limit(1);
-          if (kids.length === 0) throw invalidRef('Wali ini belum terhubung dengan siswa mana pun.');
+          if (kids.length === 0) throw invalidRef('Wali ini belum terhubung dengan murid mana pun.');
           targetName = g.name;
         } else {
           const [s] = await tx
             .select({ id: student.id, name: student.name })
             .from(student)
             .where(and(eq(student.id, targetId), isNull(student.deletedAt)));
-          if (!s) throw invalidRef('Siswa tidak ditemukan.');
+          if (!s) throw invalidRef('Murid tidak ditemukan.');
           targetName = s.name;
         }
         const [linked] = await tx
@@ -471,9 +471,9 @@ export async function portalRoutes(instance: FastifyInstance, options: { env: En
       onRequest: manageGate,
       schema: {
         tags: tagAdmin,
-        summary: 'Akun portal wali dan siswa',
+        summary: 'Akun portal wali dan murid',
         description:
-          'Izin: `student:manage`; modul `parent_portal`. Akun yang sudah menerima undangan, beserta wali/siswa yang ' +
+          'Izin: `student:manage`; modul `parent_portal`. Akun yang sudah menerima undangan, beserta wali/murid yang ' +
           'ditautkan dan status keanggotaannya (`disabled` bila dinonaktifkan).',
         headers: schoolHeader,
         response: { 200: z.array(accountSchema), ...guarded },
@@ -523,9 +523,9 @@ export async function portalRoutes(instance: FastifyInstance, options: { env: En
         tags: tagAdmin,
         summary: 'Cabut akun portal',
         description:
-          'Izin: `student:manage`; modul `parent_portal`. Menghapus tautan portal dan peran wali/siswa dari anggota itu; ' +
+          'Izin: `student:manage`; modul `parent_portal`. Menghapus tautan portal dan peran wali/murid dari anggota itu; ' +
           'bila tidak ada peran lain, keanggotaannya dinonaktifkan sehingga tidak bisa masuk lagi. Akun masuk (user) ' +
-          'tidak dihapus. Wali/siswa bisa diundang ulang setelahnya. 404 bila tautan tidak ada.',
+          'tidak dihapus. Wali/murid bisa diundang ulang setelahnya. 404 bila tautan tidak ada.',
         headers: schoolHeader,
         params: idParams,
         response: { 200: ok, 404: errorSchema, ...guarded },
@@ -603,7 +603,7 @@ export async function portalRoutes(instance: FastifyInstance, options: { env: En
         tags: tagPortal,
         summary: 'Profil akun portal dan daftar anak',
         description:
-          'Izin: `portal:read`; modul `parent_portal`. Untuk wali: anak yang terhubung lewat data wali. Untuk siswa: ' +
+          'Izin: `portal:read`; modul `parent_portal`. Untuk wali: anak yang terhubung lewat data wali. Untuk murid: ' +
           'dirinya saja. Akun tanpa tautan portal (mis. admin) mendapat `linked` false dan daftar kosong. `sections` ' +
           'menandai bagian portal yang modulnya aktif.',
         headers: schoolHeader,
@@ -1071,7 +1071,7 @@ export async function portalRoutes(instance: FastifyInstance, options: { env: En
           '`grades` tidak aktif. Bagian v2 hanya ada bila dipakai: `schemaVersion` (hanya bila 2), `reportMode`, ' +
           '`cocurricularNote`, `cocurricular`, `schoolNsm` (hanya bila NSM madrasah terisi), `expertise` dan `subjects[].group` (rapor SMK berkelompok, hanya bila dipakai), `developmentNote`, `subjects[].descriptionSource`. Mode deskriptif (Fase A) MEMPROYEKSIKAN ' +
           'dokumen tanpa `final`, `predicate`, `kkm`, `belowKkm` per mapel dan tanpa `rank`. `guardianResponses` hanya memuat ' +
-          'tanggapan milik wali pemanggil (tautan wali); tautan siswa dan wali lain tidak melihatnya.',
+          'tanggapan milik wali pemanggil (tautan wali); tautan murid dan wali lain tidak melihatnya.',
         headers: schoolHeader,
         params: z.object({ studentId: z.uuid(), semesterId: z.uuid() }),
         response: { 200: portalReportDocumentSchema, 404: errorSchema, ...guarded },
@@ -1125,7 +1125,7 @@ export async function portalRoutes(instance: FastifyInstance, options: { env: En
         tags: tagPortal,
         summary: 'Tanggapan wali atas rapor final seorang anak',
         description:
-          'Izin: `portal:read`; modul `parent_portal` dan `grades`; hanya tautan wali (403 `not_guardian` untuk tautan siswa). ' +
+          'Izin: `portal:read`; modul `parent_portal` dan `grades`; hanya tautan wali (403 `not_guardian` untuk tautan murid). ' +
           'Mengembalikan status jendela tanggapan dan tanggapan MILIK SENDIRI (`response`, null bila belum). Tanggapan wali ' +
           'lain dari anak yang sama tidak pernah tampil. `open` true bila rapor final dan jendela (`windowDays` sejak ' +
           'finalisasi) belum lewat. 404 `not_found` bila anak bukan milik akun ini.',
@@ -1153,7 +1153,7 @@ export async function portalRoutes(instance: FastifyInstance, options: { env: En
         summary: 'Tulis atau ubah tanggapan wali atas rapor final',
         description:
           'Izin: `portal:respond`; modul `parent_portal` dan `grades`; hanya tautan wali (403 `not_guardian` untuk tautan ' +
-          'siswa) dan hanya untuk anak yang terhubung lewat data wali (selain itu 404 `not_found`). Satu tanggapan per wali per ' +
+          'murid) dan hanya untuk anak yang terhubung lewat data wali (selain itu 404 `not_found`). Satu tanggapan per wali per ' +
           'anak per semester (menulis lagi mengubahnya). Teks polos 1-1.000 karakter, tanpa lampiran. 409 `report_not_final` ' +
           'bila rapor belum final; 409 `response_closed` sesudah jendela tanggapan (bawaan 30 hari sejak finalisasi). ' +
           'Tanggapan menyimpan versi finalisasi saat ditulis, tidak menyentuh snapshot, dan tidak hilang bila rapor dibuka ' +

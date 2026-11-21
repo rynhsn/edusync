@@ -65,7 +65,7 @@ const ruleFields = z.object({
     .array(z.uuid())
     .max(200)
     .nullable()
-    .describe('Pembatas kelas (opsional); kosong atau null = semua siswa dalam cakupan jenis biaya'),
+    .describe('Pembatas kelas (opsional); kosong atau null = semua murid dalam cakupan jenis biaya'),
   semesterRun: z
     .enum(AUTO_BILLING_SEMESTER_RUNS)
     .nullable()
@@ -547,7 +547,7 @@ export async function financeAutoBillingRoutes(instance: FastifyInstance) {
         description:
           'Izin: `finance:read`; modul `finance`. Tanpa menyimpan apa pun. Mengembalikan tiga jadwal berikutnya ' +
           '(tanggal pembuatan dan jatuh tempo) serta perkiraan untuk periode terdekat: jumlah tagihan yang akan dibuat ' +
-          '(`wouldCreate`), yang sudah ada (`alreadyBilled`), gratis, dan siswa tanpa tarif (`missingPlan`). ' +
+          '(`wouldCreate`), yang sudah ada (`alreadyBilled`), gratis, dan murid tanpa tarif (`missingPlan`). ' +
           '`error` berisi kode bila perkiraan tak bisa dihitung (mis. `inactive`, `no_year`, `no_semester`).',
         headers: schoolHeader,
         body: z.object({ feeTypeId: z.uuid(), ruleDraft: ruleFields }),

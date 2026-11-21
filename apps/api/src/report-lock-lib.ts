@@ -59,7 +59,7 @@ export async function assertStudentsReportNotFinal(tx: Tx, semesterId: string, s
     throw new HttpError(
       409,
       REPORT_FINAL_CODE,
-      'Rapor siswa ini pada semester tersebut sudah difinalkan. Buka kembali rapor kelasnya di menu Rapor bila perlu mengubahnya.',
+      'Rapor murid ini pada semester tersebut sudah difinalkan. Buka kembali rapor kelasnya di menu Rapor bila perlu mengubahnya.',
     );
   }
 }

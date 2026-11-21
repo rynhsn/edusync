@@ -62,7 +62,7 @@ export async function exportStudentsExcel(opts: {
       ...guardianCells(g2),
     ];
   });
-  const blob = await buildExport('Siswa', STUDENT_HEADERS, rows, {
+  const blob = await buildExport('Murid', STUDENT_HEADERS, rows, {
     textColumns: STUDENT_TEXT_COLUMNS,
     widths: STUDENT_COLUMN_WIDTHS,
   });

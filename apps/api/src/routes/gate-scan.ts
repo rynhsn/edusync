@@ -73,10 +73,10 @@ export async function gateScanRoutes(instance: FastifyInstance) {
       config: scanLimit,
       schema: {
         tags: tag,
-        summary: 'Catat datang atau pulang dengan memindai QR kartu siswa',
+        summary: 'Catat datang atau pulang dengan memindai QR kartu murid',
         description:
           'Izin: `attendance:manage`; modul `attendance`. Cadangan bila kiosk RFID tidak bisa dipakai: guru memindai QR ' +
-          'di kartu siswa dengan kamera. `payload` adalah teks hasil pindai (`ES1.<20 karakter>`); selain format itu ' +
+          'di kartu murid dengan kamera. `payload` adalah teks hasil pindai (`ES1.<20 karakter>`); selain format itu ' +
           '400 `invalid_qr`, kode yang tidak terdaftar atau sudah diganti 404 `unknown_qr`. ' +
           RULES +
           ' Inti pencatatan SAMA dengan `/v1/gate/manual` (status terlambat dari kebijakan `lateAfter`, penjaga hari ' +
@@ -86,9 +86,9 @@ export async function gateScanRoutes(instance: FastifyInstance) {
           'maksimal 48 jam ke belakang (400 `invalid_time`); tanpa `at` dipakai jam server. `clientId` (kunci ' +
           'idempoten per pindaian, maks. 64 karakter): kiriman ulang dengan `clientId` yang sama mengembalikan hasil ' +
           'sebelumnya dengan `replayed: true` tanpa mencatat dua kali. Catatan datang/pulang yang sudah ada tidak ' +
-          'ditimpa (`already_in`, `already_out`) kecuali `overwrite: true`; siswa berstatus izin/sakit/alpa dilewati ' +
+          'ditimpa (`already_in`, `already_out`) kecuali `overwrite: true`; murid berstatus izin/sakit/alpa dilewati ' +
           '(`skipped_status`) kecuali `overwrite`. Pulang tanpa catatan datang tetap dicatat dengan `warning` ' +
-          '`no_check_in`. Hari libur/jeda sekolah: 409 `school_closed` kecuali `force: true`. Siswa tidak aktif: 409 ' +
+          '`no_check_in`. Hari libur/jeda sekolah: 409 `school_closed` kecuali `force: true`. Murid tidak aktif: 409 ' +
           '`student_inactive`. Dibatasi 240 permintaan per menit per sesi (429). Satu entri audit dicatat per pindaian.',
         headers: schoolHeader,
         body: z.object({
@@ -130,7 +130,7 @@ export async function gateScanRoutes(instance: FastifyInstance) {
           // Kode identitas hanya menunjuk siswa; tindakan (absensi) dan izinnya ditentukan di sini.
           const resolved = await resolveIdentityPayload(tx, b.payload);
           const found = { id: resolved.studentId };
-          if (!resolved.active) throw new HttpError(409, 'student_inactive', 'Siswa ini tidak aktif.');
+          if (!resolved.active) throw new HttpError(409, 'student_inactive', 'Murid ini tidak aktif.');
 
           const scope = await manualScope(tx, ctx, date);
           if (!canRecordClass(scope, resolved.classId)) throw forbiddenClass();
@@ -149,7 +149,7 @@ export async function gateScanRoutes(instance: FastifyInstance) {
               .where(eq(tapEvent.clientId, b.clientId));
             if (seen) {
               if (seen.studentId !== found.id) {
-                throw new HttpError(409, 'conflict', 'clientId ini sudah dipakai untuk pindaian siswa lain.');
+                throw new HttpError(409, 'conflict', 'clientId ini sudah dipakai untuk pindaian murid lain.');
               }
               const seenDate = localParts(seen.at, tz).date;
               const [row] = await tx
@@ -185,7 +185,7 @@ export async function gateScanRoutes(instance: FastifyInstance) {
           );
           const r = out.results[0];
           if (!r || r.result === 'not_found') {
-            throw new HttpError(409, 'student_inactive', 'Siswa ini tidak aktif.');
+            throw new HttpError(409, 'student_inactive', 'Murid ini tidak aktif.');
           }
           await audit(tx, ctx, 'attendance.qr.scan', 'student', found.id, {
             date,

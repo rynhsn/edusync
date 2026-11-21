@@ -93,7 +93,7 @@ export async function pklPublicRoutes(instance: FastifyInstance) {
         tags,
         summary: 'Tampilan tautan pembimbing industri (publik)',
         description:
-          'Tanpa login; token ada di path. Memuat sekolah, siswa, mitra, periode, 30 jurnal terakhir, aspek beserta ' +
+          'Tanpa login; token ada di path. Memuat sekolah, murid, mitra, periode, 30 jurnal terakhir, aspek beserta ' +
           'nilai dari industri, dan `canWrite` (false bila periode sudah lewat lebih dari 14 hari atau penempatan ' +
           'dibatalkan). Token salah, dicabut, atau penempatan batal dijawab seragam 404 `not_found`. Dibatasi 60 ' +
           'permintaan per menit per IP.',

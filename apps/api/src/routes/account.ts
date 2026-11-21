@@ -173,7 +173,7 @@ export async function accountRoutes(instance: FastifyInstance) {
       onRequest: [requireUser],
       schema: {
         tags: ['Account'],
-        summary: 'Tingkatkan paket, tambah modul, atau ubah tingkat siswa unit',
+        summary: 'Tingkatkan paket, tambah modul, atau ubah tingkat murid unit',
         description:
           'Pemilik yayasan. Membuat invoice "upgrade" bila ada biaya sekarang; setelah pembayaran terkonfirmasi ' +
           '(webhook/dev) hak modul dan tingkat unit diperbarui sekali saja. Penurunan dijadwalkan ke periode berikutnya ' +

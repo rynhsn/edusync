@@ -33,7 +33,7 @@ export const PLATFORM_DOCS: DocArticle[] = [
           },
           {
             heading: 'Pembayaran dan katalog',
-            body: 'Di menu Pembayaran pilih Midtrans dan isi kunci server, lalu tinjau parameter penagihan. Di menu Harga & modul pastikan ada harga dasar, minimal satu tingkat siswa, dan satu paket aktif; tanpa itu pendaftaran tidak bisa dipilih.',
+            body: 'Di menu Pembayaran pilih Midtrans dan isi kunci server, lalu tinjau parameter penagihan. Di menu Harga & modul pastikan ada harga dasar, minimal satu tingkat murid, dan satu paket aktif; tanpa itu pendaftaran tidak bisa dipilih.',
             href: '/platform/payments',
           },
         ],
@@ -308,7 +308,7 @@ export const PLATFORM_DOCS: DocArticle[] = [
             ],
             href: '/platform',
             warning:
-              'Sekolah langsung tidak bisa dipakai oleh guru, siswa, dan wali. Pastikan Anda memilih unit yang tepat dan sudah menghubungi pengelolanya.',
+              'Sekolah langsung tidak bisa dipakai oleh guru, murid, dan wali. Pastikan Anda memilih unit yang tepat dan sudah menghubungi pengelolanya.',
           },
           {
             heading: 'Mengaktifkan kembali sekolah',
@@ -841,11 +841,11 @@ export const PLATFORM_DOCS: DocArticle[] = [
         forWho: 'Admin platform yang menentukan harga dan paket langganan.',
         sections: [
           {
-            heading: 'Mengubah harga modul atau tingkat siswa',
-            body: 'Katalog berisi item berjenis Inti, Modul, dan Tingkat siswa. Tiap item punya harga per bulan. Paket siap pakai hanyalah pilihan cepat di halaman daftar; harganya tetap dihitung dari item-item ini. Hanya staf dengan peran Admin platform yang melihat tombol Ubah.',
+            heading: 'Mengubah harga modul atau tingkat murid',
+            body: 'Katalog berisi item berjenis Inti, Modul, dan Tingkat murid. Tiap item punya harga per bulan. Paket siap pakai hanyalah pilihan cepat di halaman daftar; harganya tetap dihitung dari item-item ini. Hanya staf dengan peran Admin platform yang melihat tombol Ubah.',
             steps: [
               'Buka Harga & modul.',
-              'Di daftar Modul dan tingkat siswa, klik Ubah pada baris item.',
+              'Di daftar Modul dan tingkat murid, klik Ubah pada baris item.',
               'Ganti Nama, Harga per bulan (Rp), atau Urutan sesuai kebutuhan.',
               'Klik Simpan.',
             ],
@@ -854,12 +854,12 @@ export const PLATFORM_DOCS: DocArticle[] = [
               'Harga baru berlaku untuk pendaftaran dan tagihan perpanjangan berikutnya, dan berlaku untuk semua sekolah yang memakai item itu. Invoice yang sudah dibuat tidak berubah.',
           },
           {
-            heading: 'Menambah modul atau tingkat siswa baru',
+            heading: 'Menambah modul atau tingkat murid baru',
             body: 'Gunakan kartu Tambah modul atau tingkat. Modul baru baru berfungsi di sekolah bila fiturnya memang sudah ada di aplikasi. Bila belum, di katalog ia hanya menjadi pilihan yang bisa dibeli, jadi tanyakan dulu kepada tim teknis.',
             steps: [
               'Di kartu Tambah modul atau tingkat, pilih Jenis.',
               'Isi Kunci (pengenal singkat tanpa spasi), Nama, dan Harga per bulan (Rp).',
-              'Untuk Tingkat siswa, isi Batas siswa aktif, atau kosongkan bila tanpa batas. Untuk Modul, isi Syarat modul bila modul ini butuh modul lain.',
+              'Untuk Tingkat murid, isi Batas murid aktif, atau kosongkan bila tanpa batas. Untuk Modul, isi Syarat modul bila modul ini butuh modul lain.',
               'Klik Tambah.',
             ],
             href: '/platform/catalog',
@@ -867,10 +867,10 @@ export const PLATFORM_DOCS: DocArticle[] = [
           },
           {
             heading: 'Membuat atau menyembunyikan paket siap pakai',
-            body: 'Paket adalah gabungan satu tingkat siswa dan beberapa modul, supaya pendaftar tidak perlu memilih satu per satu. Nama paket maksimal 40 karakter dan deskripsinya maksimal 200 karakter. Menghapus paket tidak mengubah langganan sekolah mana pun.',
+            body: 'Paket adalah gabungan satu tingkat murid dan beberapa modul, supaya pendaftar tidak perlu memilih satu per satu. Nama paket maksimal 40 karakter dan deskripsinya maksimal 200 karakter. Menghapus paket tidak mengubah langganan sekolah mana pun.',
             steps: [
               'Di kartu Buat paket, isi Kunci, Nama, dan Deskripsi.',
-              'Pilih Tingkat siswa lalu centang Modul yang ikut.',
+              'Pilih Tingkat murid lalu centang Modul yang ikut.',
               'Klik Tambah, lalu buka halaman daftar untuk memastikan tampilannya benar.',
               'Untuk menyembunyikan paket, ubah paketnya lalu hilangkan centang Aktif.',
             ],

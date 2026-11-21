@@ -49,7 +49,7 @@ export async function resolveReportStudent(tx: Tx, sem: typeof semester.$inferSe
     .select()
     .from(student)
     .where(and(eq(student.id, studentId), isNull(student.deletedAt)));
-  if (!stu) throw reportNotFound('Siswa');
+  if (!stu) throw reportNotFound('Murid');
   const [row] = await tx
     .select()
     .from(reportCard)
@@ -59,6 +59,6 @@ export async function resolveReportStudent(tx: Tx, sem: typeof semester.$inferSe
     .from(enrollment)
     .where(and(eq(enrollment.studentId, studentId), eq(enrollment.academicYearId, sem.academicYearId)));
   const classId = row?.status === 'final' ? row.classId : (enr?.classId ?? row?.classId);
-  if (!classId) throw reportNotFound('Siswa di kelas pada semester itu');
+  if (!classId) throw reportNotFound('Murid di kelas pada semester itu');
   return { stu, row: row ?? null, classId };
 }

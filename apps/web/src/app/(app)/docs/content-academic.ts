@@ -10,7 +10,7 @@ export const ACADEMIC_DOCS: DocArticle[] = [
     module: 'grades',
     text: {
       id: {
-        title: 'Nilai: membuat penilaian dan mengisi nilai siswa',
+        title: 'Nilai: membuat penilaian dan mengisi nilai murid',
         summary:
           'Panduan guru mengisi nilai per kelas dan mata pelajaran, serta cara sekolah mengatur KKM, predikat, dan bobot nilai.',
         forWho: 'Guru mata pelajaran, Kurikulum, Operator, Kepala sekolah, dan Admin sekolah.',
@@ -27,26 +27,26 @@ export const ACADEMIC_DOCS: DocArticle[] = [
             href: '/grades/settings',
             tip: 'Usahakan jumlah bobot tepat 100% supaya nilai akhir mudah dijelaskan kepada wali murid.',
             warning:
-              'Mengubah bobot langsung memengaruhi nilai akhir semua siswa, termasuk nilai yang sudah lama diisi. Komponen yang sudah dipakai penilaian tidak bisa dihapus.',
+              'Mengubah bobot langsung memengaruhi nilai akhir semua murid, termasuk nilai yang sudah lama diisi. Komponen yang sudah dipakai penilaian tidak bisa dihapus.',
           },
           {
             heading: 'Membuat penilaian dan mengisi nilai',
-            body: 'Pilih semester, kelas, dan mata pelajaran, lalu buat penilaian (misalnya Ulangan Bab 1). Setelah itu isi nilai tiap siswa pada lembar nilai.',
+            body: 'Pilih semester, kelas, dan mata pelajaran, lalu buat penilaian (misalnya Ulangan Bab 1). Setelah itu isi nilai tiap murid pada lembar nilai.',
             steps: [
               'Buka menu Penilaian, lalu pilih semester, kelas, dan mata pelajaran.',
               'Di tab Penilaian, klik Penilaian baru. Isi judul, komponen, tanggal, dan nilai maksimal (bawaannya 100).',
               'Klik Isi nilai pada penilaian itu.',
-              'Ketik nilai tiap siswa, antara 0 dan nilai maksimal. Kosongkan kolom bila ingin menghapus nilai.',
+              'Ketik nilai tiap murid, antara 0 dan nilai maksimal. Kosongkan kolom bila ingin menghapus nilai.',
               'Klik Simpan.',
             ],
             href: '/grades',
-            tip: 'Nilai bisa disimpan bertahap. Anda boleh mengisi sebagian siswa dulu dan melengkapinya di lain waktu.',
+            tip: 'Nilai bisa disimpan bertahap. Anda boleh mengisi sebagian murid dulu dan melengkapinya di lain waktu.',
             warning:
               'Menghapus sebuah penilaian ikut menghapus semua nilai di dalamnya. Nilai maksimal juga tidak bisa diturunkan sampai di bawah nilai yang sudah terisi.',
           },
           {
             heading: 'Formatif dan sumatif: mana yang masuk nilai rapor',
-            body: 'Setiap komponen nilai punya kategori. Sumatif adalah penilaian yang masuk nilai akhir, rapor, kenaikan kelas, dan kelulusan sesuai bobotnya (misalnya UTS atau UAS). Formatif adalah umpan balik belajar, misalnya kuis singkat atau latihan: nilainya tampil di rekap tetapi tidak masuk nilai akhir, rapor, kenaikan, atau kelulusan, dan tidak punya bobot. Komponen yang sudah ada tetap sumatif sampai Anda mengubahnya. Pada komponen formatif, sebuah penilaian boleh ditandai Asesmen awal (diagnostik) untuk melihat kemampuan awal siswa. Pada komponen sumatif, penilaian boleh ditandai lingkupnya: Lingkup materi atau Akhir semester. Anda juga bisa mencatat teknik penilaiannya, misalnya tes, observasi, atau proyek.',
+            body: 'Setiap komponen nilai punya kategori. Sumatif adalah penilaian yang masuk nilai akhir, rapor, kenaikan kelas, dan kelulusan sesuai bobotnya (misalnya UTS atau UAS). Formatif adalah umpan balik belajar, misalnya kuis singkat atau latihan: nilainya tampil di rekap tetapi tidak masuk nilai akhir, rapor, kenaikan, atau kelulusan, dan tidak punya bobot. Komponen yang sudah ada tetap sumatif sampai Anda mengubahnya. Pada komponen formatif, sebuah penilaian boleh ditandai Asesmen awal (diagnostik) untuk melihat kemampuan awal murid. Pada komponen sumatif, penilaian boleh ditandai lingkupnya: Lingkup materi atau Akhir semester. Anda juga bisa mencatat teknik penilaiannya, misalnya tes, observasi, atau proyek.',
             steps: [
               'Buka Pengaturan penilaian, lalu tambah atau ubah komponen.',
               'Pada Kategori, pilih Sumatif atau Formatif (umpan balik, tidak masuk nilai rapor). Bobot hanya diisi untuk sumatif.',
@@ -60,13 +60,13 @@ export const ACADEMIC_DOCS: DocArticle[] = [
           },
           {
             heading: 'Membaca rekap dan nilai akhir',
-            body: 'Tab Rekap menampilkan, per siswa, rata-rata tiap komponen, nilai akhir, dan predikat. Di bagian atas ada ringkasan rata-rata kelas, nilai tertinggi, nilai terendah, dan jumlah siswa di bawah KKM. Nilai akhir dihitung menurut cara yang dipilih di Pengaturan penilaian. Rata-rata tertimbang (bawaan): komponen yang belum punya nilai tidak ikut dihitung, sehingga nilai akhir tidak turun hanya karena ada komponen yang belum diujikan. Persentase: bobot dianggap persen dan komponen yang belum dinilai dihitung 0. Rata-rata biasa: rata-rata komponen yang sudah ada nilainya tanpa bobot. Rekap bisa diunduh sebagai Excel.',
+            body: 'Tab Rekap menampilkan, per murid, rata-rata tiap komponen, nilai akhir, dan predikat. Di bagian atas ada ringkasan rata-rata kelas, nilai tertinggi, nilai terendah, dan jumlah murid di bawah KKM. Nilai akhir dihitung menurut cara yang dipilih di Pengaturan penilaian. Rata-rata tertimbang (bawaan): komponen yang belum punya nilai tidak ikut dihitung, sehingga nilai akhir tidak turun hanya karena ada komponen yang belum diujikan. Persentase: bobot dianggap persen dan komponen yang belum dinilai dihitung 0. Rata-rata biasa: rata-rata komponen yang sudah ada nilainya tanpa bobot. Rekap bisa diunduh sebagai Excel.',
             href: '/grades',
-            tip: 'Gunakan jumlah siswa di bawah KKM untuk merencanakan remedial lebih awal.',
+            tip: 'Gunakan jumlah murid di bawah KKM untuk merencanakan remedial lebih awal.',
           },
           {
             heading: 'Aturan nilai tersimpan per semester',
-            body: 'Aturan nilai (KKM, batas predikat, cara menghitung, komponen, dan KKTP) disimpan per semester. Saat rapor pertama sebuah semester difinalisasi, atau saat semester itu ditinggalkan karena semester lain diaktifkan, aturannya otomatis disimpan atau "dibekukan". Akibatnya rapor yang sudah terbit tidak berubah walau aturan sekolah diubah kemudian. Di Pengaturan penilaian ada kartu Status konfigurasi semester yang menunjukkan apakah sebuah semester Beku atau Hidup, sejak kapan, dan apakah aturannya masih sama dengan aturan hari ini. Bila berbeda, tombol Samakan dengan aturan hari ini mengganti aturan semester itu dengan aturan terbaru; tombol ini ditolak selama semester itu masih punya rapor final. Di rekap, siswa yang rapornya sudah final diberi tanda Sesuai rapor terbit, artinya nilai akhir, predikat, dan KKM-nya sama dengan yang tertulis di rapor dan tidak ikut berubah.',
+            body: 'Aturan nilai (KKM, batas predikat, cara menghitung, komponen, dan KKTP) disimpan per semester. Saat rapor pertama sebuah semester difinalisasi, atau saat semester itu ditinggalkan karena semester lain diaktifkan, aturannya otomatis disimpan atau "dibekukan". Akibatnya rapor yang sudah terbit tidak berubah walau aturan sekolah diubah kemudian. Di Pengaturan penilaian ada kartu Status konfigurasi semester yang menunjukkan apakah sebuah semester Beku atau Hidup, sejak kapan, dan apakah aturannya masih sama dengan aturan hari ini. Bila berbeda, tombol Samakan dengan aturan hari ini mengganti aturan semester itu dengan aturan terbaru; tombol ini ditolak selama semester itu masih punya rapor final. Di rekap, murid yang rapornya sudah final diberi tanda Sesuai rapor terbit, artinya nilai akhir, predikat, dan KKM-nya sama dengan yang tertulis di rapor dan tidak ikut berubah.',
             href: '/grades/settings',
             tip: 'Mengubah aturan di semester aktif yang sudah beku otomatis ikut diterapkan ke aturan tersimpan semester itu, selama belum ada rapor final.',
             warning:
@@ -78,18 +78,18 @@ export const ACADEMIC_DOCS: DocArticle[] = [
           },
           {
             heading: 'Mengaitkan penilaian ke tujuan pembelajaran (TP) dan melihat ketercapaiannya',
-            body: 'Sebuah penilaian dapat dikaitkan ke satu atau beberapa tujuan pembelajaran (TP) mata pelajaran itu, paling banyak 20 TP. Satu skor berlaku untuk semua TP yang dipilih; bila ingin ketercapaian tiap TP dinilai terpisah, buat penilaian sendiri untuk tiap TP. Tab Ketercapaian TP lalu menunjukkan, untuk setiap siswa dan TP, persen hasilnya, status Tercapai atau Belum tercapai, ambang yang dipakai beserta asalnya (kriteria TP, KKM mapel, atau KKM sekolah), dan jumlah skor. Hanya penilaian sumatif yang menentukan status. Penilaian formatif tampil terpisah sebagai kemajuan (umpan balik) dan tidak menentukan ketercapaian untuk rapor. Angka di tab ini belum memengaruhi rapor.',
+            body: 'Sebuah penilaian dapat dikaitkan ke satu atau beberapa tujuan pembelajaran (TP) mata pelajaran itu, paling banyak 20 TP. Satu skor berlaku untuk semua TP yang dipilih; bila ingin ketercapaian tiap TP dinilai terpisah, buat penilaian sendiri untuk tiap TP. Tab Ketercapaian TP lalu menunjukkan, untuk setiap murid dan TP, persen hasilnya, status Tercapai atau Belum tercapai, ambang yang dipakai beserta asalnya (kriteria TP, KKM mapel, atau KKM sekolah), dan jumlah skor. Hanya penilaian sumatif yang menentukan status. Penilaian formatif tampil terpisah sebagai kemajuan (umpan balik) dan tidak menentukan ketercapaian untuk rapor. Angka di tab ini belum memengaruhi rapor.',
             steps: [
               'Buka menu Penilaian, lalu pilih semester, kelas, dan mata pelajaran.',
               'Di tab Penilaian, klik Penilaian baru, atau pilih Ubah pada penilaian yang sudah ada.',
               'Pada bagian Tujuan Pembelajaran (TP), klik Pilih TP, cari bila perlu, lalu centang TP yang diukur. Simpan.',
               'Isi nilai seperti biasa, lalu buka tab Ketercapaian TP untuk melihat hasilnya.',
-              'Bila perlu, klik Ubah keputusan guru pada sebuah kotak, pilih Tercapai, Belum tercapai, atau Ikuti hitungan, dan tulis catatan. Keputusan guru menggantikan hasil hitungan untuk siswa dan TP itu.',
+              'Bila perlu, klik Ubah keputusan guru pada sebuah kotak, pilih Tercapai, Belum tercapai, atau Ikuti hitungan, dan tulis catatan. Keputusan guru menggantikan hasil hitungan untuk murid dan TP itu.',
             ],
             href: '/grades',
             tip: 'Bila satu TP diukur beberapa kali, pilih cara menggabungkan skornya (rata-rata, terbaru, atau tertinggi) di Pengaturan penilaian.',
             warning:
-              'TP versi lama (sudah diganti atau dinonaktifkan) tetap tampil pada penilaian yang sudah memakainya, tetapi tidak bisa ditambahkan ke penilaian lain. Keputusan guru tidak bisa diubah untuk siswa yang rapornya sudah final.',
+              'TP versi lama (sudah diganti atau dinonaktifkan) tetap tampil pada penilaian yang sudah memakainya, tetapi tidak bisa ditambahkan ke penilaian lain. Keputusan guru tidak bisa diubah untuk murid yang rapornya sudah final.',
           },
           {
             heading: 'Remedial dan pengayaan',
@@ -126,7 +126,7 @@ export const ACADEMIC_DOCS: DocArticle[] = [
             a: 'Buka lagi Isi nilai pada penilaian itu, ubah angkanya, lalu klik Simpan. Jika rapor kelas itu sudah difinalisasi, minta Kurikulum atau Admin sekolah membuka kembali rapornya lebih dulu.',
           },
           {
-            q: 'Nilai akhir siswa berubah sendiri. Kenapa?',
+            q: 'Nilai akhir murid berubah sendiri. Kenapa?',
             a: 'Nilai akhir dihitung ulang setiap ada nilai baru atau bobot yang diubah. Periksa Pengaturan penilaian untuk melihat apakah bobot komponen baru saja diubah.',
           },
           {
@@ -138,8 +138,8 @@ export const ACADEMIC_DOCS: DocArticle[] = [
             a: 'Mode persentase mensyaratkan jumlah bobot semua komponen tepat 100%. Saat Anda memilih mode ini, layar menampilkan jumlah bobot saat ini. Bila bukan 100%, muncul peringatan merah dan tombol Simpan tidak aktif. Ubah bobot di kartu Komponen nilai sampai jumlahnya 100%, lalu simpan lagi. Mode lain tidak mensyaratkan jumlah bobot 100%.',
           },
           {
-            q: 'Mengapa status TP seorang siswa masih kosong?',
-            a: 'Status baru muncul bila siswa punya skor pada penilaian sumatif yang dikaitkan ke TP itu, atau bila guru sudah membuat keputusan. Penilaian formatif hanya tampil sebagai kemajuan dan tidak menentukan status.',
+            q: 'Mengapa status TP seorang murid masih kosong?',
+            a: 'Status baru muncul bila murid punya skor pada penilaian sumatif yang dikaitkan ke TP itu, atau bila guru sudah membuat keputusan. Penilaian formatif hanya tampil sebagai kemajuan dan tidak menentukan status.',
           },
           {
             q: 'Apakah remedial mengubah nilai asli murid?',
@@ -452,24 +452,24 @@ export const ACADEMIC_DOCS: DocArticle[] = [
         sections: [
           {
             heading: 'Mengisi catatan wali kelas dan memeriksa kelengkapan',
-            body: 'Di menu Rapor, pilih semester dan kelas. Daftar siswa menampilkan status rapor (Draf atau Final), rata-rata, kelengkapan mata pelajaran, dan apakah catatan wali kelas sudah ada. Rapor yang masih Draf selalu mengikuti nilai terbaru.',
+            body: 'Di menu Rapor, pilih semester dan kelas. Daftar murid menampilkan status rapor (Draf atau Final), rata-rata, kelengkapan mata pelajaran, dan apakah catatan wali kelas sudah ada. Rapor yang masih Draf selalu mengikuti nilai terbaru.',
             steps: [
               'Buka menu Rapor, lalu pilih semester dan kelas.',
-              'Buka pratinjau tiap siswa dan tulis catatan wali kelas (maksimal 500 karakter).',
+              'Buka pratinjau tiap murid dan tulis catatan wali kelas (maksimal 500 karakter).',
               'Periksa kolom kelengkapan mata pelajaran. Bila ada yang kurang, minta guru mengisinya lewat menu Penilaian.',
-              'Ulangi sampai semua siswa selesai diperiksa.',
+              'Ulangi sampai semua murid selesai diperiksa.',
             ],
             href: '/report-cards',
             tip: 'Mata pelajaran di rapor adalah yang punya penilaian di kelas itu pada semester tersebut. Bila ada mapel yang hilang, periksa apakah gurunya sudah membuat penilaian.',
           },
           {
             heading: 'Memfinalisasi rapor satu kelas',
-            body: 'Finalisasi mengunci rapor satu kelas. Setelah final, nilai dan catatan wali kelas tidak bisa berubah, sehingga rapor yang dibagikan selalu sama. Bila ada siswa yang nilainya belum lengkap, muncul peringatan dan Anda bisa memilih Finalisasi tetap.',
+            body: 'Finalisasi mengunci rapor satu kelas. Setelah final, nilai dan catatan wali kelas tidak bisa berubah, sehingga rapor yang dibagikan selalu sama. Bila ada murid yang nilainya belum lengkap, muncul peringatan dan Anda bisa memilih Finalisasi tetap.',
             steps: [
               'Pastikan nilai dan catatan wali kelas sudah lengkap.',
               'Klik Finalisasi kelas.',
               'Bila muncul peringatan nilai belum lengkap, putuskan: kembali melengkapi, atau klik Finalisasi tetap.',
-              'Pastikan status semua siswa berubah menjadi Final.',
+              'Pastikan status semua murid berubah menjadi Final.',
             ],
             href: '/report-cards',
             warning:
@@ -484,10 +484,10 @@ export const ACADEMIC_DOCS: DocArticle[] = [
           },
           {
             heading: 'Mengunduh rapor',
-            body: 'Rapor bisa diunduh sebagai PDF per siswa atau sekaligus satu kelas. Leger kelas, yaitu tabel nilai seluruh siswa, diunduh sebagai Excel. Rapor juga memuat ekstrakurikuler yang diikuti siswa beserta predikatnya, dan jumlah ketidakhadiran (sakit, izin, tanpa keterangan) dalam rentang semester.',
+            body: 'Rapor bisa diunduh sebagai PDF per murid atau sekaligus satu kelas. Leger kelas, yaitu tabel nilai seluruh murid, diunduh sebagai Excel. Rapor juga memuat ekstrakurikuler yang diikuti murid beserta predikatnya, dan jumlah ketidakhadiran (sakit, izin, tanpa keterangan) dalam rentang semester.',
             steps: [
               'Buka menu Rapor, lalu pilih semester dan kelas.',
-              'Klik unduh pada baris siswa untuk satu rapor, atau klik Unduh semua (PDF) untuk satu kelas.',
+              'Klik unduh pada baris murid untuk satu rapor, atau klik Unduh semua (PDF) untuk satu kelas.',
               'Untuk leger kelas, pilih unduhan Excel.',
             ],
             href: '/report-cards',
@@ -890,7 +890,7 @@ export const ACADEMIC_DOCS: DocArticle[] = [
             heading: 'Menambah anggota dan mencatat kehadiran pertemuan',
             body: 'Buka satu ekstrakurikuler. Di sana ada tab Anggota, Pertemuan dan absensi, Penilaian, dan Laporan. Keanggotaan dicatat per tahun ajaran, bawaannya tahun ajaran yang sedang aktif.',
             steps: [
-              'Di tab Anggota, klik Tambah anggota, pilih kelas, centang siswa, lalu klik Tambahkan.',
+              'Di tab Anggota, klik Tambah anggota, pilih kelas, centang murid, lalu klik Tambahkan.',
               'Di tab Pertemuan dan absensi, klik Pertemuan baru, lalu isi tanggal dan topik.',
               'Klik Buka absensi pada pertemuan itu.',
               'Tandai Hadir, Izin, Sakit, atau Alpa untuk tiap anggota.',
@@ -901,7 +901,7 @@ export const ACADEMIC_DOCS: DocArticle[] = [
           },
           {
             heading: 'Memberi predikat semester dan melihat laporan kehadiran',
-            body: 'Di tab Penilaian, pilih semester lalu beri tiap anggota predikat A sampai D beserta keterangan. Predikat ini tampil di rapor siswa. Tab Laporan merangkum kehadiran tiap anggota pada rentang tanggal yang dipilih (bawaannya 90 hari terakhir, paling lama 366 hari) dan bisa diunduh sebagai Excel. Siswa yang sudah lulus tetap tampil pada tahun lampau, tetapi hanya untuk dilihat dan tidak dapat diubah.',
+            body: 'Di tab Penilaian, pilih semester lalu beri tiap anggota predikat A sampai D beserta keterangan. Predikat ini tampil di rapor murid. Tab Laporan merangkum kehadiran tiap anggota pada rentang tanggal yang dipilih (bawaannya 90 hari terakhir, paling lama 366 hari) dan bisa diunduh sebagai Excel. Murid yang sudah lulus tetap tampil pada tahun lampau, tetapi hanya untuk dilihat dan tidak dapat diubah.',
             steps: [
               'Buka tab Penilaian dan pilih semester.',
               'Pilih predikat A, B, C, atau D untuk tiap anggota dan isi keterangannya.',
@@ -936,7 +936,7 @@ export const ACADEMIC_DOCS: DocArticle[] = [
             a: 'Periksa tanggalnya. Tanggal tidak boleh belum tiba, dan ekskul itu belum boleh punya pertemuan lain di tanggal yang sama. Bila pertemuan di tanggal itu sudah ada, buka saja dan edit absensinya.',
           },
           {
-            q: 'Predikat ekskul siswa tidak muncul di rapor. Kenapa?',
+            q: 'Predikat ekskul murid tidak muncul di rapor. Kenapa?',
             a: 'Pastikan predikat sudah disimpan di tab Penilaian untuk semester yang sama dengan rapor. Bila rapor sudah final, minta pengelola rapor membuka kembali kelasnya dan finalisasi lagi.',
           },
         ],
@@ -1107,27 +1107,27 @@ export const ACADEMIC_DOCS: DocArticle[] = [
       id: {
         title: 'Tahfidz dan ibadah: halaqah, setoran, dan target',
         summary:
-          'Panduan musyrif mencatat setoran hafalan per halaqah, memantau progres Al-Quran, dan mengisi lembar ibadah harian siswa.',
+          'Panduan musyrif mencatat setoran hafalan per halaqah, memantau progres Al-Quran, dan mengisi lembar ibadah harian murid.',
         forWho: 'Guru musyrif atau pembina halaqah, Operator, dan Admin sekolah.',
         sections: [
           {
             heading: 'Membuat halaqah dan menambah anggota',
-            body: 'Halaqah dibuat per tahun ajaran dengan nama (tidak boleh sama dalam satu tahun ajaran), musyrif yang dipilih dari guru aktif, dan catatan jadwal. Satu siswa hanya bisa masuk satu halaqah dalam satu tahun ajaran.',
+            body: 'Halaqah dibuat per tahun ajaran dengan nama (tidak boleh sama dalam satu tahun ajaran), musyrif yang dipilih dari guru aktif, dan catatan jadwal. Satu murid hanya bisa masuk satu halaqah dalam satu tahun ajaran.',
             steps: [
               'Buka menu Tahfidz dan klik Halaqah baru.',
               'Isi nama, musyrif, dan jadwal, lalu simpan.',
               'Buka halaqah itu, masuk ke tab Anggota, dan klik Tambah anggota.',
-              'Pilih kelas, centang siswa yang akan masuk, lalu tambahkan.',
+              'Pilih kelas, centang murid yang akan masuk, lalu tambahkan.',
             ],
             href: '/tahfidz',
-            tip: 'Siswa yang sudah ada di halaqah lain pada tahun ajaran yang sama akan dilewati dan disebutkan di hasil penambahan, jadi Anda tidak perlu menyaringnya satu per satu.',
+            tip: 'Murid yang sudah ada di halaqah lain pada tahun ajaran yang sama akan dilewati dan disebutkan di hasil penambahan, jadi Anda tidak perlu menyaringnya satu per satu.',
           },
           {
             heading: 'Mencatat setoran hafalan',
-            body: 'Di tab Setoran, pilih siswa, tanggal, jenis, rentang surah dan ayat, kualitas, dan catatan. Ziyadah adalah hafalan baru, sedangkan Murajaah adalah mengulang hafalan lama. Kualitas bacaan dipilih antara Lancar, Cukup, atau Ulang. Setoran yang bernilai Ulang tidak dihitung sebagai hafalan baru.',
+            body: 'Di tab Setoran, pilih murid, tanggal, jenis, rentang surah dan ayat, kualitas, dan catatan. Ziyadah adalah hafalan baru, sedangkan Murajaah adalah mengulang hafalan lama. Kualitas bacaan dipilih antara Lancar, Cukup, atau Ulang. Setoran yang bernilai Ulang tidak dihitung sebagai hafalan baru.',
             steps: [
               'Buka halaqah dan tab Setoran.',
-              'Pilih siswa, tanggal, dan jenis setoran.',
+              'Pilih murid, tanggal, dan jenis setoran.',
               'Isi surah dan ayat awal sampai akhir.',
               'Pilih kualitas bacaan, dan tambahkan catatan bila perlu.',
               'Klik Simpan setoran.',
@@ -1137,22 +1137,22 @@ export const ACADEMIC_DOCS: DocArticle[] = [
           },
           {
             heading: 'Memantau progres hafalan',
-            body: 'Tab Progres dan halaman tiap siswa menampilkan persen Al-Quran yang sudah dihafal, jumlah juz yang tuntas, peta 30 juz, ayat lanjutan berikutnya, berapa hari berturut-turut siswa setor, dan target semester. Siswa yang belum setor 7 hari atau lebih ditandai tertinggal agar mudah ditemui.',
+            body: 'Tab Progres dan halaman tiap murid menampilkan persen Al-Quran yang sudah dihafal, jumlah juz yang tuntas, peta 30 juz, ayat lanjutan berikutnya, berapa hari berturut-turut murid setor, dan target semester. Murid yang belum setor 7 hari atau lebih ditandai tertinggal agar mudah ditemui.',
             href: '/tahfidz',
           },
           {
             heading: 'Mengisi ibadah harian',
-            body: 'Lembar harian mencatat butir ibadah yang aktif (misalnya Salat Dhuha) dengan sekali ketuk, per halaqah atau per kelas. Tab Laporan merangkum persen terlaksana per butir dan per siswa pada rentang tanggal yang dipilih (bawaannya 30 hari), dan bisa diunduh sebagai Excel.',
+            body: 'Lembar harian mencatat butir ibadah yang aktif (misalnya Salat Dhuha) dengan sekali ketuk, per halaqah atau per kelas. Tab Laporan merangkum persen terlaksana per butir dan per murid pada rentang tanggal yang dipilih (bawaannya 30 hari), dan bisa diunduh sebagai Excel.',
             href: '/tahfidz/ibadah',
             tip: 'Lembar per halaqah bisa diisi musyrif. Lembar per kelas hanya untuk Operator dan Admin sekolah.',
           },
           {
             heading: 'Mengatur butir ibadah dan target semester',
-            body: 'Halaman pengaturan dipakai untuk menambah butir ibadah (harian atau mingguan), mengatur urutan, serta mengaktifkan atau menonaktifkan sebuah butir. Di sini juga Anda mengisi target hafalan semester per siswa, yaitu jumlah ayat ziyadah dan murajaah.',
+            body: 'Halaman pengaturan dipakai untuk menambah butir ibadah (harian atau mingguan), mengatur urutan, serta mengaktifkan atau menonaktifkan sebuah butir. Di sini juga Anda mengisi target hafalan semester per murid, yaitu jumlah ayat ziyadah dan murajaah.',
             steps: [
               'Buka pengaturan Tahfidz.',
               'Klik Tambah butir untuk menambah butir ibadah baru, atau nonaktifkan butir yang tidak dipakai lagi.',
-              'Isi target ayat ziyadah dan murajaah untuk tiap siswa, lalu simpan.',
+              'Isi target ayat ziyadah dan murajaah untuk tiap murid, lalu simpan.',
             ],
             href: '/tahfidz/settings',
           },
@@ -1165,8 +1165,8 @@ export const ACADEMIC_DOCS: DocArticle[] = [
         ],
         faq: [
           {
-            q: 'Kenapa siswa tidak bisa saya masukkan ke halaqah?',
-            a: 'Kemungkinan siswa itu sudah menjadi anggota halaqah lain pada tahun ajaran yang sama. Satu siswa hanya boleh di satu halaqah. Keluarkan dulu dari halaqah lama, lalu tambahkan lagi.',
+            q: 'Kenapa murid tidak bisa saya masukkan ke halaqah?',
+            a: 'Kemungkinan murid itu sudah menjadi anggota halaqah lain pada tahun ajaran yang sama. Satu murid hanya boleh di satu halaqah. Keluarkan dulu dari halaqah lama, lalu tambahkan lagi.',
           },
           {
             q: 'Kenapa setoran saya tidak menambah persen hafalan?',
@@ -1178,7 +1178,7 @@ export const ACADEMIC_DOCS: DocArticle[] = [
           },
           {
             q: 'Halaqah tidak bisa dihapus. Apa yang harus dilakukan?',
-            a: 'Halaqah yang sudah punya setoran tidak bisa dihapus agar riwayat hafalan siswa aman. Nonaktifkan halaqah itu, lalu buat halaqah baru bila perlu.',
+            a: 'Halaqah yang sudah punya setoran tidak bisa dihapus agar riwayat hafalan murid aman. Nonaktifkan halaqah itu, lalu buat halaqah baru bila perlu.',
           },
         ],
       },
@@ -1348,17 +1348,17 @@ export const ACADEMIC_DOCS: DocArticle[] = [
     module: 'internship',
     text: {
       id: {
-        title: 'PKL: mitra, penempatan siswa, dan penilaian',
+        title: 'PKL: mitra, penempatan murid, dan penilaian',
         summary:
-          'Panduan pembimbing dan pengelola PKL menempatkan siswa di mitra industri, memantau jurnal dan kunjungan, lalu menilai hasilnya.',
+          'Panduan pembimbing dan pengelola PKL menempatkan murid di mitra industri, memantau jurnal dan kunjungan, lalu menilai hasilnya.',
         forWho: 'Guru pembimbing PKL, Operator, dan Admin sekolah.',
         sections: [
           {
             heading: 'Menambah mitra industri',
-            body: 'Mitra adalah perusahaan atau instansi tempat siswa PKL. Isi nama (tidak boleh sama dengan mitra lain), bidang usaha, narahubung, telepon, surel, alamat, dan status aktif. Hanya mitra yang aktif yang bisa dipilih saat menempatkan siswa.',
+            body: 'Mitra adalah perusahaan atau instansi tempat murid PKL. Isi nama (tidak boleh sama dengan mitra lain), bidang usaha, narahubung, telepon, surel, alamat, dan status aktif. Hanya mitra yang aktif yang bisa dipilih saat menempatkan murid.',
             steps: ['Buka Mitra industri.', 'Klik Tambah mitra dan isi datanya.', 'Simpan.'],
             href: '/pkl/partners',
-            tip: 'Nonaktifkan mitra yang sudah tidak menerima siswa supaya tidak terpilih tanpa sengaja.',
+            tip: 'Nonaktifkan mitra yang sudah tidak menerima murid supaya tidak terpilih tanpa sengaja.',
           },
           {
             heading: 'Menyiapkan periode, aspek penilaian, dan ambang predikat',
@@ -1374,16 +1374,16 @@ export const ACADEMIC_DOCS: DocArticle[] = [
               'Mengubah ambang predikat langsung berlaku pada semua nilai PKL, termasuk nilai periode lama. Periode yang sudah punya penempatan tidak bisa dihapus.',
           },
           {
-            heading: 'Menempatkan siswa di mitra',
-            body: 'Halaman PKL menampilkan penempatan dalam bentuk papan atau tabel, dengan pilihan penyaring periode, mitra, status, dan pencarian. Banyak siswa bisa ditempatkan sekaligus.',
+            heading: 'Menempatkan murid di mitra',
+            body: 'Halaman PKL menampilkan penempatan dalam bentuk papan atau tabel, dengan pilihan penyaring periode, mitra, status, dan pencarian. Banyak murid bisa ditempatkan sekaligus.',
             steps: [
-              'Buka PKL dan klik Tempatkan siswa.',
+              'Buka PKL dan klik Tempatkan murid.',
               'Pilih periode dan mitra, lalu isi guru pembimbing dan pembimbing industri bila ada.',
-              'Centang siswa (bisa disaring per kelas), lalu klik Tempatkan.',
+              'Centang murid (bisa disaring per kelas), lalu klik Tempatkan.',
               'Saat PKL dimulai, klik Mulai PKL. Setelah selesai, klik Selesaikan. Bila tidak jadi, klik Batalkan.',
             ],
             href: '/pkl',
-            tip: 'Siswa yang sudah punya penempatan di periode yang sama akan dilewati, jadi aman bila Anda tidak sengaja mencentang siswa yang sama.',
+            tip: 'Murid yang sudah punya penempatan di periode yang sama akan dilewati, jadi aman bila Anda tidak sengaja mencentang murid yang sama.',
           },
           {
             heading: 'Mengisi jurnal, kunjungan, dan penilaian',
@@ -1395,7 +1395,7 @@ export const ACADEMIC_DOCS: DocArticle[] = [
             heading: 'Memberi akses pengisian kepada pembimbing industri',
             body: 'Pembimbing di perusahaan tidak perlu punya akun. Ia mengisi jurnal dan nilai lewat tautan khusus yang Anda buat dari tab Tautan industri pada detail penempatan.',
             steps: [
-              'Buka detail penempatan siswa, lalu masuk ke tab Tautan industri.',
+              'Buka detail penempatan murid, lalu masuk ke tab Tautan industri.',
               'Buat tautan baru.',
               'Salin tautan itu dan kirimkan sendiri kepada pembimbing industri.',
             ],
@@ -1410,12 +1410,12 @@ export const ACADEMIC_DOCS: DocArticle[] = [
         ],
         faq: [
           {
-            q: 'Kenapa mitra tidak muncul saat saya menempatkan siswa?',
+            q: 'Kenapa mitra tidak muncul saat saya menempatkan murid?',
             a: 'Hanya mitra yang berstatus aktif yang bisa dipilih. Minta pengelola PKL membuka Mitra industri dan mengaktifkan mitra itu.',
           },
           {
-            q: 'Siswa tidak bisa ditempatkan. Apa sebabnya?',
-            a: 'Kemungkinan siswa itu sudah punya penempatan di periode yang sama, jadi dilewati. Periksa di halaman PKL, filter berdasarkan periode, dan ubah penempatan lama bila ingin memindahkannya.',
+            q: 'Murid tidak bisa ditempatkan. Apa sebabnya?',
+            a: 'Kemungkinan murid itu sudah punya penempatan di periode yang sama, jadi dilewati. Periksa di halaman PKL, filter berdasarkan periode, dan ubah penempatan lama bila ingin memindahkannya.',
           },
           {
             q: 'Penempatan tidak bisa dihapus. Bagaimana?',
@@ -1598,7 +1598,7 @@ export const ACADEMIC_DOCS: DocArticle[] = [
       id: {
         title: 'Kenaikan kelas dan tahun ajaran baru',
         summary:
-          'Cara menyiapkan tahun ajaran berikutnya, memutuskan siswa naik, tinggal, atau ditetapkan lulus, lalu menerapkannya tanpa mengubah data tahun lalu.',
+          'Cara menyiapkan tahun ajaran berikutnya, memutuskan murid naik, tinggal, atau ditetapkan lulus, lalu menerapkannya tanpa mengubah data tahun lalu.',
         forWho: 'Kurikulum, Operator, dan Admin sekolah yang mengelola pergantian tahun ajaran.',
         sections: [
           {
@@ -1609,7 +1609,7 @@ export const ACADEMIC_DOCS: DocArticle[] = [
           },
           {
             heading: 'Langkah 1: memilih tahun sumber dan tahun tujuan',
-            body: 'Tahun sumber adalah tahun yang siswanya akan dinaikkan, bawaannya tahun ajaran aktif. Tahun tujuan adalah tahun ajaran berikutnya. Hanya tahun yang dimulai setelah tahun sumber yang bisa dipilih. Bila belum ada, buat dulu di menu Tahun ajaran.',
+            body: 'Tahun sumber adalah tahun yang muridnya akan dinaikkan, bawaannya tahun ajaran aktif. Tahun tujuan adalah tahun ajaran berikutnya. Hanya tahun yang dimulai setelah tahun sumber yang bisa dipilih. Bila belum ada, buat dulu di menu Tahun ajaran.',
             steps: [
               'Buka menu Kenaikan kelas.',
               'Pilih Tahun ajaran sumber.',
@@ -1619,7 +1619,7 @@ export const ACADEMIC_DOCS: DocArticle[] = [
           },
           {
             heading: 'Langkah 2: menyalin kelas, penugasan, dan kalender',
-            body: 'Langkah ini menyiapkan tahun tujuan. Kelas 7A menjadi 8A di tahun tujuan, lengkap dengan wali kelas dan guru mata pelajarannya. Kelas tingkat pertama juga disalin apa adanya untuk siswa baru dan siswa yang tinggal kelas. Kelas tingkat terakhir tidak disalin karena kelulusan ditetapkan sekolah, kecuali bila sudah ada siswa yang diputuskan tinggal kelas di dalamnya: kelas itu ikut disalin agar siswa tersebut punya kelas tujuan. Kalender akademik hanya disalin bila Anda mencentang pilihannya; pilihan itu mati secara bawaan karena kalender tiap tahun berbeda, dan tanggalnya digeser satu tahun sehingga harus Anda periksa kembali sebelum dipakai. Struktur kurikulum (jam pelajaran dan versi kurikulum tiap tingkat) juga ikut disalin. Hasilnya menampilkan jumlah yang dibuat dan daftar hal yang perlu diperiksa, misalnya wali kelas yang sudah nonaktif. Tiap bagian butuh izin sendiri: kelas dan penugasan butuh izin mengelola kelas, kalender butuh izin mengelola tahun ajaran, struktur kurikulum butuh izin mengelola kurikulum, dan perangkat ajar butuh izin menyusun perangkat ajar. Bagian yang izinnya belum Anda punya tampil redup dengan tulisan Butuh izin dan tidak ikut disalin; minta admin sekolah menambahkan izinnya bila diperlukan. Langkah ini boleh dilewati bila kelas tahun tujuan sudah Anda buat sendiri.',
+            body: 'Langkah ini menyiapkan tahun tujuan. Kelas 7A menjadi 8A di tahun tujuan, lengkap dengan wali kelas dan guru mata pelajarannya. Kelas tingkat pertama juga disalin apa adanya untuk murid baru dan murid yang tinggal kelas. Kelas tingkat terakhir tidak disalin karena kelulusan ditetapkan sekolah, kecuali bila sudah ada murid yang diputuskan tinggal kelas di dalamnya: kelas itu ikut disalin agar murid tersebut punya kelas tujuan. Kalender akademik hanya disalin bila Anda mencentang pilihannya; pilihan itu mati secara bawaan karena kalender tiap tahun berbeda, dan tanggalnya digeser satu tahun sehingga harus Anda periksa kembali sebelum dipakai. Struktur kurikulum (jam pelajaran dan versi kurikulum tiap tingkat) juga ikut disalin. Hasilnya menampilkan jumlah yang dibuat dan daftar hal yang perlu diperiksa, misalnya wali kelas yang sudah nonaktif. Tiap bagian butuh izin sendiri: kelas dan penugasan butuh izin mengelola kelas, kalender butuh izin mengelola tahun ajaran, struktur kurikulum butuh izin mengelola kurikulum, dan perangkat ajar butuh izin menyusun perangkat ajar. Bagian yang izinnya belum Anda punya tampil redup dengan tulisan Butuh izin dan tidak ikut disalin; minta admin sekolah menambahkan izinnya bila diperlukan. Langkah ini boleh dilewati bila kelas tahun tujuan sudah Anda buat sendiri.',
             steps: [
               'Centang apa saja yang ingin disalin.',
               'Klik Pratinjau untuk melihat jumlahnya dan peringatan.',
@@ -1630,22 +1630,22 @@ export const ACADEMIC_DOCS: DocArticle[] = [
               'Bila muncul pesan bahwa daftar tingkat masih kosong, isi dulu tingkat di Pengaturan sekolah, lalu ulangi.',
           },
           {
-            heading: 'Langkah 3: memutuskan nasib tiap siswa',
-            body: 'Semua siswa aktif di tahun sumber tampil per kelas. Bawaannya naik kelas. Untuk kelas tingkat terakhir tidak ada pilihan bawaan: kelulusan ditetapkan sekolah setelah ujian satuan pendidikan, jadi Anda wajib memilih Ditetapkan lulus atau Tinggal untuk setiap siswa, dan tombol Simpan serta Berikutnya baru terbuka setelah semuanya dipilih. Ubah per siswa menjadi Tinggal bila perlu, atau pakai tombol di atas kelas seperti Semua naik untuk mengubah satu kelas sekaligus. Tiap siswa punya Catatan keputusan yang boleh diisi: alasan, tindak lanjut (misalnya pendampingan), dan tanggal musyawarah, yang juga bisa diterapkan sekaligus ke satu kelas. Daftar kelas yang besar bisa dilipat dan dicari menurut nama atau NIS. Keputusan baru berlaku setelah Anda klik Simpan keputusan. Keputusan yang sudah diterapkan terkunci dan tidak bisa diubah lagi.',
+            heading: 'Langkah 3: memutuskan nasib tiap murid',
+            body: 'Semua murid aktif di tahun sumber tampil per kelas. Bawaannya naik kelas. Untuk kelas tingkat terakhir tidak ada pilihan bawaan: kelulusan ditetapkan sekolah setelah ujian satuan pendidikan, jadi Anda wajib memilih Ditetapkan lulus atau Tinggal untuk setiap murid, dan tombol Simpan serta Berikutnya baru terbuka setelah semuanya dipilih. Ubah per murid menjadi Tinggal bila perlu, atau pakai tombol di atas kelas seperti Semua naik untuk mengubah satu kelas sekaligus. Tiap murid punya Catatan keputusan yang boleh diisi: alasan, tindak lanjut (misalnya pendampingan), dan tanggal musyawarah, yang juga bisa diterapkan sekaligus ke satu kelas. Daftar kelas yang besar bisa dilipat dan dicari menurut nama atau NIS. Keputusan baru berlaku setelah Anda klik Simpan keputusan. Keputusan yang sudah diterapkan terkunci dan tidak bisa diubah lagi.',
             steps: [
-              'Periksa tiap kelas, ubah siswa yang tinggal kelas.',
+              'Periksa tiap kelas, ubah murid yang tinggal kelas.',
               'Klik Simpan keputusan.',
               'Pastikan tulisan Semua keputusan sudah tersimpan muncul.',
             ],
-            tip: 'Siswa tingkat akhir yang belum dipilih ditandai kuning supaya mudah ditemukan.',
+            tip: 'Murid tingkat akhir yang belum dipilih ditandai kuning supaya mudah ditemukan.',
           },
           {
             heading: 'Langkah 4: menerapkan ke tahun tujuan',
-            body: 'Siswa yang naik atau tinggal didaftarkan ke kelas di tahun tujuan, dan siswa yang ditetapkan lulus berubah statusnya menjadi lulus. Klik Pratinjau dulu untuk melihat berapa yang naik, tinggal, dan ditetapkan lulus. Siswa yang belum bisa ditempatkan tampil beserta alasannya, misalnya tahun tujuan belum punya kelas untuk tingkatnya. Perbaiki penyebabnya lalu terapkan lagi. Siswa yang sudah terdaftar di tahun tujuan dilewati. Siswa tingkat akhir yang belum punya keputusan dihitung terpisah dan tetap aktif; mereka tidak naik dan tidak diluluskan otomatis.',
+            body: 'Murid yang naik atau tinggal didaftarkan ke kelas di tahun tujuan, dan murid yang ditetapkan lulus berubah statusnya menjadi lulus. Klik Pratinjau dulu untuk melihat berapa yang naik, tinggal, dan ditetapkan lulus. Murid yang belum bisa ditempatkan tampil beserta alasannya, misalnya tahun tujuan belum punya kelas untuk tingkatnya. Perbaiki penyebabnya lalu terapkan lagi. Murid yang sudah terdaftar di tahun tujuan dilewati. Murid tingkat akhir yang belum punya keputusan dihitung terpisah dan tetap aktif; mereka tidak naik dan tidak diluluskan otomatis.',
             steps: [
               'Klik Pratinjau dan periksa angkanya.',
               'Klik Terapkan sekarang, lalu konfirmasi.',
-              'Buka menu Siswa dan Kelas untuk memastikan hasilnya.',
+              'Buka menu Murid dan Kelas untuk memastikan hasilnya.',
             ],
             href: '/students',
             warning:
@@ -1655,27 +1655,27 @@ export const ACADEMIC_DOCS: DocArticle[] = [
         faq: [
           {
             q: 'Apakah data dan rapor tahun lalu ikut berubah?',
-            a: 'Tidak. Proses ini hanya menambah kelas dan pendaftaran di tahun tujuan serta mengubah status siswa yang ditetapkan lulus. Kelas, penugasan, nilai, dan rapor tahun sumber tidak disentuh.',
+            a: 'Tidak. Proses ini hanya menambah kelas dan pendaftaran di tahun tujuan serta mengubah status murid yang ditetapkan lulus. Kelas, penugasan, nilai, dan rapor tahun sumber tidak disentuh.',
           },
           {
             q: 'Bolehkah saya menjalankan langkahnya lebih dari sekali?',
-            a: 'Boleh. Yang sudah ada atau sudah diproses dilewati, sehingga tidak ada yang digandakan. Ini berguna bila Anda baru melengkapi kelas tahun tujuan dan ingin menerapkan ulang siswa yang tadi belum bisa ditempatkan.',
+            a: 'Boleh. Yang sudah ada atau sudah diproses dilewati, sehingga tidak ada yang digandakan. Ini berguna bila Anda baru melengkapi kelas tahun tujuan dan ingin menerapkan ulang murid yang tadi belum bisa ditempatkan.',
           },
           {
-            q: 'Ada siswa yang belum bisa ditempatkan. Apa yang harus dilakukan?',
+            q: 'Ada murid yang belum bisa ditempatkan. Apa yang harus dilakukan?',
             a: 'Baca alasannya di daftar. Yang paling sering, tahun tujuan belum punya kelas untuk tingkat itu. Buat kelasnya (atau jalankan penyalinan di langkah 2), lalu terapkan lagi.',
           },
           {
             q: 'Salah memilih keputusan setelah diterapkan. Bagaimana?',
-            a: 'Keputusan yang sudah diterapkan terkunci. Pindahkan kelas siswa itu lewat menu Siswa, dan hubungi admin bila statusnya perlu dikembalikan dari lulus.',
+            a: 'Keputusan yang sudah diterapkan terkunci. Pindahkan kelas murid itu lewat menu Murid, dan hubungi admin bila statusnya perlu dikembalikan dari lulus.',
           },
           {
             q: 'Menu Kenaikan kelas tidak muncul di tempat saya.',
             a: 'Menu ini hanya untuk peran yang diberi akses kenaikan kelas, seperti Kurikulum dan Admin sekolah. Minta admin sekolah memeriksa peran Anda.',
           },
           {
-            q: 'Mengapa muncul peringatan siswa lulus padahal rapor belum final?',
-            a: 'Saat langkah Terapkan dibuka, sistem memeriksa lebih dulu, tanpa mengubah data, apakah rapor semester terakhir kelas yang siswanya akan lulus sudah final. Siswa berstatus lulus tidak muncul lagi di daftar rapor, jadi rapor yang belum final tidak bisa dituntaskan lagi. Bila ada yang belum final, peringatan merah tampil di atas tombol Terapkan beserta tautan ke halaman Rapor, dan Anda diminta konfirmasi sekali lagi. Sebaiknya finalkan rapornya dulu, lalu kembali ke sini.',
+            q: 'Mengapa muncul peringatan murid lulus padahal rapor belum final?',
+            a: 'Saat langkah Terapkan dibuka, sistem memeriksa lebih dulu, tanpa mengubah data, apakah rapor semester terakhir kelas yang muridnya akan lulus sudah final. Murid berstatus lulus tidak muncul lagi di daftar rapor, jadi rapor yang belum final tidak bisa dituntaskan lagi. Bila ada yang belum final, peringatan merah tampil di atas tombol Terapkan beserta tautan ke halaman Rapor, dan Anda diminta konfirmasi sekali lagi. Sebaiknya finalkan rapornya dulu, lalu kembali ke sini.',
           },
           {
             q: 'Apa arti Tingkat kelas belum dikenal?',
@@ -2155,13 +2155,13 @@ export const ACADEMIC_DOCS: DocArticle[] = [
         sections: [
           {
             heading: 'Apa itu Kriteria Ketercapaian Tujuan Pembelajaran (KKTP) dan kapan dipakai',
-            body: 'Kriteria Ketercapaian Tujuan Pembelajaran (KKTP) menentukan kapan siswa dianggap mencapai tujuan pembelajaran sebuah mapel. Secara bawaan semua mata pelajaran memakai satu batas ketuntasan bawaan sekolah (KKM) yang diatur di Pengaturan penilaian. Bila sebuah mapel perlu batas sendiri, buat kriteria untuknya di tab KKTP pada halaman Kurikulum. Kriteria bisa berlaku untuk semua tingkat dan jurusan, atau dikhususkan pada satu tingkat dan satu jurusan. Mapel tanpa kriteria tetap memakai KKM sekolah.',
+            body: 'Kriteria Ketercapaian Tujuan Pembelajaran (KKTP) menentukan kapan murid dianggap mencapai tujuan pembelajaran sebuah mapel. Secara bawaan semua mata pelajaran memakai satu batas ketuntasan bawaan sekolah (KKM) yang diatur di Pengaturan penilaian. Bila sebuah mapel perlu batas sendiri, buat kriteria untuknya di tab KKTP pada halaman Kurikulum. Kriteria bisa berlaku untuk semua tingkat dan jurusan, atau dikhususkan pada satu tingkat dan satu jurusan. Mapel tanpa kriteria tetap memakai KKM sekolah.',
             href: '/curriculum?tab=kktp',
             tip: 'Mulai dari yang sederhana: biarkan KKM sekolah berlaku, dan buat kriteria hanya untuk mapel yang memang berbeda.',
           },
           {
             heading: 'Membuat kriteria berupa satu angka',
-            body: 'Mode Angka adalah yang paling sederhana: siswa tuntas bila nilainya sama dengan atau di atas satu angka. Angka boleh desimal, misalnya 72,5.',
+            body: 'Mode Angka adalah yang paling sederhana: murid tuntas bila nilainya sama dengan atau di atas satu angka. Angka boleh desimal, misalnya 72,5.',
             steps: [
               'Buka Kurikulum, lalu tab KKTP.',
               'Klik Tambah kriteria.',
@@ -2192,7 +2192,7 @@ export const ACADEMIC_DOCS: DocArticle[] = [
           },
           {
             heading: 'Di mana KKM mapel muncul, dan kapan perubahan ditolak',
-            body: 'KKM mapel dipakai di rekap nilai (penanda di bawah KKM), di portal orang tua dan siswa, dan di rapor. Nilai desimal ditampilkan apa adanya, misalnya 72,5. Karena mengubah KKM bisa mengubah penanda dan isi rapor, menambah, mengubah, atau menghapus kriteria ditolak selama semester aktif punya rapor yang sudah final.',
+            body: 'KKM mapel dipakai di rekap nilai (penanda di bawah KKM), di portal orang tua dan murid, dan di rapor. Nilai desimal ditampilkan apa adanya, misalnya 72,5. Karena mengubah KKM bisa mengubah penanda dan isi rapor, menambah, mengubah, atau menghapus kriteria ditolak selama semester aktif punya rapor yang sudah final.',
             warning:
               'Bila muncul pesan bahwa rapor sudah final, buka kembali rapor yang sudah final di menu Rapor, ubah kriterianya, lalu finalkan lagi.',
           },
@@ -2416,7 +2416,7 @@ export const ACADEMIC_DOCS: DocArticle[] = [
           {
             heading: 'Mengisi pilihan agama dari data murid',
             body: 'Tombol Isi pilihan agama dari data murid mengisi mapel agama sesuai agama yang tercatat pada data tiap murid. Sistem tidak menebak: murid hanya diisi bila ada tepat satu mapel agama yang cocok di kelas itu. Murid yang tidak bisa diisi otomatis ditampilkan beserta alasannya, misalnya agama belum diisi, tidak ada mapel yang cocok, atau sudah memilih mapel agama lain.',
-            tip: 'Lengkapi data agama murid di halaman Siswa lebih dulu agar lebih banyak murid terisi otomatis.',
+            tip: 'Lengkapi data agama murid di halaman Murid lebih dulu agar lebih banyak murid terisi otomatis.',
           },
           {
             heading: 'Membaca ringkasan peringatan',
@@ -2476,7 +2476,7 @@ export const ACADEMIC_DOCS: DocArticle[] = [
           },
           {
             heading: 'Melihat pilihan satu murid',
-            body: 'Di halaman Siswa, buka menu tindakan pada baris murid lalu pilih Mapel pilihan. Anda melihat mapel pilihan di kelasnya, mana yang diambil, dan apakah murid itu sudah sesuai aturan sekolah.',
+            body: 'Di halaman Murid, buka menu tindakan pada baris murid lalu pilih Mapel pilihan. Anda melihat mapel pilihan di kelasnya, mana yang diambil, dan apakah murid itu sudah sesuai aturan sekolah.',
             href: '/students',
           },
         ],
@@ -2772,36 +2772,36 @@ export const ACADEMIC_DOCS: DocArticle[] = [
         summary:
           'Cara membuka legger satu kelas, membaca nilai dan statusnya, serta mengunduhnya ke Excel atau mencetaknya.',
         forWho:
-          'Wali kelas, kepala sekolah, dan pengelola kurikulum atau rapor yang perlu melihat nilai seluruh siswa satu kelas dalam satu lembar.',
+          'Wali kelas, kepala sekolah, dan pengelola kurikulum atau rapor yang perlu melihat nilai seluruh murid satu kelas dalam satu lembar.',
         sections: [
           {
             heading: 'Gambaran singkat',
-            body: 'Legger adalah daftar nilai akhir seluruh siswa satu kelas dalam satu semester: satu baris per siswa, satu kolom per mata pelajaran, lengkap dengan rata-rata, peringkat (bila sekolah menampilkannya), jumlah sakit, izin, dan alpa, serta status rapornya. Angkanya diambil dari data rapor yang sama, jadi selalu cocok dengan rapor siswa.',
+            body: 'Legger adalah daftar nilai akhir seluruh murid satu kelas dalam satu semester: satu baris per murid, satu kolom per mata pelajaran, lengkap dengan rata-rata, peringkat (bila sekolah menampilkannya), jumlah sakit, izin, dan alpa, serta status rapornya. Angkanya diambil dari data rapor yang sama, jadi selalu cocok dengan rapor murid.',
             href: '/report-cards/ledger',
             tip: 'Buka dari tombol Legger di halaman Rapor, atau langsung dari alamat halamannya.',
           },
           {
             heading: 'Membuka legger',
-            body: 'Pilih semester dan kelas. Di layar lebar, legger tampil sebagai tabel dengan nama siswa yang tetap terlihat saat tabel digeser ke samping. Di ponsel dan tablet kecil, setiap siswa tampil sebagai kartu sehingga halaman tidak perlu digeser.',
+            body: 'Pilih semester dan kelas. Di layar lebar, legger tampil sebagai tabel dengan nama murid yang tetap terlihat saat tabel digeser ke samping. Di ponsel dan tablet kecil, setiap murid tampil sebagai kartu sehingga halaman tidak perlu digeser.',
             steps: [
               'Buka menu Rapor, lalu klik Legger. Anda juga bisa membuka halaman Legger langsung.',
               'Pilih semester dan kelas.',
-              'Baca nilai tiap mata pelajaran, rata-rata, dan status rapor siswa.',
+              'Baca nilai tiap mata pelajaran, rata-rata, dan status rapor murid.',
             ],
             href: '/report-cards/ledger',
           },
           {
             heading: 'Status final dan draf',
-            body: 'Siswa berstatus Final memakai angka yang sudah dibekukan saat rapor difinalkan, sehingga tidak berubah walau nilai di buku nilai diubah kemudian. Siswa berstatus Draf dihitung dari nilai terkini dan masih bisa berubah sampai rapornya difinalkan.',
-            warning: 'Sebelum mencetak untuk keperluan resmi, pastikan semua siswa sudah berstatus Final.',
+            body: 'Murid berstatus Final memakai angka yang sudah dibekukan saat rapor difinalkan, sehingga tidak berubah walau nilai di buku nilai diubah kemudian. Murid berstatus Draf dihitung dari nilai terkini dan masih bisa berubah sampai rapornya difinalkan.',
+            warning: 'Sebelum mencetak untuk keperluan resmi, pastikan semua murid sudah berstatus Final.',
           },
           {
             heading: 'Mata pelajaran yang tidak diambil',
-            body: 'Pada sekolah yang memakai mata pelajaran pilihan, siswa tidak mengambil semua mapel. Sel mapel yang tidak diambil siswa ditandai garis panjang dengan keterangan Tidak mengambil mapel ini, dan tidak ikut dihitung dalam rata-rata. Tanda strip pendek berarti nilainya belum ada. Angka berwarna merah berarti di bawah KKM.',
+            body: 'Pada sekolah yang memakai mata pelajaran pilihan, murid tidak mengambil semua mapel. Sel mapel yang tidak diambil murid ditandai garis panjang dengan keterangan Tidak mengambil mapel ini, dan tidak ikut dihitung dalam rata-rata. Tanda strip pendek berarti nilainya belum ada. Angka berwarna merah berarti di bawah KKM.',
           },
           {
-            heading: 'Siswa pindah dan lulusan',
-            body: 'Daftar siswa mengikuti daftar pada halaman Rapor: siswa aktif, lulusan tahun itu, serta siswa yang pindah atau keluar sesudah semester itu berakhir tetap tampil, sehingga legger semester lama tetap lengkap.',
+            heading: 'Murid pindah dan lulusan',
+            body: 'Daftar murid mengikuti daftar pada halaman Rapor: murid aktif, lulusan tahun itu, serta murid yang pindah atau keluar sesudah semester itu berakhir tetap tampil, sehingga legger semester lama tetap lengkap.',
           },
           {
             heading: 'Mengunduh ke Excel',
@@ -2829,16 +2829,16 @@ export const ACADEMIC_DOCS: DocArticle[] = [
         ],
         faq: [
           {
-            q: 'Mengapa sebagian siswa berstatus Draf?',
-            a: 'Rapor siswa itu belum difinalkan. Finalkan rapor kelas di halaman Rapor agar angkanya dibekukan.',
+            q: 'Mengapa sebagian murid berstatus Draf?',
+            a: 'Rapor murid itu belum difinalkan. Finalkan rapor kelas di halaman Rapor agar angkanya dibekukan.',
           },
           {
             q: 'Mengapa angka di legger berbeda dengan buku nilai?',
-            a: 'Siswa berstatus Final memakai angka saat rapor difinalkan. Bila nilai diubah sesudahnya, buka kembali rapor kelas lalu finalkan lagi agar angka baru ikut.',
+            a: 'Murid berstatus Final memakai angka saat rapor difinalkan. Bila nilai diubah sesudahnya, buka kembali rapor kelas lalu finalkan lagi agar angka baru ikut.',
           },
           {
-            q: 'Mengapa ada siswa yang sel mapelnya bertanda garis?',
-            a: 'Siswa itu tidak mengambil mata pelajaran tersebut. Pilihan siswa diatur di halaman Pilihan mapel.',
+            q: 'Mengapa ada murid yang sel mapelnya bertanda garis?',
+            a: 'Murid itu tidak mengambil mata pelajaran tersebut. Pilihan murid diatur di halaman Pilihan mapel.',
           },
           {
             q: 'Mengapa kolom peringkat tidak ada?',
@@ -3015,13 +3015,13 @@ export const ACADEMIC_DOCS: DocArticle[] = [
       id: {
         title: 'Berita acara musyawarah dan tinggal kelas di tingkat akhir',
         summary:
-          'Cara mencatat hasil musyawarah dewan pendidik, menautkan keputusan siswa, mencetaknya, dan menempatkan siswa tingkat akhir yang tinggal kelas.',
+          'Cara mencatat hasil musyawarah dewan pendidik, menautkan keputusan murid, mencetaknya, dan menempatkan murid tingkat akhir yang tinggal kelas.',
         forWho:
           'Wakil kepala sekolah bidang kurikulum, admin sekolah, kepala sekolah, dan wali kelas yang menyusun atau membaca berita acara kenaikan kelas.',
         sections: [
           {
             heading: 'Gambaran singkat',
-            body: 'Berita acara mencatat hasil rapat dewan pendidik: tanggal, tempat, agenda, peserta, ringkasan keputusan, serta daftar siswa yang tinggal kelas beserta alasan dan tindak lanjutnya. Daftar dan jumlah naik, tinggal, dan lulus diambil otomatis dari keputusan siswa yang Anda tautkan, jadi tidak perlu mengetik ulang.',
+            body: 'Berita acara mencatat hasil rapat dewan pendidik: tanggal, tempat, agenda, peserta, ringkasan keputusan, serta daftar murid yang tinggal kelas beserta alasan dan tindak lanjutnya. Daftar dan jumlah naik, tinggal, dan lulus diambil otomatis dari keputusan murid yang Anda tautkan, jadi tidak perlu mengetik ulang.',
             href: '/promotion/minutes',
             tip: 'Buka dari tombol Berita acara di halaman Kenaikan kelas.',
           },
@@ -3036,28 +3036,28 @@ export const ACADEMIC_DOCS: DocArticle[] = [
             href: '/promotion/minutes',
           },
           {
-            heading: 'Menautkan keputusan siswa',
-            body: 'Tautan menunjukkan keputusan siswa mana yang dibahas dalam rapat. Ada dua cara: di langkah Keputusan siswa pada halaman Kenaikan kelas, pilih berita acara pada catatan keputusan siswa (atau untuk satu kelas sekaligus); atau buka berita acara dan centang siswanya. Menautkan tidak mengubah keputusan siswa, dan tanggal musyawarah siswa mengikuti tanggal berita acara.',
+            heading: 'Menautkan keputusan murid',
+            body: 'Tautan menunjukkan keputusan murid mana yang dibahas dalam rapat. Ada dua cara: di langkah Keputusan murid pada halaman Kenaikan kelas, pilih berita acara pada catatan keputusan murid (atau untuk satu kelas sekaligus); atau buka berita acara dan centang muridnya. Menautkan tidak mengubah keputusan murid, dan tanggal musyawarah murid mengikuti tanggal berita acara.',
             href: '/promotion',
-            tip: 'Tombol Pilih semua yang tinggal kelas mencentang siswa yang tinggal kelas dengan sekali klik.',
+            tip: 'Tombol Pilih semua yang tinggal kelas mencentang murid yang tinggal kelas dengan sekali klik.',
           },
           {
             heading: 'Memfinalkan dan membuka kembali',
-            body: 'Setelah rapat selesai dan datanya benar, finalkan berita acara. Rekap keputusan dibekukan, dan berita acara serta keputusan siswa yang tertaut tidak bisa diubah. Bila ada koreksi, buka kembali berita acaranya, ubah, lalu finalkan lagi.',
+            body: 'Setelah rapat selesai dan datanya benar, finalkan berita acara. Rekap keputusan dibekukan, dan berita acara serta keputusan murid yang tertaut tidak bisa diubah. Bila ada koreksi, buka kembali berita acaranya, ubah, lalu finalkan lagi.',
             warning:
-              'Keputusan siswa yang tertaut ke berita acara final tampil terkunci di langkah Keputusan siswa sampai berita acaranya dibuka kembali.',
+              'Keputusan murid yang tertaut ke berita acara final tampil terkunci di langkah Keputusan murid sampai berita acaranya dibuka kembali.',
           },
           {
             heading: 'Mencetak atau menyimpan sebagai PDF',
-            body: 'Buka berita acara lalu klik Cetak / PDF. Hasil cetak memuat identitas rapat, daftar peserta dengan kolom tanda tangan, rekap keputusan per kelas, daftar siswa tinggal kelas beserta alasan dan tindak lanjutnya, ringkasan, dan tempat tanda tangan ketua serta sekretaris. Untuk berkas PDF, pilih Simpan sebagai PDF pada pilihan printer.',
+            body: 'Buka berita acara lalu klik Cetak / PDF. Hasil cetak memuat identitas rapat, daftar peserta dengan kolom tanda tangan, rekap keputusan per kelas, daftar murid tinggal kelas beserta alasan dan tindak lanjutnya, ringkasan, dan tempat tanda tangan ketua serta sekretaris. Untuk berkas PDF, pilih Simpan sebagai PDF pada pilihan printer.',
             tip: 'Berita acara yang masih draf tetap bisa dicetak, dan hasil cetaknya diberi catatan bahwa belum final.',
           },
           {
-            heading: 'Siswa tingkat akhir yang tinggal kelas',
-            body: 'Siswa kelas tingkat akhir yang diputuskan tinggal kelas ditempatkan di kelas tingkat akhir tahun ajaran berikutnya. Ada dua cara menyiapkannya. Pertama, putuskan tinggal kelas lebih dulu lalu jalankan Salin tahun ajaran: kelas tingkat akhir ikut disalin bila ada siswa yang tinggal di dalamnya. Kedua, di langkah Keputusan siswa pilih sendiri kelas tujuannya dari daftar kelas tahun tujuan. Bila dibiarkan otomatis dan kelasnya belum ada, siswa itu dilaporkan belum tertempatkan pada pratinjau penerapan, tanpa menggagalkan siswa lain.',
+            heading: 'Murid tingkat akhir yang tinggal kelas',
+            body: 'Murid kelas tingkat akhir yang diputuskan tinggal kelas ditempatkan di kelas tingkat akhir tahun ajaran berikutnya. Ada dua cara menyiapkannya. Pertama, putuskan tinggal kelas lebih dulu lalu jalankan Salin tahun ajaran: kelas tingkat akhir ikut disalin bila ada murid yang tinggal di dalamnya. Kedua, di langkah Keputusan murid pilih sendiri kelas tujuannya dari daftar kelas tahun tujuan. Bila dibiarkan otomatis dan kelasnya belum ada, murid itu dilaporkan belum tertempatkan pada pratinjau penerapan, tanpa menggagalkan murid lain.',
             href: '/promotion',
             warning:
-              'Pendaftaran siswa di tahun lama tidak dihapus, jadi riwayat kelas dan nilai tahun lama tetap utuh.',
+              'Pendaftaran murid di tahun lama tidak dihapus, jadi riwayat kelas dan nilai tahun lama tetap utuh.',
           },
           {
             heading: 'Siapa yang dapat melihat dan mengubah',
@@ -3070,16 +3070,16 @@ export const ACADEMIC_DOCS: DocArticle[] = [
             a: 'Berita acara sudah final, atau akun Anda hanya boleh membaca. Buka kembali berita acara final lebih dulu bila perlu mengubahnya.',
           },
           {
-            q: 'Mengapa keputusan siswa tidak bisa diubah?',
+            q: 'Mengapa keputusan murid tidak bisa diubah?',
             a: 'Keputusan itu tertaut ke berita acara final. Buka kembali berita acaranya di halaman Berita acara.',
           },
           {
-            q: 'Apakah menghapus berita acara menghapus keputusan siswa?',
-            a: 'Tidak. Hanya berita acara dan daftar pesertanya yang dihapus; keputusan siswa tetap ada tanpa tautan.',
+            q: 'Apakah menghapus berita acara menghapus keputusan murid?',
+            a: 'Tidak. Hanya berita acara dan daftar pesertanya yang dihapus; keputusan murid tetap ada tanpa tautan.',
           },
           {
-            q: 'Siswa yang tinggal kelas belum punya kelas tujuan. Bagaimana?',
-            a: 'Pilih kelas tujuannya di langkah Keputusan siswa, atau jalankan Salin tahun ajaran lagi setelah keputusan tinggal kelas tersimpan, atau buat kelasnya di menu Kelas.',
+            q: 'Murid yang tinggal kelas belum punya kelas tujuan. Bagaimana?',
+            a: 'Pilih kelas tujuannya di langkah Keputusan murid, atau jalankan Salin tahun ajaran lagi setelah keputusan tinggal kelas tersimpan, atau buat kelasnya di menu Kelas.',
           },
         ],
       },
@@ -3280,7 +3280,7 @@ export const ACADEMIC_DOCS: DocArticle[] = [
           },
           {
             heading: 'Hubungannya dengan kenaikan kelas',
-            body: 'Penetapan mengisi keputusan kenaikan kelas: murid yang lulus menjadi keputusan lulus, yang tidak lulus menjadi tinggal kelas, dan yang ditunda tidak diisi. Status murid baru berubah menjadi lulus saat Anda menerapkan kenaikan kelas, bukan saat menetapkan. Bila tahun ajaran punya kriteria kelulusan, keputusan lulus di langkah Keputusan siswa tidak bisa dipilih langsung; ia datang dari penetapan di halaman ini.',
+            body: 'Penetapan mengisi keputusan kenaikan kelas: murid yang lulus menjadi keputusan lulus, yang tidak lulus menjadi tinggal kelas, dan yang ditunda tidak diisi. Status murid baru berubah menjadi lulus saat Anda menerapkan kenaikan kelas, bukan saat menetapkan. Bila tahun ajaran punya kriteria kelulusan, keputusan lulus di langkah Keputusan murid tidak bisa dipilih langsung; ia datang dari penetapan di halaman ini.',
             href: '/promotion',
             warning: 'Penetapan yang keputusan kenaikannya sudah diterapkan tidak bisa dibuka kembali.',
           },
@@ -3308,8 +3308,8 @@ export const ACADEMIC_DOCS: DocArticle[] = [
             a: 'Buka kembali penetapan murid itu, ubah nilainya, lalu tetapkan lagi. Nomor surat keterangan lulus yang sudah dibuat tetap sama.',
           },
           {
-            q: 'Mengapa keputusan lulus di langkah Keputusan siswa tidak bisa dipilih?',
-            a: 'Tahun ajaran itu punya kriteria kelulusan, jadi keputusan lulus berasal dari penetapan di halaman Kelulusan. Tetapkan di sana, lalu keputusannya muncul di langkah Keputusan siswa.',
+            q: 'Mengapa keputusan lulus di langkah Keputusan murid tidak bisa dipilih?',
+            a: 'Tahun ajaran itu punya kriteria kelulusan, jadi keputusan lulus berasal dari penetapan di halaman Kelulusan. Tetapkan di sana, lalu keputusannya muncul di langkah Keputusan murid.',
           },
         ],
       },
@@ -4604,7 +4604,7 @@ export const ACADEMIC_DOCS: DocArticle[] = [
               'Pastikan mapel SMK sudah diberi kelompok di Mata pelajaran.',
               'Buka Pengaturan rapor, bagian Rapor SMK.',
               'Centang Kelompokkan mapel dan tampilkan identitas keahlian.',
-              'Buka rapor siswa untuk memeriksa pratinjau dan PDF.',
+              'Buka rapor murid untuk memeriksa pratinjau dan PDF.',
             ],
             href: '/report-cards/settings',
             warning:

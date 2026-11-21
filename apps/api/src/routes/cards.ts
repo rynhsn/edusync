@@ -23,6 +23,8 @@ import {
   enrollment,
   eq,
   exam,
+  examRoom,
+  examRoomAssignment,
   examType,
   inArray,
   ne,
@@ -39,11 +41,13 @@ import {
 import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
+import { todayInSchool } from '../attendance-lib';
 import { errorSchema, HttpError } from '../http-error';
 import { requireModule, requirePermission, type TenantContext } from '../identity/guards';
 import { ensureIdentityCodes } from '../identity-code';
+import { loadReportSettings } from '../report-card-lib';
 import { audit, conflictAs409, guarded, idParams, ok, schoolHeader } from './helpers';
-import { readIdentity } from './school-identity';
+import { composeAddress, readIdentity } from './school-identity';
 
 const tag = ['Cards'];
 const MAX_BACKGROUND_BYTES = 1_500_000;
@@ -187,7 +191,7 @@ const studentCardItem = z.object({
   rfidCode: z.string().describe('Kode kartu RFID aktif pertama; kosong bila belum ada'),
   qrCode: z
     .string()
-    .describe('Isi QR identitas siswa yang dicetak (`ES1.<kode acak>`); dibuat otomatis bila belum ada'),
+    .describe('Isi QR identitas murid yang dicetak (`ES1.<kode acak>`); dibuat otomatis bila belum ada'),
   photoUrl: z.string().nullable().describe('Jalur foto (butuh login & x-school-id), null bila belum ada'),
   ...dataItemBase,
 });
@@ -207,7 +211,16 @@ const examCardItem = z.object({
   participantNo: z.string(),
   examTitle: z.string(),
   typeName: z.string(),
-  room: z.string().describe('Belum ada data ruang di sistem; selalu kosong'),
+  room: z
+    .string()
+    .describe('Nama ruang ujian murid pada semester dan jenis ujian itu; kosong bila belum diatur'),
+  address: z
+    .string()
+    .describe('Alamat sekolah (dari identitas sekolah, atau pengaturan rapor bila identitas kosong)'),
+  principalName: z.string().describe('Nama kepala sekolah dari pengaturan rapor; kosong bila belum diisi'),
+  cityDate: z
+    .string()
+    .describe('"Kota, tanggal cetak" untuk blok tanda tangan, mis. "Pandeglang, 3 Juni 2025"'),
   date: z.string(),
   time: z.string(),
   subjectList: z.array(z.string()),
@@ -235,7 +248,7 @@ export async function cardRoutes(instance: FastifyInstance) {
         tags: tag,
         summary: 'Templat bawaan sistem (tidak disimpan)',
         description:
-          'Izin: `student:read`. Tata letak kartu siswa (CR80 86x54 mm) dan kartu peserta ujian (100x60 mm) bawaan. ' +
+          'Izin: `student:read`. Tata letak kartu murid (CR80 86x54 mm) dan kartu peserta ujian (100x60 mm) bawaan. ' +
           'Tidak menyimpan apa pun: UI menampilkannya sebagai pilihan "tambah dari bawaan" lalu menyimpannya lewat ' +
           '`POST /v1/cards/templates`. Sekolah tanpa templat tersimpan memakai bawaan ini saat mencetak.',
         headers: schoolHeader,
@@ -581,7 +594,7 @@ export async function cardRoutes(instance: FastifyInstance) {
       bodyLimit: 1024 * 1024,
       schema: {
         tags: tag,
-        summary: 'Unggah foto siswa',
+        summary: 'Unggah foto murid',
         description:
           'Izin: `student:manage`. JPEG atau PNG sampai 500 KB, base64 di `data` (tanpa awalan `data:`); isi berkas ' +
           'diperiksa terhadap `mime` (400 `validation`). Foto lama diganti. Foto tidak publik: diambil lewat ' +
@@ -609,7 +622,7 @@ export async function cardRoutes(instance: FastifyInstance) {
           .select({ id: student.id, photo: student.photoFileId })
           .from(student)
           .where(eq(student.id, request.params.id));
-        if (!s) throw notFound('Siswa');
+        if (!s) throw notFound('Murid');
         const [f] = await tx
           .insert(schoolFile)
           .values({
@@ -634,9 +647,9 @@ export async function cardRoutes(instance: FastifyInstance) {
       onRequest: [requirePermission('student:manage')],
       schema: {
         tags: tag,
-        summary: 'Hapus foto siswa',
+        summary: 'Hapus foto murid',
         description:
-          'Izin: `student:manage`. Tidak error bila foto memang belum ada; 404 bila siswa tidak ada.',
+          'Izin: `student:manage`. Tidak error bila foto memang belum ada; 404 bila murid tidak ada.',
         headers: schoolHeader,
         params: idParams,
         response: { 200: ok, 404: errorSchema, ...guarded },
@@ -649,7 +662,7 @@ export async function cardRoutes(instance: FastifyInstance) {
           .select({ id: student.id, photo: student.photoFileId })
           .from(student)
           .where(eq(student.id, request.params.id));
-        if (!s) throw notFound('Siswa');
+        if (!s) throw notFound('Murid');
         if (!s.photo) return;
         await tx.delete(schoolFile).where(eq(schoolFile.id, s.photo)); // FK set null mengosongkan kolom foto
         await audit(tx, ctx, 'student.photo_delete', 'student', s.id);
@@ -664,10 +677,10 @@ export async function cardRoutes(instance: FastifyInstance) {
       onRequest: readGate,
       schema: {
         tags: tag,
-        summary: 'Foto siswa',
+        summary: 'Foto murid',
         description:
           'Izin: `student:read`. Isi gambar (JPEG atau PNG), hanya untuk anggota sekolah yang berhak (bukan publik; ' +
-          'klien menyertakan `x-school-id` dan cookie). 404 `not_found` bila siswa atau fotonya tidak ada.',
+          'klien menyertakan `x-school-id` dan cookie). 404 `not_found` bila murid atau fotonya tidak ada.',
         headers: schoolHeader,
         params: idParams,
         response: { 200: z.any().describe('Isi gambar (JPEG atau PNG)'), 404: errorSchema, ...guarded },
@@ -699,13 +712,13 @@ export async function cardRoutes(instance: FastifyInstance) {
       onRequest: readGate,
       schema: {
         tags: tag,
-        summary: 'Data cetak kartu siswa',
+        summary: 'Data cetak kartu murid',
         description:
-          `Izin: \`student:read\`. Wajib \`classId\` (siswa aktif kelas itu) dan/atau \`studentIds\` (uuid dipisah koma, ` +
+          `Izin: \`student:read\`. Wajib \`classId\` (murid aktif kelas itu) dan/atau \`studentIds\` (uuid dipisah koma, ` +
           `maks. ${MAX_CARD_ROWS}). Tanpa \`classId\`, kelas diambil dari tahun ajaran aktif. Setiap baris memuat nilai ` +
           'kolom terikat (nama, NIS, kelas, kode RFID aktif pertama, tahun ajaran, nama sekolah) dan jalur foto. ' +
-          `Dibatasi ${MAX_CARD_ROWS} baris (\`truncated: true\` bila lebih). \`qrCode\` = isi QR identitas siswa ` +
-          '(`ES1.<kode acak>`, satu per siswa, dipakai semua fitur); kode yang belum ada dibuat otomatis secara ' +
+          `Dibatasi ${MAX_CARD_ROWS} baris (\`truncated: true\` bila lebih). \`qrCode\` = isi QR identitas murid ` +
+          '(`ES1.<kode acak>`, satu per murid, dipakai semua fitur); kode yang belum ada dibuat otomatis secara ' +
           'idempoten (satu-satunya efek tulis endpoint ini, dicatat di audit `student.identity_code.create`). PDF ' +
           'dirender di klien.',
         headers: schoolHeader,
@@ -863,10 +876,11 @@ export async function cardRoutes(instance: FastifyInstance) {
           'Izin: `exam:read`; modul `exams`. Dua cara: `examId` (semua kelas ujian itu; jenis dan semester ikut ujian) ' +
           'atau `semesterId` + `classId` (opsional `examTypeId` untuk membatasi jenis ujian). ' +
           '**Nomor peserta** = `<singkatan jenis ujian>-<yy>-<urutan 3 digit>`, mis. `ASTS-26-007`: `yy` dua digit ' +
-          'tahun mulai tahun ajaran kelas, urutan = posisi siswa aktif di kelasnya diurut nama lalu id. Tanpa jenis ' +
+          'tahun mulai tahun ajaran kelas, urutan = posisi murid aktif di kelasnya diurut nama lalu id. Tanpa jenis ' +
           'ujian singkatannya `UJN`. Stabil selama susunan kelas tidak berubah. **Jadwal** = ujian pada semester itu ' +
-          '(dan jenis yang sama bila ada) yang mencakup kelas siswa, urut tanggal lalu jam (semua status, termasuk ' +
-          'draf). `date`/`time` ringkasan untuk kartu; `room` belum punya sumber data sehingga kosong. ' +
+          '(dan jenis yang sama bila ada) yang mencakup kelas murid, urut tanggal lalu jam (semua status, termasuk ' +
+          'draf). `date`/`time` ringkasan untuk kartu; `room` = nama ruang dari penempatan ruang ujian (`/v1/exam/room-assignments`) ' +
+          'pada semester dan jenis ujian itu; kosong bila belum ditempatkan atau tanpa jenis ujian. ' +
           `Dibatasi ${MAX_CARD_ROWS} baris (\`truncated\`). Hanya baca.`,
         headers: schoolHeader,
         querystring: z.object({
@@ -900,15 +914,21 @@ export async function cardRoutes(instance: FastifyInstance) {
           .from(school)
           .where(eq(school.id, ctx.schoolId));
         const zone = ZONE_LABEL[sch?.tz ?? ''] ?? 'WIB';
+        const settings = await loadReportSettings(tx);
+        const address = composeAddress(identity) ?? settings.address ?? '';
+        const city = identity.city ?? settings.city ?? '';
+        const cityDate = [city, formatLongDateId(todayInSchool())].filter(Boolean).join(', ');
 
         let semesterId: string;
         let classIds: string[];
         let typeFilter: ReturnType<typeof eq> | undefined;
         let typeName = 'Ujian';
         let typeShort = 'UJN';
+        let roomTypeId: string | null = null; // ruang dikunci per jenis ujian
         if (q.examId) {
           const [e] = await tx.select().from(exam).where(eq(exam.id, q.examId));
           if (!e) throw notFound('Ujian');
+          roomTypeId = e.examTypeId;
           semesterId = e.semesterId;
           classIds = e.classIds;
           typeName = e.typeName;
@@ -923,6 +943,7 @@ export async function cardRoutes(instance: FastifyInstance) {
             typeName = t.name;
             typeShort = t.shortName;
             typeFilter = eq(exam.examTypeId, t.id);
+            roomTypeId = t.id;
           }
         }
         const [sem] = await tx
@@ -1011,6 +1032,9 @@ export async function cardRoutes(instance: FastifyInstance) {
               examTitle,
               typeName,
               room: '',
+              address,
+              principalName: settings.principalName ?? '',
+              cityDate,
               date,
               time,
               subjectList,
@@ -1021,6 +1045,24 @@ export async function cardRoutes(instance: FastifyInstance) {
             });
           }
           if (truncated) break;
+        }
+        if (roomTypeId && items.length > 0) {
+          const rows = await tx
+            .select({ studentId: examRoomAssignment.studentId, name: examRoom.name })
+            .from(examRoomAssignment)
+            .innerJoin(examRoom, eq(examRoom.id, examRoomAssignment.roomId))
+            .where(
+              and(
+                eq(examRoomAssignment.semesterId, semesterId),
+                eq(examRoomAssignment.examTypeId, roomTypeId),
+                inArray(
+                  examRoomAssignment.studentId,
+                  items.map((i) => i.studentId),
+                ),
+              ),
+            );
+          const byStudent = new Map(rows.map((r) => [r.studentId, r.name]));
+          for (const it of items) it.room = byStudent.get(it.studentId) ?? '';
         }
         return { schoolName, truncated, items };
       });

@@ -21,7 +21,7 @@ const itemSchema = z.object({
   sort: z.number().int(),
   active: z.boolean(),
   requires: z.array(z.string()).describe('Kunci modul syarat (hanya modul)'),
-  maxStudents: z.number().int().nullable().describe('Batas siswa aktif (hanya tingkat); null = tanpa batas'),
+  maxStudents: z.number().int().nullable().describe('Batas murid aktif (hanya tingkat); null = tanpa batas'),
 });
 const itemBody = z.object({
   name: z.string().trim().min(1).max(80),
@@ -39,7 +39,7 @@ const itemBody = z.object({
     .max(1_000_000)
     .nullable()
     .optional()
-    .describe('Batas siswa aktif untuk tingkat; null = tanpa batas. Tidak diisi = tidak diubah'),
+    .describe('Batas murid aktif untuk tingkat; null = tanpa batas. Tidak diisi = tidak diubah'),
 });
 const planSchema = z.object({
   key: z.string(),
@@ -71,7 +71,7 @@ async function assertItemRules(
   rules: { requires?: string[] | undefined; maxStudents?: number | null | undefined },
 ) {
   if (rules.maxStudents != null && item.kind !== 'tier') {
-    throw new HttpError(400, 'invalid_selection', 'Batas siswa hanya untuk tingkat siswa.');
+    throw new HttpError(400, 'invalid_selection', 'Batas murid hanya untuk tingkat murid.');
   }
   const requires = rules.requires;
   if (!requires) return;
@@ -106,7 +106,7 @@ async function assertPlanContent(tx: Tx, modules: string[], tier: string) {
   if (unknown.length > 0)
     throw new HttpError(400, 'invalid_selection', `Modul tidak ada di katalog: ${unknown.join(', ')}.`);
   if (!known('tier').has(tier))
-    throw new HttpError(400, 'invalid_selection', 'Tingkat siswa tidak ada di katalog.');
+    throw new HttpError(400, 'invalid_selection', 'Tingkat murid tidak ada di katalog.');
 }
 
 /** Pengaturan katalog: harga modul, tingkat siswa, dan paket siap pakai. Hanya staf platform. */
@@ -120,7 +120,7 @@ export async function platformCatalogRoutes(instance: FastifyInstance) {
       onRequest: [requireStaff('read_only')],
       schema: {
         tags: tag,
-        summary: 'Katalog lengkap: modul, tingkat siswa, dan paket',
+        summary: 'Katalog lengkap: modul, tingkat murid, dan paket',
         description:
           'Staf platform. Termasuk item nonaktif. Item nonaktif tidak tampil di pendaftaran baru, tetapi sekolah yang ' +
           'sudah berlangganan tetap ditagih dengan harganya.',
@@ -142,7 +142,7 @@ export async function platformCatalogRoutes(instance: FastifyInstance) {
       onRequest: [requireStaff('admin')],
       schema: {
         tags: tag,
-        summary: 'Tambah modul atau tingkat siswa',
+        summary: 'Tambah modul atau tingkat murid',
         description:
           'Staf platform (admin). Kunci modul baru baru berguna bila fiturnya ada di kode; di katalog ia hanya menjadi ' +
           'pilihan yang bisa dibeli.',

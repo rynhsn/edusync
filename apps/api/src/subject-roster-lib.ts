@@ -110,7 +110,7 @@ export async function subjectRosterOf(
 
 /** Galat 400 bila murid tidak mengambil mapel yang nilainya hendak disimpan (hanya terjadi bila rombel menandai mapel itu pilihan). */
 export const notTakingSubject = () =>
-  new HttpError(400, 'student_not_taking_subject', 'Ada siswa yang tidak mengambil mata pelajaran ini.');
+  new HttpError(400, 'student_not_taking_subject', 'Ada murid yang tidak mengambil mata pelajaran ini.');
 
 /**
  * Pastikan semua murid mengambil mapel itu. Tanpa penanda partisipasi tidak ada kueri tambahan selain pembacaan penanda

@@ -22,7 +22,7 @@ const accountSchema = z.object({
   accountNumber: z.string(),
   accountHolder: z.string(),
   note: z.string().nullable(),
-  active: z.boolean().describe('Hanya rekening aktif yang tampil di portal wali dan siswa'),
+  active: z.boolean().describe('Hanya rekening aktif yang tampil di portal wali dan murid'),
   sort: z.number().int(),
 });
 
@@ -61,7 +61,7 @@ export async function financeBankAccountRoutes(instance: FastifyInstance) {
         summary: 'Daftar rekening sekolah',
         description:
           'Izin: `finance:read`; modul `finance`. Semua rekening sekolah (aktif dan nonaktif) urut `sort`. Rekening ' +
-          '`active` tampil kepada wali dan siswa di tab tagihan portal sebagai tujuan pembayaran transfer.',
+          '`active` tampil kepada wali dan murid di tab tagihan portal sebagai tujuan pembayaran transfer.',
         headers: schoolHeader,
         response: { 200: z.object({ items: z.array(accountSchema) }), ...guarded },
       },

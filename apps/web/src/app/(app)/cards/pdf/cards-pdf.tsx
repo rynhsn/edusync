@@ -1,7 +1,7 @@
 import type { CardData, CardElement, CardLayout } from '@edusync/contracts';
 import { Document, Image, Line, Page, Path, Rect, Svg, Text, View } from '@react-pdf/renderer';
 import { CODE128_QUIET, code128Bars } from '../../../../lib/cards/code128';
-import { codeText, elementText } from '../../../../lib/cards/elements';
+import { codeText, elementText, scheduleGeometry } from '../../../../lib/cards/elements';
 import { mmToPt } from '../../../../lib/cards/geometry';
 import { qrShape } from '../../../../lib/cards/qr';
 import {
@@ -86,6 +86,49 @@ function Barcode({ el, data }: { el: Extract<CardElement, { type: 'barcode' }>; 
           {value}
         </Text>
       )}
+    </View>
+  );
+}
+
+/** Tabel jadwal: sel diletakkan mutlak (sel gabungan membentang beberapa baris); teks panjang dipotong satu baris. */
+function Schedule({ el, data }: { el: Extract<CardElement, { type: 'schedule' }>; data: CardData }) {
+  const { fontSize, cells } = scheduleGeometry(el, data);
+  const bw = pt(el.borderWidth);
+  const line = { borderColor: el.borderColor, borderStyle: 'solid' } as const;
+  return (
+    <View style={{ position: 'absolute', left: pt(el.x), top: pt(el.y), width: pt(el.w), height: pt(el.h) }}>
+      {cells.map((c) => (
+        <View
+          key={`${c.x}-${c.y}`}
+          style={{
+            position: 'absolute',
+            left: pt(c.x),
+            top: pt(c.y),
+            width: pt(c.w),
+            height: pt(c.h),
+            justifyContent: 'center',
+            paddingHorizontal: pt(1),
+            overflow: 'hidden',
+            ...line,
+            borderRightWidth: bw,
+            borderBottomWidth: bw,
+            borderLeftWidth: c.edgeLeft ? bw : 0,
+            borderTopWidth: c.edgeTop ? bw : 0,
+            ...(c.header ? { backgroundColor: el.headerFill } : {}),
+          }}
+        >
+          <Text
+            style={{
+              fontFamily: c.header ? 'Helvetica-Bold' : 'Helvetica',
+              fontSize,
+              color: el.color,
+              textAlign: c.header ? 'center' : 'left',
+            }}
+          >
+            {c.text}
+          </Text>
+        </View>
+      ))}
     </View>
   );
 }
@@ -180,6 +223,8 @@ function ElementView({
     }
     case 'barcode':
       return <Barcode el={el} data={data} />;
+    case 'schedule':
+      return <Schedule el={el} data={data} />;
   }
 }
 
@@ -226,7 +271,9 @@ export function CardFace({
 /** Dokumen PDF kartu. */
 export function CardsDocument({ input }: { input: CardsPdfInput }) {
   const { layout, cards, assets } = input;
-  if (input.mode === 'single') {
+  const sheetGrid = bestSheetGrid(layout.widthMm, layout.heightMm, input.sheet);
+  // Kartu besar (mis. tanda peserta A4) yang tidak muat di lembar dicetak satu per halaman seukuran kartu.
+  if (input.mode === 'single' || sheetGrid.perPage === 0) {
     return (
       <Document title={input.title}>
         {cards.map((card, i) => (
@@ -238,7 +285,7 @@ export function CardsDocument({ input }: { input: CardsPdfInput }) {
       </Document>
     );
   }
-  const grid = bestSheetGrid(layout.widthMm, layout.heightMm, input.sheet);
+  const grid = sheetGrid;
   const pages = paginate(cards, grid.perPage);
   const len = input.sheet.cropMarks ? cropLength(input.sheet.gap) : 0;
   return (

@@ -1442,7 +1442,7 @@ export async function subjectChoiceRoutes(instance: FastifyInstance) {
           .select()
           .from(student)
           .where(and(eq(student.id, request.params.id), isNull(student.deletedAt)));
-        if (!stu) throw notFound('Siswa');
+        if (!stu) throw notFound('Murid');
         let yearId = request.query.academicYearId ?? null;
         if (!yearId) {
           const [active] = await tx

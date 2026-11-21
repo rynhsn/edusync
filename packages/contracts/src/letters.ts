@@ -166,11 +166,11 @@ export const DEFAULT_LETTER_TEMPLATES: readonly {
   body: string;
 }[] = [
   {
-    name: 'Surat keterangan siswa aktif',
+    name: 'Surat keterangan murid aktif',
     kind: 'letter',
     body:
       'SURAT KETERANGAN\nNomor: {{nomor}}\n\nYang bertanda tangan di bawah ini, {{penandatangan}} selaku {{jabatan}} {{sekolah}}, ' +
-      'menerangkan bahwa:\n\nNama: {{nama}}\nNIS: {{nis}}\nKelas: {{kelas}}\n\nadalah benar siswa aktif di {{sekolah}}. ' +
+      'menerangkan bahwa:\n\nNama: {{nama}}\nNIS: {{nis}}\nKelas: {{kelas}}\n\nadalah benar murid aktif di {{sekolah}}. ' +
       'Surat keterangan ini dibuat untuk dipergunakan sebagaimana mestinya.\n\n{{tanggal}}\n{{jabatan}}\n\n{{penandatangan}}',
   },
   {

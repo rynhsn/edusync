@@ -75,9 +75,9 @@ export async function recordTap(tx: Tx, ctx: { schoolId: string }, input: TapInp
     .select({ id: student.id, name: student.name, status: student.status, deletedAt: student.deletedAt })
     .from(student)
     .where(eq(student.id, input.studentId));
-  if (!stu) throw new HttpError(404, 'not_found', 'Siswa tidak ditemukan.');
+  if (!stu) throw new HttpError(404, 'not_found', 'Murid tidak ditemukan.');
   if (stu.status !== 'active' || stu.deletedAt) {
-    throw new HttpError(409, 'student_inactive', 'Siswa ini tidak aktif.');
+    throw new HttpError(409, 'student_inactive', 'Murid ini tidak aktif.');
   }
   const [cls] = await tx
     .select({ name: classRoom.name })

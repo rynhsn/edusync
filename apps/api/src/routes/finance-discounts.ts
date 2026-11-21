@@ -39,7 +39,7 @@ const ruleSchema = z.object({
   feeTypeId: z.uuid().nullable().describe('Kosong = berlaku untuk semua jenis biaya'),
   feeTypeName: z.string().nullable(),
   active: z.boolean(),
-  assignedCount: z.number().int().describe('Jumlah pemasangan ke siswa'),
+  assignedCount: z.number().int().describe('Jumlah pemasangan ke murid'),
 });
 
 const ruleBody = z
@@ -118,7 +118,7 @@ export async function financeDiscountRoutes(instance: FastifyInstance) {
         summary: 'Daftar aturan keringanan',
         description:
           'Izin: `finance:read`; modul `finance`. Aturan keringanan/beasiswa sekolah, urut nama. `assignedCount` = jumlah ' +
-          'pemasangan ke siswa.',
+          'pemasangan ke murid.',
         headers: schoolHeader,
         response: { 200: z.array(ruleSchema), ...guarded },
       },
@@ -201,7 +201,7 @@ export async function financeDiscountRoutes(instance: FastifyInstance) {
         tags: tag,
         summary: 'Hapus aturan keringanan',
         description:
-          'Izin: `finance:manage`; modul `finance`. Ditolak 409 `in_use` bila sudah dipasang ke siswa (nonaktifkan ' +
+          'Izin: `finance:manage`; modul `finance`. Ditolak 409 `in_use` bila sudah dipasang ke murid (nonaktifkan ' +
           'saja); 404 `not_found` bila tak ada.',
         headers: schoolHeader,
         params: idParams,
@@ -218,7 +218,7 @@ export async function financeDiscountRoutes(instance: FastifyInstance) {
           throw new HttpError(
             409,
             'in_use',
-            'Aturan ini sudah dipasang ke siswa; lepas pemasangannya atau nonaktifkan aturan.',
+            'Aturan ini sudah dipasang ke murid; lepas pemasangannya atau nonaktifkan aturan.',
           );
         }
         await tx.delete(finDiscountRule).where(eq(finDiscountRule.id, id));
@@ -236,10 +236,10 @@ export async function financeDiscountRoutes(instance: FastifyInstance) {
       onRequest: readGate,
       schema: {
         tags: tag,
-        summary: 'Keringanan terpasang pada siswa',
+        summary: 'Keringanan terpasang pada murid',
         description:
-          'Izin: `finance:read`; modul `finance`. Daftar keringanan yang dipasang pada siswa di satu tahun ajaran ' +
-          '(`academicYearId` wajib), urut nama aturan. 404 `not_found` bila siswa tak ada.',
+          'Izin: `finance:read`; modul `finance`. Daftar keringanan yang dipasang pada murid di satu tahun ajaran ' +
+          '(`academicYearId` wajib), urut nama aturan. 404 `not_found` bila murid tak ada.',
         headers: schoolHeader,
         params: z.object({ studentId: z.uuid() }),
         querystring: z.object({ academicYearId: z.uuid() }),
@@ -252,7 +252,7 @@ export async function financeDiscountRoutes(instance: FastifyInstance) {
           .select({ id: student.id })
           .from(student)
           .where(eq(student.id, request.params.studentId));
-        if (!s) throw notFound('Siswa');
+        if (!s) throw notFound('Murid');
         return tx
           .select({
             id: finStudentDiscount.id,
@@ -284,12 +284,12 @@ export async function financeDiscountRoutes(instance: FastifyInstance) {
       onRequest: manageGate,
       schema: {
         tags: tag,
-        summary: 'Pasang keringanan ke siswa',
+        summary: 'Pasang keringanan ke murid',
         description:
-          'Izin: `finance:manage`; modul `finance`. Pasang satu aturan ke `studentIds` (maks 300) atau ke seluruh siswa ' +
+          'Izin: `finance:manage`; modul `finance`. Pasang satu aturan ke `studentIds` (maks 300) atau ke seluruh murid ' +
           'satu `classId` (terdaftar di kelas itu pada tahun ajaran tsb), tepat salah satunya. Pemasangan yang sudah ada ' +
-          '(siswa, aturan, tahun) dilewati dan dihitung di `skipped`. Tidak mengubah tagihan yang sudah dibuat. Galat: ' +
-          '400 `invalid_reference` (aturan, tahun ajaran, kelas, atau siswa bukan milik sekolah).',
+          '(murid, aturan, tahun) dilewati dan dihitung di `skipped`. Tidak mengubah tagihan yang sudah dibuat. Galat: ' +
+          '400 `invalid_reference` (aturan, tahun ajaran, kelas, atau murid bukan milik sekolah).',
         headers: schoolHeader,
         body: z
           .object({
@@ -351,7 +351,7 @@ export async function financeDiscountRoutes(instance: FastifyInstance) {
             .select({ id: student.id })
             .from(student)
             .where(and(inArray(student.id, studentIds), isNull(student.deletedAt)));
-          if (found.length !== studentIds.length) throw invalidRef('Ada siswa yang tidak ditemukan.');
+          if (found.length !== studentIds.length) throw invalidRef('Ada murid yang tidak ditemukan.');
         }
 
         let assigned = 0;
@@ -389,7 +389,7 @@ export async function financeDiscountRoutes(instance: FastifyInstance) {
       onRequest: manageGate,
       schema: {
         tags: tag,
-        summary: 'Lepas keringanan dari siswa',
+        summary: 'Lepas keringanan dari murid',
         description:
           'Izin: `finance:manage`; modul `finance`. Melepas satu pemasangan. Tidak mengubah tagihan yang sudah dibuat. ' +
           '404 `not_found` bila tak ada.',

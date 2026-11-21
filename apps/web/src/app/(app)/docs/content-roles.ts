@@ -9,10 +9,10 @@ export const ROLE_DOCS: DocArticle[] = [
     group: 'start',
     text: {
       id: {
-        title: 'Panduan awal guru, wali, dan siswa',
+        title: 'Panduan awal guru, wali, dan murid',
         summary:
           'Apa yang terjadi setelah menerima undangan, apa yang bisa dibuka pertama kali, dan mengapa sebagian halaman masih kosong.',
-        forWho: 'Guru dan staf, wali murid, dan siswa yang baru pertama kali masuk.',
+        forWho: 'Guru dan staf, wali murid, dan murid yang baru pertama kali masuk.',
         sections: [
           {
             heading: 'Menerima undangan dan masuk pertama kali',
@@ -20,7 +20,7 @@ export const ROLE_DOCS: DocArticle[] = [
             steps: [
               'Buka tautan undangan.',
               'Bila belum punya akun, isi nama dan buat kata sandi, lalu klik Buat akun dan terima. Bila sudah punya akun, masukkan kata sandi lalu klik Masuk dan terima.',
-              'Setelah diterima, Anda langsung masuk. Guru dan staf mendarat di Ringkasan, wali dan siswa mendarat di Portal.',
+              'Setelah diterima, Anda langsung masuk. Guru dan staf mendarat di Ringkasan, wali dan murid mendarat di Portal.',
             ],
             warning:
               'Bila muncul pesan tautan tidak berlaku, undangan sudah dipakai atau kedaluwarsa. Minta sekolah mengirim undangan baru.',
@@ -30,8 +30,8 @@ export const ROLE_DOCS: DocArticle[] = [
             body: 'Menu di kiri hanya menampilkan fitur yang diizinkan untuk peran Anda dan yang modulnya aktif di sekolah. Kartu sambutan di Ringkasan mencantumkan pintasan ke fitur tersebut; klik tanda silang untuk menutupnya.',
             steps: [
               'Jadwal pelajaran: lihat jam mengajar dan kelas.',
-              'Absensi per jam: catat kehadiran siswa di jam pelajaran Anda.',
-              'Penilaian: masukkan nilai siswa untuk mapel Anda.',
+              'Absensi per jam: catat kehadiran murid di jam pelajaran Anda.',
+              'Penilaian: masukkan nilai murid untuk mapel Anda.',
               'Ujian dan Bank soal: buat soal, susun ujian, jadwalkan, lalu nilai hasilnya.',
             ],
             href: '/dashboard',
@@ -48,8 +48,8 @@ export const ROLE_DOCS: DocArticle[] = [
             href: '/portal',
           },
           {
-            heading: 'Siswa di portal',
-            body: 'Siswa melihat data dirinya sendiri dan punya kartu Ujian untuk mengerjakan ujian di layar.',
+            heading: 'Murid di portal',
+            body: 'Murid melihat data dirinya sendiri dan punya kartu Ujian untuk mengerjakan ujian di layar.',
             steps: [
               'Di beranda portal, klik kartu Ujian.',
               'Ujian yang sedang dibuka punya tombol Mulai ujian. Yang sudah dimulai punya tombol Lanjutkan.',
@@ -65,7 +65,7 @@ export const ROLE_DOCS: DocArticle[] = [
               'Belum ada tagihan: sekolah belum menerbitkan tagihan, jadi tidak ada yang harus dibayar.',
               'Belum ada rapor: rapor muncul setelah sekolah menerbitkannya.',
               'Belum ada ujian atau tidak ada ujian yang terbuka: guru belum menjadwalkan ujian di layar, atau jadwalnya belum dimulai.',
-              'Akun belum ditautkan atau belum ada anak: minta sekolah menautkan akun Anda ke data siswa.',
+              'Akun belum ditautkan atau belum ada anak: minta sekolah menautkan akun Anda ke data murid.',
             ],
           },
         ],

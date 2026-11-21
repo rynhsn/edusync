@@ -4,6 +4,7 @@ import {
   type ImportValues,
   validateEssayScore,
   validateExam,
+  validateExamRoom,
   validateExamType,
   validateImport,
   validatePicked,
@@ -35,6 +36,27 @@ describe('validateExamType', () => {
     expect(validateExamType({ name: 'a'.repeat(101), shortName: 'b'.repeat(21) })).toEqual({
       name: { code: 'tooLong', max: 100 },
       shortName: { code: 'tooLong', max: 20 },
+    });
+  });
+});
+
+describe('validateExamRoom', () => {
+  it('nama 1..40, kapasitas dan urutan boleh kosong', () => {
+    expect(validateExamRoom({ name: 'R1', capacity: '', sort: '' })).toEqual({});
+    expect(validateExamRoom({ name: ' ', capacity: '', sort: '' })).toEqual({ name: { code: 'required' } });
+    expect(validateExamRoom({ name: 'a'.repeat(41), capacity: '30', sort: '0' })).toEqual({
+      name: { code: 'tooLong', max: 40 },
+    });
+  });
+  it('kapasitas 1..500 dan urutan 0..10000 bilangan bulat', () => {
+    expect(validateExamRoom({ name: 'R', capacity: '500', sort: '10000' })).toEqual({});
+    expect(validateExamRoom({ name: 'R', capacity: '0', sort: '-1' })).toEqual({
+      capacity: { code: 'range', min: 1, max: 500 },
+      sort: { code: 'range', min: 0, max: 10_000 },
+    });
+    expect(validateExamRoom({ name: 'R', capacity: '501', sort: '1.5' })).toEqual({
+      capacity: { code: 'range', min: 1, max: 500 },
+      sort: { code: 'intInvalid' },
     });
   });
 });

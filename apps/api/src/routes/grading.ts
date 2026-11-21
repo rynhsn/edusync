@@ -218,7 +218,7 @@ const semesterGradingStatusSchema = z.object({
     .boolean()
     .describe('Salinan sama isinya dengan konfigurasi hidup; selalu true bila belum beku'),
   finalClassCount: z.number().int().describe('Jumlah kelas yang rapornya final pada semester ini'),
-  finalReportCount: z.number().int().describe('Jumlah rapor final (siswa) pada semester ini'),
+  finalReportCount: z.number().int().describe('Jumlah rapor final (murid) pada semester ini'),
   settings: settingsSchema.describe(
     'Pengaturan efektif semester (salinan beku, atau konfigurasi hidup bila belum beku)',
   ),
@@ -254,13 +254,13 @@ const semesterGradingStatusSchema = z.object({
 
 const formativeSummary = z
   .object({
-    average: z.number().describe('Rata-rata persen semua skor formatif siswa pada mapel ini'),
+    average: z.number().describe('Rata-rata persen semua skor formatif murid pada mapel ini'),
     count: z.number().int().describe('Jumlah skor formatif yang terisi'),
   })
   .optional()
   .describe(
     'Umpan balik formatif, TERPISAH dari nilai akhir (tidak memengaruhi `final`, `predicate`, `belowKkm`, atau peringkat). ' +
-      'Ada hanya bila siswa punya skor di komponen formatif.',
+      'Ada hanya bila murid punya skor di komponen formatif.',
   );
 
 const syncedSemesterId = z
@@ -390,11 +390,11 @@ const assessmentSchema = z.object({
   title: z.string(),
   date: z.string(),
   maxScore: z.number().int(),
-  filled: z.number().int().describe('Jumlah siswa aktif atau lulusan kelas yang sudah punya skor'),
+  filled: z.number().int().describe('Jumlah murid aktif atau lulusan kelas yang sudah punya skor'),
   total: z
     .number()
     .int()
-    .describe('Jumlah siswa aktif dan lulusan yang terdaftar di kelas (tahun ajaran kelas itu)'),
+    .describe('Jumlah murid aktif dan lulusan yang terdaftar di kelas (tahun ajaran kelas itu)'),
   canInput: z.boolean().describe('Pengguna ini boleh mengubah penilaian dan skornya'),
 });
 
@@ -1157,7 +1157,7 @@ export async function gradingRoutes(instance: FastifyInstance) {
           'Izin: `grade:read`; modul `grades`. Filter `semesterId`, `classId`, `subjectId` (opsional), terbaru lebih ' +
           'dulu. Pemegang `grade:configure`, kepala sekolah, dan kurikulum melihat semuanya; pengguna lain hanya ' +
           'penilaian untuk pasangan (kelas, mapel) yang ia ampu (daftar kosong bila tidak mengampu). `filled`/`total` ' +
-          'menghitung siswa aktif dan lulusan kelas.',
+          'menghitung murid aktif dan lulusan kelas.',
         headers: schoolHeader,
         querystring: z.object({
           semesterId: z.uuid().optional(),
@@ -1349,7 +1349,7 @@ export async function gradingRoutes(instance: FastifyInstance) {
         tags: tag,
         summary: 'Skor satu penilaian',
         description:
-          'Izin: `grade:read`; modul `grades`. Roster siswa aktif dan lulusan kelas penilaian (urut nama) dengan skor ' +
+          'Izin: `grade:read`; modul `grades`. Roster murid aktif dan lulusan kelas penilaian (urut nama) dengan skor ' +
           '(`value` null bila belum diisi). Bila rombel menandai mapel ini hanya diikuti murid yang memilih, roster hanya ' +
           'murid yang mengambil mapel itu pada semester penilaian (skor murid lain tidak dihapus tetapi tidak tampil). ' +
           'Pengguna selain pemegang configure/kepala sekolah/kurikulum hanya boleh ' +
@@ -1412,10 +1412,10 @@ export async function gradingRoutes(instance: FastifyInstance) {
         summary: 'Simpan skor',
         description:
           'Izin: `grade:input`, dan pemegang `grade:configure` atau guru pengampu kelas+mapel (selain itu 403). ' +
-          '`value` 0..skor maksimum penilaian (400 `invalid_score`) atau null untuk mengosongkan; siswa harus anggota ' +
+          '`value` 0..skor maksimum penilaian (400 `invalid_score`) atau null untuk mengosongkan; murid harus anggota ' +
           'aktif kelas (400 `invalid_reference`) dan, bila rombel menandai mapel ini hanya diikuti murid yang memilih, harus ' +
           'mengambil mapel itu pada semester penilaian (400 `student_not_taking_subject`; tanpa penanda tidak pernah terjadi). ' +
-          'Mengirim ulang siswa yang sama menimpa skor sebelumnya.',
+          'Mengirim ulang murid yang sama menimpa skor sebelumnya.',
         headers: schoolHeader,
         params: idParams,
         body: z.object({
@@ -1450,7 +1450,7 @@ export async function gradingRoutes(instance: FastifyInstance) {
         // Siswa yang dikirim dua kali: yang terakhir berlaku.
         const records = [...new Map(request.body.records.map((r) => [r.studentId, r])).values()];
         if (records.some((r) => !allowed.has(r.studentId))) {
-          throw invalidRef('Ada siswa yang bukan anggota aktif kelas penilaian ini.');
+          throw invalidRef('Ada murid yang bukan anggota aktif kelas penilaian ini.');
         }
         await assertStudentsTakeSubject(tx, {
           classId: current.classId,
@@ -1493,20 +1493,20 @@ export async function gradingRoutes(instance: FastifyInstance) {
         tags: tag,
         summary: 'Rekap nilai kelas dan mapel',
         description:
-          'Izin: `grade:read`; modul `grades`. Per siswa aktif dan lulusan: rata-rata persen tiap komponen, nilai akhir ' +
+          'Izin: `grade:read`; modul `grades`. Per murid aktif dan lulusan: rata-rata persen tiap komponen, nilai akhir ' +
           '(rata-rata tertimbang; bobot dinormalisasi atas komponen yang punya skor), predikat, dan `belowKkm`. ' +
           'Komponen formatif (atau yang dikeluarkan dari nilai akhir) tetap tampil di `components`/`perComponent` (ditandai ' +
-          '`category`/`includeInFinal`) dan ringkasannya di `formative` per siswa, tetapi TIDAK memengaruhi nilai akhir, predikat, ' +
+          '`category`/`includeInFinal`) dan ringkasannya di `formative` per murid, tetapi TIDAK memengaruhi nilai akhir, predikat, ' +
           '`belowKkm`, atau `stats`. ' +
           '`belowKkm` dan `belowKkmCount` memakai KKM efektif mapel (`kkm`, dari KKTP bila ada, selain itu `settings.kkm`). ' +
-          '`stats` merangkum siswa yang sudah punya nilai akhir. Semester/kelas/mapel harus milik sekolah ini ' +
+          '`stats` merangkum murid yang sudah punya nilai akhir. Semester/kelas/mapel harus milik sekolah ini ' +
           '(400 `invalid_reference`); pengguna selain pemegang configure/kepala sekolah/kurikulum hanya untuk ' +
-          'kelas+mapel yang ia ampu (403). Siswa yang rapornya FINAL pada kelas ini memakai angka snapshot rapor ' +
+          'kelas+mapel yang ia ampu (403). Murid yang rapornya FINAL pada kelas ini memakai angka snapshot rapor ' +
           '(`final`, `predicate`, `belowKkm`; `kkm` mapel dari snapshot) dan diberi `source: report`; `source` di tingkat ' +
-          'atas muncul bila ada yang demikian. Siswa tanpa rapor final dihitung dari konfigurasi efektif semester ' +
+          'atas muncul bila ada yang demikian. Murid tanpa rapor final dihitung dari konfigurasi efektif semester ' +
           '(salinan beku bila ada). Tanpa rapor final, respons tidak membawa `source`. ' +
           'Nilai akhir memakai nilai EFEKTIF remedial menurut kebijakan sekolah (`remedialPolicy`, ada hanya bila bukan ' +
-          '`record_only`); `remedial` per siswa (`attempts`, `effectiveSource`) ada hanya bila siswa punya percobaan remedial. ' +
+          '`record_only`); `remedial` per murid (`attempts`, `effectiveSource`) ada hanya bila murid punya percobaan remedial. ' +
           'Skor asli tidak pernah ditimpa; angka rapor final tetap dari snapshot. Bila rombel menandai mapel ini hanya ' +
           'diikuti murid yang memilih, `students` dan `stats` hanya memuat murid yang mengambilnya pada semester itu.',
         headers: schoolHeader,
@@ -1550,7 +1550,7 @@ export async function gradingRoutes(instance: FastifyInstance) {
               min: z.number().nullable(),
               max: z.number().nullable(),
               belowKkmCount: z.number().int(),
-              filled: z.number().int().describe('Jumlah siswa yang sudah punya nilai akhir'),
+              filled: z.number().int().describe('Jumlah murid yang sudah punya nilai akhir'),
             }),
           }),
           400: errorSchema,
@@ -1654,12 +1654,12 @@ export async function gradingRoutes(instance: FastifyInstance) {
         tags: tag,
         summary: 'Rekap nilai satu kelas (leger)',
         description:
-          'Izin: `grade:read`; modul `grades`. Matriks mapel x siswa berisi nilai akhir dan predikat, bahan rapor dan ' +
+          'Izin: `grade:read`; modul `grades`. Matriks mapel x murid berisi nilai akhir dan predikat, bahan rapor dan ' +
           'leger. Mapel yang ditampilkan: yang diampu di kelas itu atau yang sudah punya penilaian pada semester itu. ' +
           'Hanya pemegang `grade:configure`, kepala sekolah, kurikulum, atau guru yang mengajar di kelas itu (selain ' +
-          'itu 403). Semester/kelas harus milik sekolah ini (400 `invalid_reference`). Siswa yang rapornya FINAL pada ' +
+          'itu 403). Semester/kelas harus milik sekolah ini (400 `invalid_reference`). Murid yang rapornya FINAL pada ' +
           'kelas ini memakai `final` dan `predicate` dari snapshot rapor dan diberi `source: report` (mapel yang tidak ada ' +
-          'di snapshot siswa itu dihitung dari konfigurasi efektif); `source` di tingkat atas muncul bila ada yang demikian. ' +
+          'di snapshot murid itu dihitung dari konfigurasi efektif); `source` di tingkat atas muncul bila ada yang demikian. ' +
           'Umpan balik formatif per sel ada di `formative` (hanya bila ada), terpisah dari `final` dan `predicate`. ' +
           'Sel mapel yang tidak diambil murid itu (hanya bila rombel menandai mapelnya berdasarkan pilihan) membawa ' +
           '`notTaken: true` dengan `final` dan `predicate` null; kunci itu absen untuk sekolah tanpa mapel pilihan.',
@@ -1854,7 +1854,7 @@ export async function gradingRoutes(instance: FastifyInstance) {
     scoredCount: z
       .number()
       .int()
-      .describe('Jumlah penilaian sumatif terkait yang sudah punya skor siswa ini'),
+      .describe('Jumlah penilaian sumatif terkait yang sudah punya skor murid ini'),
     note: z.string().nullable().describe('Alasan/catatan guru pada keputusan'),
     formative: z
       .object({ average: z.number(), count: z.number().int() })
@@ -1870,9 +1870,9 @@ export async function gradingRoutes(instance: FastifyInstance) {
       onRequest: readGate,
       schema: {
         tags: tag,
-        summary: 'Matriks ketercapaian tujuan pembelajaran (TP) per siswa',
+        summary: 'Matriks ketercapaian tujuan pembelajaran (TP) per murid',
         description:
-          'Izin: `grade:read`; modul `grades`. Matriks siswa x TP untuk satu kelas, mapel, dan semester. Pengguna selain pemegang ' +
+          'Izin: `grade:read`; modul `grades`. Matriks murid x TP untuk satu kelas, mapel, dan semester. Pengguna selain pemegang ' +
           'configure/kepala sekolah/kurikulum hanya untuk kelas+mapel yang ia ampu (403). Ketercapaian DIHITUNG saat dibaca: skor ' +
           'penilaian SUMATIF (komponen yang ikut nilai akhir, bukan asesmen awal) yang dikaitkan ke TP, diagregasi menurut ' +
           '`aggregation` (`mean`, `latest`, `max`; salinan beku semester bila ada), lalu dibandingkan dengan ambang bertingkat: ' +
@@ -1880,7 +1880,7 @@ export async function gradingRoutes(instance: FastifyInstance) {
           '(`scope` per sel). Keputusan guru (`PUT` yang sama) menang (`source` `override`). Penilaian formatif tidak dihitung; ' +
           'ringkasannya ada di `formative` per sel sebagai kemajuan. `objectives` memuat TP yang dikaitkan ke penilaian atau yang ' +
           'punya keputusan guru, urut `sortOrder`; `includeAll=true` menambahkan semua TP aktif mapel itu. TP yang sudah diganti ' +
-          'versi baru (`active` false) tetap tampil selama masih dikaitkan. `locked` per siswa = rapor semester itu sudah final ' +
+          'versi baru (`active` false) tetap tampil selama masih dikaitkan. `locked` per murid = rapor semester itu sudah final ' +
           '(keputusan guru ditolak 409 `report_final`). Angka ini belum memengaruhi rapor. Semester/kelas/mapel harus milik ' +
           'sekolah ini (400 `invalid_reference`).',
         headers: schoolHeader,
@@ -1902,8 +1902,8 @@ export async function gradingRoutes(instance: FastifyInstance) {
                 assessmentCount: z.number().int().describe('Jumlah penilaian sumatif terkait'),
                 formativeCount: z.number().int().describe('Jumlah penilaian formatif terkait'),
                 summary: z.object({
-                  assessed: z.number().int().describe('Jumlah siswa yang sudah berstatus'),
-                  achieved: z.number().int().describe('Jumlah siswa yang tercapai'),
+                  assessed: z.number().int().describe('Jumlah murid yang sudah berstatus'),
+                  achieved: z.number().int().describe('Jumlah murid yang tercapai'),
                 }),
               }),
             ),
@@ -1986,13 +1986,13 @@ export async function gradingRoutes(instance: FastifyInstance) {
         summary: 'Simpan keputusan guru atas ketercapaian TP',
         description:
           'Izin: `grade:input`, dan pemegang `grade:configure` atau guru pengampu kelas+mapel (selain itu 403); modul `grades`. ' +
-          'Keputusan guru (override) per (siswa, TP) pada semester itu, batch 1..500. Setiap record MENGGANTIKAN keputusan ' +
-          'sebelumnya untuk (siswa, TP) itu: `achieved` (true/false) menimpa status hitung, `levelLabel` (maks 60 karakter) dan ' +
+          'Keputusan guru (override) per (murid, TP) pada semester itu, batch 1..500. Setiap record MENGGANTIKAN keputusan ' +
+          'sebelumnya untuk (murid, TP) itu: `achieved` (true/false) menimpa status hitung, `levelLabel` (maks 60 karakter) dan ' +
           '`note` alasan (maks 500) opsional; yang dihilangkan atau null dikosongkan; ketiganya kosong menghapus keputusan. ' +
-          'Hanya menyimpan keputusan, bukan hasil hitung. Siswa harus anggota aktif kelas dan TP milik mapel itu (400 ' +
+          'Hanya menyimpan keputusan, bukan hasil hitung. Murid harus anggota aktif kelas dan TP milik mapel itu (400 ' +
           '`invalid_reference`, `objective_subject_mismatch`); TP tidak harus aktif atau sudah dikaitkan ke penilaian. Ditolak ' +
-          '409 `report_final` bila rapor salah satu siswa itu pada semester tersebut sudah final (buka kembali rapornya lebih dulu). ' +
-          'Siswa dan TP yang sama dikirim dua kali: yang terakhir berlaku. Diaudit (`objective_achievement.save`).',
+          '409 `report_final` bila rapor salah satu murid itu pada semester tersebut sudah final (buka kembali rapornya lebih dulu). ' +
+          'Murid dan TP yang sama dikirim dua kali: yang terakhir berlaku. Diaudit (`objective_achievement.save`).',
         headers: schoolHeader,
         body: z.object({
           semesterId: z.uuid(),
@@ -2032,7 +2032,7 @@ export async function gradingRoutes(instance: FastifyInstance) {
         const { rows } = await rosterOf(tx, classId);
         const allowed = new Set(rows.map((s) => s.id));
         if (records.some((r) => !allowed.has(r.studentId))) {
-          throw invalidRef('Ada siswa yang bukan anggota aktif kelas ini.');
+          throw invalidRef('Ada murid yang bukan anggota aktif kelas ini.');
         }
         await assertStudentsTakeSubject(tx, {
           classId,

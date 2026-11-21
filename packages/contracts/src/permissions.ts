@@ -244,7 +244,7 @@ export const SYSTEM_ROLES = {
     ],
   },
   guardian: { name: 'Wali', permissions: ['portal:read', 'portal:respond'] },
-  student: { name: 'Siswa', permissions: ['portal:read'] },
+  student: { name: 'Murid', permissions: ['portal:read'] },
 } as const satisfies Record<string, SystemRole>;
 
 export type SystemRoleKey = keyof typeof SYSTEM_ROLES;

@@ -298,7 +298,7 @@ export async function studentRow(tx: Tx, id: string, canManage: boolean) {
     .select()
     .from(student)
     .where(and(eq(student.id, id), isNull(student.deletedAt)));
-  if (!s) throw notFound('Siswa');
+  if (!s) throw notFound('Murid');
   const current = (await currentClasses(tx, [s.id])).get(s.id);
   return {
     id: s.id,
@@ -528,10 +528,10 @@ export async function peopleRoutes(instance: FastifyInstance) {
       onRequest: [requirePermission('student:read')],
       schema: {
         tags: ['People'],
-        summary: 'Daftar siswa',
+        summary: 'Daftar murid',
         description:
           'Izin: `student:read`. `q` mencari pada nama, NIS, atau NISN. `classId` menyaring menurut kelas pada tahun ' +
-          'ajaran aktif. `missingNik=true` hanya menampilkan siswa tanpa NIK. Siswa yang dihapus tidak ditampilkan. ' +
+          'ajaran aktif. `missingNik=true` hanya menampilkan murid tanpa NIK. Murid yang dihapus tidak ditampilkan. ' +
           'NIK utuh hanya untuk pemegang `student:manage`; yang lain menerima `nikMasked`.',
         headers: schoolHeader,
         querystring: z.object({
@@ -542,7 +542,7 @@ export async function peopleRoutes(instance: FastifyInstance) {
             .enum(['true', 'false'])
             .transform((v) => v === 'true')
             .optional()
-            .describe('true: hanya siswa yang NIK-nya belum diisi'),
+            .describe('true: hanya murid yang NIK-nya belum diisi'),
           limit: z.coerce.number().int().min(1).max(100).default(50),
           offset: z.coerce.number().int().min(0).default(0),
         }),
@@ -553,7 +553,7 @@ export async function peopleRoutes(instance: FastifyInstance) {
             missingNikTotal: z
               .number()
               .int()
-              .describe('Jumlah siswa (dengan saringan lain yang sama) yang NIK-nya belum diisi'),
+              .describe('Jumlah murid (dengan saringan lain yang sama) yang NIK-nya belum diisi'),
           }),
           ...guarded,
         },
@@ -624,10 +624,10 @@ export async function peopleRoutes(instance: FastifyInstance) {
       onRequest: [requirePermission('student:manage')],
       schema: {
         tags: ['People'],
-        summary: 'Tambah siswa',
+        summary: 'Tambah murid',
         description:
           'Izin: `student:manage`. NIS, NISN, dan NIK (bila diisi) harus unik di sekolah; NIK bentrok menghasilkan 409 `nik_taken`. Data diri lain (tempat lahir, NIK 16 digit, ' +
-          'agama, alamat, telepon/WA, email) opsional; telepon dinormalkan ke digit berawalan 62. `classId` opsional: siswa langsung ' +
+          'agama, alamat, telepon/WA, email) opsional; telepon dinormalkan ke digit berawalan 62. `classId` opsional: murid langsung ' +
           'ditempatkan di kelas itu pada tahun ajaran kelasnya.',
         headers: schoolHeader,
         body: studentBody.extend({ classId: z.uuid().nullable().default(null) }),
@@ -637,7 +637,7 @@ export async function peopleRoutes(instance: FastifyInstance) {
     async (request, reply) => {
       const ctx = request.ctx as TenantContext;
       const { classId, ...fields } = request.body;
-      const row = await nikConflictAs409('NIS atau NISN itu sudah dipakai siswa lain.', () =>
+      const row = await nikConflictAs409('NIS atau NISN itu sudah dipakai murid lain.', () =>
         tenant(request, async (tx) => {
           const [r] = await tx
             .insert(student)
@@ -658,7 +658,7 @@ export async function peopleRoutes(instance: FastifyInstance) {
       onRequest: [requirePermission('student:read')],
       schema: {
         tags: ['People'],
-        summary: 'Detail siswa',
+        summary: 'Detail murid',
         description: 'Izin: `student:read`.',
         headers: schoolHeader,
         params: idParams,
@@ -677,9 +677,9 @@ export async function peopleRoutes(instance: FastifyInstance) {
       onRequest: [requirePermission('student:manage')],
       schema: {
         tags: ['People'],
-        summary: 'Ubah data siswa',
+        summary: 'Ubah data murid',
         description:
-          'Izin: `student:manage`. Status mengikuti siklus hidup siswa (aktif, lulus, pindah, keluar). Perpindahan kelas ' +
+          'Izin: `student:manage`. Status mengikuti siklus hidup murid (aktif, lulus, pindah, keluar). Perpindahan kelas ' +
           'lewat `PUT /v1/students/{id}/class`.',
         headers: schoolHeader,
         params: idParams,
@@ -689,14 +689,14 @@ export async function peopleRoutes(instance: FastifyInstance) {
     },
     async (request) => {
       const ctx = request.ctx as TenantContext;
-      return nikConflictAs409('NIS atau NISN itu sudah dipakai siswa lain.', () =>
+      return nikConflictAs409('NIS atau NISN itu sudah dipakai murid lain.', () =>
         tenant(request, async (tx) => {
           const rows = await tx
             .update(student)
             .set(request.body)
             .where(and(eq(student.id, request.params.id), isNull(student.deletedAt)))
             .returning({ id: student.id });
-          if (rows.length === 0) throw notFound('Siswa');
+          if (rows.length === 0) throw notFound('Murid');
           await audit(tx, ctx, 'student.update', 'student', request.params.id, {
             status: request.body.status,
           });
@@ -712,12 +712,12 @@ export async function peopleRoutes(instance: FastifyInstance) {
       onRequest: [requirePermission('student:manage')],
       schema: {
         tags: ['People'],
-        summary: 'Tempatkan atau pindahkan siswa ke kelas',
+        summary: 'Tempatkan atau pindahkan murid ke kelas',
         description:
-          'Izin: `student:manage`. Siswa duduk di satu kelas per tahun ajaran; menempatkan ulang pada tahun ajaran ' +
+          'Izin: `student:manage`. Murid duduk di satu kelas per tahun ajaran; menempatkan ulang pada tahun ajaran ' +
           'yang sama memindahkannya. `classId: null` mencabut dari kelas pada tahun ajaran aktif. Perpindahan nyata tercatat di ' +
           'riwayat rombel (`effectiveOn` dan `reason` opsional; lihat `GET /v1/students/{id}/academic-history`). Ditolak 409 ' +
-          '`report_final` bila rapor siswa atau kelas (lama atau baru) sudah final pada semester tahun itu yang memuat hari ini atau ' +
+          '`report_final` bila rapor murid atau kelas (lama atau baru) sudah final pada semester tahun itu yang memuat hari ini atau ' +
           '`effectiveOn`: buka kembali rapornya lebih dulu.',
         headers: schoolHeader,
         params: idParams,
@@ -761,9 +761,9 @@ export async function peopleRoutes(instance: FastifyInstance) {
       onRequest: [requirePermission('student:manage')],
       schema: {
         tags: ['People'],
-        summary: 'Hapus siswa',
+        summary: 'Hapus murid',
         description:
-          'Izin: `student:manage`. Siswa disembunyikan (soft delete), riwayat enrollment tetap. Untuk siswa yang lulus ' +
+          'Izin: `student:manage`. Murid disembunyikan (soft delete), riwayat enrollment tetap. Untuk murid yang lulus ' +
           'atau pindah, ubah statusnya, jangan dihapus.',
         headers: schoolHeader,
         params: idParams,
@@ -778,7 +778,7 @@ export async function peopleRoutes(instance: FastifyInstance) {
           .set({ deletedAt: new Date() })
           .where(and(eq(student.id, request.params.id), isNull(student.deletedAt)))
           .returning({ id: student.id });
-        if (rows.length === 0) throw notFound('Siswa');
+        if (rows.length === 0) throw notFound('Murid');
         await audit(tx, ctx, 'student.delete', 'student', request.params.id);
       });
       return { ok: true as const };

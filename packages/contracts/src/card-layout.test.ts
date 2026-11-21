@@ -1,17 +1,22 @@
 import { describe, expect, it } from 'vitest';
 import {
+  buildScheduleTable,
   cardElementSchema,
   cardLayoutSchema,
   codeFieldsFor,
   defaultExamCardLayout,
+  defaultExamSlipLayout,
   defaultStudentCardLayout,
+  fitScheduleFont,
   formatIdentityPayload,
   formatParticipantNo,
+  groupScheduleByDay,
   hasIdentityPrefix,
   IDENTITY_CODE_ALPHABET,
   invalidFieldsForKind,
   parseIdentityPayload,
   resolveFieldValue,
+  scheduleDayLabel,
 } from './card-layout';
 
 describe('card-layout', () => {
@@ -133,5 +138,102 @@ describe('card-layout', () => {
     expect(parseIdentityPayload(null)).toBeNull();
     expect(hasIdentityPrefix('ES1.apa-saja')).toBe(true);
     expect(hasIdentityPrefix('WIFI:S:x')).toBe(false);
+  });
+});
+
+describe('tanda peserta A4 dan tabel jadwal', () => {
+  it('tata letak A4 bawaan lolos skema dan hanya untuk kartu ujian', () => {
+    const layout = defaultExamSlipLayout();
+    const parsed = cardLayoutSchema.safeParse(layout);
+    expect(parsed.success, JSON.stringify(parsed.error?.issues)).toBe(true);
+    expect(layout).toMatchObject({ widthMm: 210, heightMm: 297 });
+    expect(layout.elements.some((e) => e.type === 'schedule')).toBe(true);
+    expect(invalidFieldsForKind('exam', layout.elements)).toEqual([]);
+    // Elemen tabel jadwal dan kolom khusus ujian ditolak pada kartu siswa.
+    expect(invalidFieldsForKind('student', layout.elements)).toContain('schedule');
+  });
+
+  it('elemen jadwal punya nilai bawaan gaya', () => {
+    const el = cardElementSchema.parse({ type: 'schedule', x: 0, y: 0, w: 100, h: 50 });
+    expect(el).toMatchObject({ fontSize: 8, borderWidth: 0.2, headerFill: '#f1f5f9' });
+  });
+
+  it('label hari: tanggal berisi nol di depan, tanpa tanggal "Belum dijadwalkan"', () => {
+    expect(scheduleDayLabel('2025-06-04')).toBe('Rabu, 04 Juni 2025');
+    expect(scheduleDayLabel(null)).toBe('Belum dijadwalkan');
+    expect(scheduleDayLabel('bukan-tanggal')).toBe('Belum dijadwalkan');
+  });
+
+  it('jadwal dikelompokkan per hari, urut tanggal lalu jam, tanpa tanggal di akhir', () => {
+    const groups = groupScheduleByDay([
+      { subject: 'Fikih', date: '2025-06-09', time: '10.30 - 12.00 WIB' },
+      { subject: 'IPA', date: '2025-06-05', time: '07.00 - 08.30 WIB' },
+      { subject: 'PJOK', date: '2025-06-05', time: '08.30 - 10.00 WIB' },
+      { subject: 'Seni', date: null, time: '' },
+      { subject: 'Matematika', date: '2025-06-04', time: '07.00 - 08.30 WIB' },
+    ]);
+    expect(groups.map((g) => [g.label, g.rows.map((r) => r.subject)])).toEqual([
+      ['Rabu, 04 Juni 2025', ['Matematika']],
+      ['Kamis, 05 Juni 2025', ['IPA', 'PJOK']],
+      ['Senin, 09 Juni 2025', ['Fikih']],
+      ['Belum dijadwalkan', ['Seni']],
+    ]);
+    expect(groupScheduleByDay([])).toEqual([]);
+  });
+
+  it('ukuran huruf mengecil agar semua baris muat, tidak melebihi pilihan, dan tidak di bawah 4', () => {
+    expect(fitScheduleFont(2, 150, 9)).toBe(9);
+    const shrunk = fitScheduleFont(18, 90, 9);
+    expect(shrunk).toBeLessThan(9);
+    expect(shrunk).toBeGreaterThanOrEqual(4);
+    expect(fitScheduleFont(500, 20, 9)).toBe(4);
+  });
+});
+
+describe('tabel jadwal dinamis', () => {
+  const lines = [
+    { subject: 'IPA', date: '2025-06-05', time: '07.00 - 08.30 WIB' },
+    { subject: 'PJOK', date: '2025-06-05', time: '08.30 - 10.00 WIB' },
+    { subject: 'Matematika', date: '2025-06-04', time: '07.00 - 08.30 WIB' },
+  ];
+
+  it('kolom bawaan: hari+tanggal digabung per hari, judul bawaan', () => {
+    const t = buildScheduleTable(lines);
+    expect(t.headers).toEqual(['Hari, Tanggal', 'Waktu', 'Mata Pelajaran']);
+    expect(t.rows).toHaveLength(3);
+    expect(t.rows[0]).toEqual({
+      cells: ['Rabu, 04 Juni 2025', '07.00 - 08.30 WIB', 'Matematika'],
+      spans: [1, 1, 1],
+    });
+    expect(t.rows[1]?.cells[0]).toBe('Kamis, 05 Juni 2025');
+    expect(t.rows[1]?.spans[0]).toBe(2);
+    expect(t.rows[2]?.cells[0]).toBeNull();
+  });
+
+  it('kolom, urutan, judul, dan penggabungan dapat diatur sekolah', () => {
+    const t = buildScheduleTable(lines, {
+      columns: ['no', 'subject', 'day', 'date', 'time'],
+      headers: ['#', 'Mapel', '', 'Tgl'],
+      mergeDays: false,
+    });
+    expect(t.headers).toEqual(['#', 'Mapel', 'Hari', 'Tgl', 'Waktu']);
+    expect(t.rows[0]?.cells).toEqual(['1', 'Matematika', 'Rabu', '04 Juni 2025', '07.00 - 08.30 WIB']);
+    expect(t.rows.every((r) => r.spans.every((n) => n === 1))).toBe(true);
+    expect(t.rows[2]?.cells[2]).toBe('Kamis');
+  });
+
+  it('jadwal kosong menghasilkan tabel tanpa baris, dan elemen menolak kolom ganda', () => {
+    expect(buildScheduleTable([]).rows).toEqual([]);
+    const bad = cardElementSchema.safeParse({
+      type: 'schedule',
+      x: 0,
+      y: 0,
+      w: 100,
+      h: 50,
+      columns: ['time', 'time'],
+    });
+    expect(bad.success).toBe(false);
+    const ok = cardElementSchema.parse({ type: 'schedule', x: 0, y: 0, w: 100, h: 50 });
+    expect(ok).toMatchObject({ columns: ['dayDate', 'time', 'subject'], mergeDays: true, showHeader: true });
   });
 });

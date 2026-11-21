@@ -9,73 +9,73 @@ export const CORE_DOCS: DocArticle[] = [
     group: 'master',
     text: {
       id: {
-        title: 'Mengelola data siswa dan wali',
+        title: 'Mengelola data murid dan wali',
         summary:
-          'Tambah siswa, pindahkan ke kelas lain, atur wali murid, dan masukkan banyak siswa sekaligus lewat Excel.',
+          'Tambah murid, pindahkan ke kelas lain, atur wali murid, dan masukkan banyak murid sekaligus lewat Excel.',
         forWho:
-          'Admin sekolah dan operator TU yang mengurus data siswa; guru dan Kepala sekolah hanya bisa melihat.',
+          'Admin sekolah dan operator TU yang mengurus data murid; guru dan Kepala sekolah hanya bisa melihat.',
         sections: [
           {
-            heading: 'Menambah siswa baru',
-            body: 'Yang wajib diisi hanya nama dan jenis kelamin. NIS dan NISN boleh dikosongkan, tetapi kalau diisi tidak boleh sama dengan siswa lain. Data diri lain (tempat lahir, NIK 16 digit angka, agama, alamat, telepon/WA, email) boleh menyusul.',
+            heading: 'Menambah murid baru',
+            body: 'Yang wajib diisi hanya nama dan jenis kelamin. NIS dan NISN boleh dikosongkan, tetapi kalau diisi tidak boleh sama dengan murid lain. Data diri lain (tempat lahir, NIK 16 digit angka, agama, alamat, telepon/WA, email) boleh menyusul.',
             steps: [
-              'Buka menu Siswa di kelompok Data induk, lalu klik Tambah siswa.',
+              'Buka menu Murid di kelompok Data induk, lalu klik Tambah murid.',
               'Isi nama, NIS, NISN, jenis kelamin, tanggal lahir, agama, dan status.',
-              'Pilih Kelas bila tahun ajaran aktif sudah punya kelas. Siswa baru boleh dibiarkan Tanpa kelas dulu.',
+              'Pilih Kelas bila tahun ajaran aktif sudah punya kelas. Murid baru boleh dibiarkan Tanpa kelas dulu.',
               'Isi kontak dan alamat bila ada, lalu klik Tambah.',
             ],
-            tip: 'Belum punya semua data? Simpan dulu nama dan jenis kelamin, lalu lengkapi nanti lewat Ubah di menu baris siswa.',
+            tip: 'Belum punya semua data? Simpan dulu nama dan jenis kelamin, lalu lengkapi nanti lewat Ubah di menu baris murid.',
             href: '/students',
           },
           {
             heading: 'NIK, kelengkapan data, dan saringan Belum punya NIK',
-            body: 'NIK siswa, guru, dan wali bisa dipakai untuk masuk dan memulihkan kata sandi, asalkan akunnya sudah terhubung (siswa dan wali lewat tautan portal, guru lewat akun login guru). NIK terdiri dari 16 digit dan tidak boleh sama dengan orang lain di sekolah yang sama; kalau sama, muncul pesan NIK itu sudah dipakai. NIK lengkap hanya terlihat oleh pengguna yang boleh mengelola data itu; pengguna lain hanya melihat empat digit terakhir.',
+            body: 'NIK murid, guru, dan wali bisa dipakai untuk masuk dan memulihkan kata sandi, asalkan akunnya sudah terhubung (murid dan wali lewat tautan portal, guru lewat akun login guru). NIK terdiri dari 16 digit dan tidak boleh sama dengan orang lain di sekolah yang sama; kalau sama, muncul pesan NIK itu sudah dipakai. NIK lengkap hanya terlihat oleh pengguna yang boleh mengelola data itu; pengguna lain hanya melihat empat digit terakhir.',
             steps: [
-              'Di halaman Siswa, pakai saringan Belum punya NIK untuk menampilkan siswa yang NIK-nya masih kosong.',
-              'Perhatikan lencana Kelengkapan data pada tiap siswa: Data lengkap atau NIK belum diisi.',
-              'Klik Ubah pada siswa tersebut, isi NIK, lalu simpan.',
+              'Di halaman Murid, pakai saringan Belum punya NIK untuk menampilkan murid yang NIK-nya masih kosong.',
+              'Perhatikan lencana Kelengkapan data pada tiap murid: Data lengkap atau NIK belum diisi.',
+              'Klik Ubah pada murid tersebut, isi NIK, lalu simpan.',
             ],
             tip: 'Bila NIK yang sama tercatat pada lebih dari satu akun, masuk dengan NIK tidak berfungsi dan orangnya harus memakai email.',
           },
           {
-            heading: 'Memindahkan siswa ke kelas lain atau mengubah statusnya',
-            body: 'Kelas yang tampil adalah kelas pada tahun ajaran aktif. Status siswa ada empat: Aktif, Lulus, Pindah, dan Keluar.',
+            heading: 'Memindahkan murid ke kelas lain atau mengubah statusnya',
+            body: 'Kelas yang tampil adalah kelas pada tahun ajaran aktif. Status murid ada empat: Aktif, Lulus, Pindah, dan Keluar.',
             steps: [
-              'Cari siswa dengan kotak pencarian (nama, NIS, atau NISN).',
-              'Klik menu baris siswa, lalu pilih Ubah.',
+              'Cari murid dengan kotak pencarian (nama, NIS, atau NISN).',
+              'Klik menu baris murid, lalu pilih Ubah.',
               'Ganti Kelas atau Status, lalu simpan.',
             ],
             warning:
-              'Siswa yang sudah lulus atau pindah sebaiknya diubah statusnya, bukan dihapus. Hapus hanya menyembunyikan siswa dari daftar.',
+              'Murid yang sudah lulus atau pindah sebaiknya diubah statusnya, bukan dihapus. Hapus hanya menyembunyikan murid dari daftar.',
           },
           {
             heading: 'Mengatur wali murid',
             body: 'Satu wali bisa dipakai bersama oleh beberapa anak, misalnya kakak dan adik. Bila data wali diubah, perubahan berlaku untuk semua anaknya.',
             steps: [
-              'Klik menu baris siswa, lalu pilih Wali.',
+              'Klik menu baris murid, lalu pilih Wali.',
               'Untuk wali baru, isi nama, hubungan (ayah, ibu, wali, atau lainnya), NIK, telepon, email, alamat, dan pekerjaan, lalu klik Tambah wali.',
               'Untuk wali yang sudah ada (misalnya orang tua kakaknya), ketik minimal 2 huruf nama atau telepon pada Tautkan wali yang sudah ada, lalu klik Tautkan.',
-              'Centang Jadikan wali utama, atau klik Jadikan utama pada wali yang sudah tertaut. Klik Lepas untuk melepas wali dari siswa itu.',
+              'Centang Jadikan wali utama, atau klik Jadikan utama pada wali yang sudah tertaut. Klik Lepas untuk melepas wali dari murid itu.',
             ],
             tip: 'Untuk kakak-adik, jangan buat wali baru. Tautkan wali yang sudah ada supaya datanya tidak ganda. Semua wali sekolah juga bisa dilihat dan diubah sekaligus di menu Data wali (lihat panduan Data wali).',
           },
           {
-            heading: 'Mendaftarkan kartu untuk satu siswa',
-            body: 'Bila modul Absensi aktif dan Anda boleh mengatur absensi, menu baris siswa memuat Kartu RFID. Menu ini membuka jendela khusus untuk mendaftarkan kode kartu siswa yang belum punya kartu, atau menghapus kartunya.',
+            heading: 'Mendaftarkan kartu untuk satu murid',
+            body: 'Bila modul Absensi aktif dan Anda boleh mengatur absensi, menu baris murid memuat Kartu RFID. Menu ini membuka jendela khusus untuk mendaftarkan kode kartu murid yang belum punya kartu, atau menghapus kartunya.',
             tip: 'Untuk mendaftarkan kartu satu kelas sekaligus, lebih cepat memakai menu Kartu RFID (lihat panduan Kartu RFID, kiosk, dan gerbang).',
           },
           {
             heading: 'Memasukkan dan mengunduh data lewat Excel',
-            body: 'Berkas Excel memuat kolom data siswa (termasuk NIK, HP, Email, dan Alamat), Kelas, lalu Wali 1 dan Wali 2 (masing-masing nama, hubungan, NIK, telepon/WA, email, alamat, dan pekerjaan). Wali 1 menjadi wali utama. Wali dengan nomor telepon yang sama dipakai bersama, jadi kakak-adik tidak tercatat dobel.',
+            body: 'Berkas Excel memuat kolom data murid (termasuk NIK, HP, Email, dan Alamat), Kelas, lalu Wali 1 dan Wali 2 (masing-masing nama, hubungan, NIK, telepon/WA, email, alamat, dan pekerjaan). Wali 1 menjadi wali utama. Wali dengan nomor telepon yang sama dipakai bersama, jadi kakak-adik tidak tercatat dobel.',
             steps: [
-              'Klik Impor Excel di halaman Siswa, lalu unduh templat.',
-              'Isi lembar Siswa mulai baris 2 tanpa mengubah judul kolom. Hanya Nama dan Jenis Kelamin (L atau P) yang wajib.',
+              'Klik Impor Excel di halaman Murid, lalu unduh templat.',
+              'Isi lembar Murid mulai baris 2 tanpa mengubah judul kolom. Hanya Nama dan Jenis Kelamin (L atau P) yang wajib.',
               'Isi kolom Kelas persis seperti nama kelas di tahun ajaran aktif.',
               'Unggah berkas, lalu periksa pratinjau. Tidak ada yang tersimpan sebelum semua baris benar.',
               'Klik impor. Satu berkas paling banyak 1000 baris.',
             ],
             warning:
-              'Bila ada satu baris yang salah, tidak ada siswa yang disimpan. Perbaiki baris yang ditandai lalu unggah ulang.',
+              'Bila ada satu baris yang salah, tidak ada murid yang disimpan. Perbaiki baris yang ditandai lalu unggah ulang.',
             href: '/students/import',
           },
         ],
@@ -86,15 +86,15 @@ export const CORE_DOCS: DocArticle[] = [
           },
           {
             q: 'NIS yang saya isi ditolak karena sudah dipakai. Bagaimana?',
-            a: 'NIS dan NISN tidak boleh sama dengan siswa lain. Cari NIS itu di kotak pencarian untuk melihat siapa pemakainya. Bila itu data ganda, perbaiki salah satunya. Bila NIS belum ada, kosongkan dulu.',
+            a: 'NIS dan NISN tidak boleh sama dengan murid lain. Cari NIS itu di kotak pencarian untuk melihat siapa pemakainya. Bila itu data ganda, perbaiki salah satunya. Bila NIS belum ada, kosongkan dulu.',
           },
           {
             q: 'Impor Excel gagal terus. Apa yang harus saya periksa?',
             a: 'Periksa tiga hal: judul kolom tidak diubah, Jenis Kelamin hanya L atau P, dan isi Kelas sama persis dengan nama kelas tahun ajaran aktif. Lihat pratinjau untuk tahu baris mana yang salah.',
           },
           {
-            q: 'Saya tidak melihat tombol Tambah siswa atau menu Wali. Kenapa?',
-            a: 'Hanya Admin sekolah dan Operator yang bisa mengubah data siswa. Peran lain hanya bisa melihat. Minta Admin sekolah mengubah peran Anda di menu Anggota.',
+            q: 'Saya tidak melihat tombol Tambah murid atau menu Wali. Kenapa?',
+            a: 'Hanya Admin sekolah dan Operator yang bisa mengubah data murid. Peran lain hanya bisa melihat. Minta Admin sekolah mengubah peran Anda di menu Anggota.',
           },
         ],
       },
@@ -294,12 +294,12 @@ export const CORE_DOCS: DocArticle[] = [
         sections: [
           {
             heading: 'Apa isi halaman Data wali',
-            body: 'Menu Data wali di kelompok Data induk memuat semua wali murid sekolah, tidak hanya wali satu siswa. Tiap baris menampilkan nama dan lencana Kelengkapan data, NIK, HP, email, daftar anak beserta kelasnya, dan status akun portal (Aktif, Diundang, atau Belum). Kartu di bagian atas menghitung Total wali, wali yang Belum punya NIK, dan wali yang Belum punya akun portal. NIK lengkap hanya terlihat oleh pengguna yang boleh mengelola data siswa; yang lain hanya melihat empat digit terakhir.',
+            body: 'Menu Data wali di kelompok Data induk memuat semua wali murid sekolah, tidak hanya wali satu murid. Tiap baris menampilkan nama dan lencana Kelengkapan data, NIK, HP, email, daftar anak beserta kelasnya, dan status akun portal (Aktif, Diundang, atau Belum). Kartu di bagian atas menghitung Total wali, wali yang Belum punya NIK, dan wali yang Belum punya akun portal. NIK lengkap hanya terlihat oleh pengguna yang boleh mengelola data murid; yang lain hanya melihat empat digit terakhir.',
             href: '/guardians',
           },
           {
             heading: 'Mencari dan menyaring wali',
-            body: 'Kotak pencarian mengenali nama wali, email, nama anak, NIK (cukup angkanya), dan nomor HP (0812… dan 62812… sama-sama ditemukan). Saringan di sebelahnya: Semua, Belum punya NIK, Belum punya akun portal, dan Sudah punya akun. Klik nama anak untuk membuka halaman Siswa yang sudah dicari dengan nama itu.',
+            body: 'Kotak pencarian mengenali nama wali, email, nama anak, NIK (cukup angkanya), dan nomor HP (0812… dan 62812… sama-sama ditemukan). Saringan di sebelahnya: Semua, Belum punya NIK, Belum punya akun portal, dan Sudah punya akun. Klik nama anak untuk membuka halaman Murid yang sudah dicari dengan nama itu.',
             steps: [
               'Buka menu Data wali.',
               'Ketik kata kunci; hasil muncul setelah Anda berhenti mengetik sebentar.',
@@ -309,7 +309,7 @@ export const CORE_DOCS: DocArticle[] = [
           },
           {
             heading: 'Mengubah data wali',
-            body: 'Klik baris wali atau pilih Ubah di menu baris. Isian dan aturannya sama dengan panel Wali pada tiap siswa; isian yang salah ditandai merah. Perubahan berlaku untuk semua anak wali itu.',
+            body: 'Klik baris wali atau pilih Ubah di menu baris. Isian dan aturannya sama dengan panel Wali pada tiap murid; isian yang salah ditandai merah. Perubahan berlaku untuk semua anak wali itu.',
             steps: [
               'Pilih Ubah pada wali tersebut.',
               'Lengkapi NIK (16 digit), telepon, email, alamat, atau pekerjaan.',
@@ -328,15 +328,15 @@ export const CORE_DOCS: DocArticle[] = [
           },
           {
             heading: 'Menghapus wali',
-            body: 'Hapus hanya tersedia untuk wali yang tidak menaungi siswa mana pun dan tidak punya akun portal. Wali yang masih terhubung ditolak dengan pesan bahwa wali itu masih dipakai.',
+            body: 'Hapus hanya tersedia untuk wali yang tidak menaungi murid mana pun dan tidak punya akun portal. Wali yang masih terhubung ditolak dengan pesan bahwa wali itu masih dipakai.',
             warning:
-              'Hapus bersifat permanen. Untuk wali yang masih punya anak, lepaskan dulu dari panel Wali pada siswa, atau cabut akun portalnya di menu Akun portal.',
+              'Hapus bersifat permanen. Untuk wali yang masih punya anak, lepaskan dulu dari panel Wali pada murid, atau cabut akun portalnya di menu Akun portal.',
           },
         ],
         faq: [
           {
             q: 'Wali yang baru saya tambahkan tidak muncul di daftar.',
-            a: 'Periksa kotak pencarian dan saringan, lalu klik Hapus saringan. Wali ditambahkan lewat tombol Wali pada siswa atau saat impor Excel siswa, dan langsung muncul di sini.',
+            a: 'Periksa kotak pencarian dan saringan, lalu klik Hapus saringan. Wali ditambahkan lewat tombol Wali pada murid atau saat impor Excel murid, dan langsung muncul di sini.',
           },
           {
             q: 'Tombol Undang ke portal tidak ada.',
@@ -475,7 +475,7 @@ export const CORE_DOCS: DocArticle[] = [
         summary:
           'Catat murid yang pindah dari atau ke sekolah lain, lihat riwayat murid dari tahun ke tahun, dan batalkan bila salah catat.',
         forWho:
-          'Admin sekolah dan operator TU yang mengurus data siswa; guru dan Kepala sekolah hanya bisa melihat.',
+          'Admin sekolah dan operator TU yang mengurus data murid; guru dan Kepala sekolah hanya bisa melihat.',
         sections: [
           {
             heading: 'Apa itu mutasi murid',
@@ -492,7 +492,7 @@ export const CORE_DOCS: DocArticle[] = [
               'Isi sekolah tujuan, NPSN sekolah (8 angka, boleh dikosongkan), serta nomor dan tanggal surat pindah bila ada.',
               'Klik Catat mutasi.',
             ],
-            tip: 'Anda juga bisa mulai dari menu Siswa: klik menu baris murid, lalu pilih Catat mutasi keluar.',
+            tip: 'Anda juga bisa mulai dari menu Murid: klik menu baris murid, lalu pilih Catat mutasi keluar.',
             warning:
               'Keterangan nilai saat pindah hanya salinan rapor sementara. Itu bukan rapor final dan tidak menggantikan rapor resmi.',
             href: '/transfers',
@@ -529,12 +529,12 @@ export const CORE_DOCS: DocArticle[] = [
           {
             heading: 'Melihat riwayat murid',
             body: 'Riwayat murid menampilkan perjalanan seorang murid per tahun ajaran: kelas, perpindahan kelas beserta tanggal dan alasannya, keputusan kenaikan atau kelulusan, status rapor tiap semester, dan mutasi.',
-            steps: ['Buka menu Siswa dan cari muridnya.', 'Klik menu baris murid, lalu pilih Riwayat murid.'],
+            steps: ['Buka menu Murid dan cari muridnya.', 'Klik menu baris murid, lalu pilih Riwayat murid.'],
             href: '/students',
           },
           {
             heading: 'Pindah kelas dengan tanggal dan alasan',
-            body: 'Saat memindahkan murid ke kelas lain lewat Ubah di menu Siswa, Anda bisa mengisi tanggal berlaku dan alasan. Keduanya boleh dikosongkan; bila tanggal kosong, yang dipakai adalah hari ini. Keduanya masuk ke riwayat murid.',
+            body: 'Saat memindahkan murid ke kelas lain lewat Ubah di menu Murid, Anda bisa mengisi tanggal berlaku dan alasan. Keduanya boleh dikosongkan; bila tanggal kosong, yang dipakai adalah hari ini. Keduanya masuk ke riwayat murid.',
             warning:
               'Bila rapor semester itu sudah final, perpindahan kelas ditolak. Buka kembali rapornya atau tunggu semester berikutnya.',
             href: '/students',
@@ -547,7 +547,7 @@ export const CORE_DOCS: DocArticle[] = [
           },
           {
             q: 'Murid yang saya cari tidak muncul di formulir mutasi keluar.',
-            a: 'Hanya murid berstatus Aktif yang bisa dimutasi keluar. Periksa dulu statusnya di menu Siswa.',
+            a: 'Hanya murid berstatus Aktif yang bisa dimutasi keluar. Periksa dulu statusnya di menu Murid.',
           },
           {
             q: 'Saya salah mengisi tanggal mutasi keluar. Bagaimana?',
@@ -960,7 +960,7 @@ export const CORE_DOCS: DocArticle[] = [
         sections: [
           {
             heading: 'Membuat tahun ajaran dan semester',
-            body: 'Hanya satu tahun ajaran yang aktif pada satu waktu, dan itulah yang menentukan daftar kelas dan tempat siswa berada. Tahun ajaran pertama otomatis aktif.',
+            body: 'Hanya satu tahun ajaran yang aktif pada satu waktu, dan itulah yang menentukan daftar kelas dan tempat murid berada. Tahun ajaran pertama otomatis aktif.',
             steps: [
               'Buka menu Tahun ajaran, lalu klik Buat tahun ajaran.',
               'Isi nama yang belum pernah dipakai (misalnya 2026/2027) serta tanggal mulai dan selesai, lalu simpan.',
@@ -968,7 +968,7 @@ export const CORE_DOCS: DocArticle[] = [
               'Klik Jadikan aktif pada tahun ajaran atau semester yang sedang berjalan.',
             ],
             warning:
-              'Mengganti tahun ajaran aktif mengubah kelas yang tampil di seluruh aplikasi, dan penempatan siswa mengikutinya. Lakukan hanya saat tahun ajaran baru benar-benar dimulai.',
+              'Mengganti tahun ajaran aktif mengubah kelas yang tampil di seluruh aplikasi, dan penempatan murid mengikutinya. Lakukan hanya saat tahun ajaran baru benar-benar dimulai.',
             href: '/academic-years',
           },
           {
@@ -978,9 +978,9 @@ export const CORE_DOCS: DocArticle[] = [
               'Buka menu Kelas, lalu pilih Tahun ajaran.',
               'Klik Tambah kelas.',
               'Isi nama dan tingkat (misalnya 7, X, atau Kelas 1), lalu pilih Jurusan dan Wali kelas bila ada.',
-              'Simpan, lalu tempatkan siswa ke kelas lewat menu Siswa.',
+              'Simpan, lalu tempatkan murid ke kelas lewat menu Murid.',
             ],
-            warning: 'Kelas tidak bisa dihapus selama masih ada siswa atau guru pengampu di dalamnya.',
+            warning: 'Kelas tidak bisa dihapus selama masih ada murid atau guru pengampu di dalamnya.',
             href: '/classes',
           },
           {
@@ -1018,7 +1018,7 @@ export const CORE_DOCS: DocArticle[] = [
           },
           {
             q: 'Saya tidak bisa menghapus kelas. Kenapa?',
-            a: 'Kelas yang masih punya siswa atau guru pengampu tidak bisa dihapus. Pindahkan siswanya lewat menu Siswa, lepas guru pengampunya, lalu hapus.',
+            a: 'Kelas yang masih punya murid atau guru pengampu tidak bisa dihapus. Pindahkan muridnya lewat menu Murid, lepas guru pengampunya, lalu hapus.',
           },
           {
             q: 'Nama tahun ajaran atau kode mata pelajaran ditolak. Bagaimana?',
@@ -1445,7 +1445,7 @@ export const CORE_DOCS: DocArticle[] = [
           },
           {
             heading: 'Memilih zona waktu',
-            body: 'Zona waktu menjadi acuan tanggal dan jam di seluruh aplikasi: absensi, tagihan, pesan, dan pendaftaran siswa baru (SPMB).',
+            body: 'Zona waktu menjadi acuan tanggal dan jam di seluruh aplikasi: absensi, tagihan, pesan, dan pendaftaran murid baru (SPMB).',
             steps: [
               'Buka menu Pengaturan sekolah.',
               'Pilih zona waktu. Jam saat ini di zona itu ditampilkan sebagai pembanding.',
@@ -1645,17 +1645,17 @@ export const CORE_DOCS: DocArticle[] = [
       id: {
         title: 'Absensi: melihat rekap dan mengisi absensi per jam',
         summary:
-          'Lihat kehadiran siswa, isi absensi tiap jam pelajaran, dan atur batas jam terlambat serta guru piket.',
+          'Lihat kehadiran murid, isi absensi tiap jam pelajaran, dan atur batas jam terlambat serta guru piket.',
         forWho:
           'Guru untuk mengisi absensi; Admin sekolah dan Operator untuk pengaturan; Kepala sekolah dan Kurikulum untuk melihat rekap.',
         sections: [
           {
             heading: 'Melihat rekap kehadiran',
-            body: 'Rekap menggabungkan kehadiran di gerbang dan di tiap jam pelajaran. Siswa yang hadir di gerbang tetapi alpa di jam pelajaran dihitung sebagai Bolos kelas. Rentang tanggal paling lama 366 hari.',
+            body: 'Rekap menggabungkan kehadiran di gerbang dan di tiap jam pelajaran. Murid yang hadir di gerbang tetapi alpa di jam pelajaran dihitung sebagai Bolos kelas. Rentang tanggal paling lama 366 hari.',
             steps: [
               'Buka menu Rekap absensi di kelompok Kehadiran.',
               'Pilih kelas (atau Semua kelas) serta tanggal Dari dan Sampai.',
-              'Cari siswa, atau periksa jumlah Hadir, Terlambat, Izin, Sakit, Alpa, dan Bolos kelas.',
+              'Cari murid, atau periksa jumlah Hadir, Terlambat, Izin, Sakit, Alpa, dan Bolos kelas.',
               'Klik Ekspor Excel atau Ekspor PDF bila perlu.',
             ],
             tip: 'Guru yang tidak mengatur absensi hanya melihat rekap kelas yang ia ajar.',
@@ -1663,14 +1663,14 @@ export const CORE_DOCS: DocArticle[] = [
           },
           {
             heading: 'Mengisi absensi per jam pelajaran',
-            body: 'Guru mengisi kehadiran siswa pada jam pelajaran sesuai jadwal dengan status Hadir, Izin, Sakit, atau Alpa. Kolom gerbang menunjukkan siswa yang sudah menempelkan kartu, jadi siswa yang ada di gerbang tetapi tidak di kelas mudah terlihat.',
+            body: 'Guru mengisi kehadiran murid pada jam pelajaran sesuai jadwal dengan status Hadir, Izin, Sakit, atau Alpa. Kolom gerbang menunjukkan murid yang sudah menempelkan kartu, jadi murid yang ada di gerbang tetapi tidak di kelas mudah terlihat.',
             steps: [
               'Buka menu Absensi per jam, lalu pilih tanggal.',
               'Klik Isi absensi pada jam pelajaran Anda.',
-              'Tandai status tiap siswa, atau klik Semua hadir lalu ubah yang berbeda.',
+              'Tandai status tiap murid, atau klik Semua hadir lalu ubah yang berbeda.',
               'Klik Simpan absensi.',
             ],
-            tip: 'Klik Semua hadir dulu, lalu ubah hanya siswa yang tidak hadir. Cara ini jauh lebih cepat.',
+            tip: 'Klik Semua hadir dulu, lalu ubah hanya murid yang tidak hadir. Cara ini jauh lebih cepat.',
             warning:
               'Tanggal yang belum tiba serta hari libur atau jeda ditolak. Absensi hanya bisa diisi oleh guru yang tertulis di jadwal, guru piket hari itu, atau Admin sekolah dan Operator.',
             href: '/lessons',
@@ -1683,7 +1683,7 @@ export const CORE_DOCS: DocArticle[] = [
               'Isi Terlambat setelah dan Pulang mulai. Jam terlambat harus lebih awal dari jam pulang.',
               'Isi Jeda tap ganda (0 sampai 600 detik), lalu klik Simpan.',
             ],
-            warning: 'Siswa yang menempelkan kartu setelah batas Terlambat setelah ditandai terlambat.',
+            warning: 'Murid yang menempelkan kartu setelah batas Terlambat setelah ditandai terlambat.',
             href: '/attendance-settings',
           },
           {
@@ -1697,7 +1697,7 @@ export const CORE_DOCS: DocArticle[] = [
           },
           {
             heading: 'Memberi tahu wali murid',
-            body: 'Pemberitahuan ke wali saat siswa menempelkan kartu tidak diatur di Pengaturan absensi, tetapi di menu Notifikasi WhatsApp. Menu itu berasal dari modul Notifikasi WhatsApp yang terpisah.',
+            body: 'Pemberitahuan ke wali saat murid menempelkan kartu tidak diatur di Pengaturan absensi, tetapi di menu Notifikasi WhatsApp. Menu itu berasal dari modul Notifikasi WhatsApp yang terpisah.',
             href: '/messaging',
           },
         ],
@@ -1712,7 +1712,7 @@ export const CORE_DOCS: DocArticle[] = [
           },
           {
             q: 'Apa bedanya Alpa dan Bolos kelas di rekap?',
-            a: 'Alpa berarti siswa tidak hadir. Bolos kelas berarti siswa tercatat hadir di gerbang hari itu tetapi alpa di jam pelajaran tertentu.',
+            a: 'Alpa berarti murid tidak hadir. Bolos kelas berarti murid tercatat hadir di gerbang hari itu tetapi alpa di jam pelajaran tertentu.',
           },
           {
             q: 'Pengaturan Kebijakan tidak mau disimpan. Apa yang salah?',
@@ -1886,18 +1886,18 @@ export const CORE_DOCS: DocArticle[] = [
     module: 'attendance',
     text: {
       id: {
-        title: 'Kartu siswa, kiosk, dan gerbang',
+        title: 'Kartu murid, kiosk, dan gerbang',
         summary:
-          'Daftarkan kartu siswa, pasang perangkat kiosk di gerbang, dan pantau siswa yang masuk dan pulang.',
+          'Daftarkan kartu murid, pasang perangkat kiosk di gerbang, dan pantau murid yang masuk dan pulang.',
         forWho:
           'Admin sekolah dan Operator yang menyiapkan kartu dan perangkat gerbang; guru piket untuk memantau gerbang.',
         sections: [
           {
-            heading: 'Mendaftarkan kartu untuk satu siswa',
-            body: 'Menu Kartu RFID menampilkan kartu yang sudah terdaftar dan jumlah siswa aktif yang belum punya kartu. Kode kartu dibaca langsung oleh pembaca kartu. Satu kode kartu hanya boleh dipakai satu siswa.',
+            heading: 'Mendaftarkan kartu untuk satu murid',
+            body: 'Menu Kartu RFID menampilkan kartu yang sudah terdaftar dan jumlah murid aktif yang belum punya kartu. Kode kartu dibaca langsung oleh pembaca kartu. Satu kode kartu hanya boleh dipakai satu murid.',
             steps: [
               'Buka menu Kartu RFID, lalu klik Tambah kartu.',
-              'Cari dan pilih siswa.',
+              'Cari dan pilih murid.',
               'Tempelkan kartu pada pembaca sampai kodenya terisi.',
               'Klik Buat.',
             ],
@@ -1906,12 +1906,12 @@ export const CORE_DOCS: DocArticle[] = [
           },
           {
             heading: 'Mendaftarkan kartu untuk satu kelas sekaligus',
-            body: 'Pendaftaran cepat menyorot siswa satu per satu sesuai urutan kelas, jadi Anda cukup menempelkan kartu bergantian.',
+            body: 'Pendaftaran cepat menyorot murid satu per satu sesuai urutan kelas, jadi Anda cukup menempelkan kartu bergantian.',
             steps: [
               'Di menu Kartu RFID, klik Daftar cepat.',
               'Pilih kelas.',
-              'Tempelkan kartu satu per satu sesuai siswa yang sedang disorot.',
-              'Klik Lewati bila siswa tidak membawa kartu, atau Batalkan terakhir bila salah tempel.',
+              'Tempelkan kartu satu per satu sesuai murid yang sedang disorot.',
+              'Klik Lewati bila murid tidak membawa kartu, atau Batalkan terakhir bila salah tempel.',
             ],
           },
           {
@@ -1927,7 +1927,7 @@ export const CORE_DOCS: DocArticle[] = [
           },
           {
             heading: 'Memasang perangkat kiosk di gerbang',
-            body: 'Kiosk adalah tablet atau komputer di gerbang tempat siswa menempelkan kartu. Setiap kiosk punya kunci sendiri, yaitu kode rahasia yang menghubungkannya ke sekolah Anda.',
+            body: 'Kiosk adalah tablet atau komputer di gerbang tempat murid menempelkan kartu. Setiap kiosk punya kunci sendiri, yaitu kode rahasia yang menghubungkannya ke sekolah Anda.',
             steps: [
               'Buka Pengaturan absensi, tab Perangkat, lalu klik Tambah perangkat.',
               'Beri nama (misalnya Gerbang utama), lalu klik Buat.',
@@ -1945,33 +1945,33 @@ export const CORE_DOCS: DocArticle[] = [
             steps: [
               'Buka tab Perangkat, lalu pilih Atur jangkauan pada perangkat (atau centang unitnya saat Tambah perangkat).',
               'Centang unit yang ikut dilayani. Yang tampil hanya unit lembaga yang sama, aktif, punya modul Absensi, dan tempat Anda juga boleh mengatur absensi.',
-              'Simpan. Nama unit tampil di layar kiosk, dan kartu tiap siswa tetap tercatat di unitnya sendiri.',
+              'Simpan. Nama unit tampil di layar kiosk, dan kartu tiap murid tetap tercatat di unitnya sendiri.',
             ],
             warning:
               'Satu kode kartu tidak boleh terdaftar di dua unit pada perangkat yang sama. Tap dengan kartu seperti itu akan ditolak.',
           },
           {
-            heading: 'Memantau siswa masuk dan pulang',
-            body: 'Layar kiosk menampilkan Selamat datang, Terlambat, atau Sampai jumpa beserta nama dan kelas siswa, lima tap terbaru, jam, dan tombol layar penuh. Di menu Gerbang & piket, Anda melihat kehadiran masuk dan pulang hari ini, yang menyegarkan diri tiap 10 detik, lengkap dengan ringkasan per status dan daftar siswa yang bisa disaring per kelas. Tap sebelum jam pulang dihitung masuk dan sesudahnya dihitung pulang. Tap masuk setelah batas terlambat ditandai terlambat.',
+            heading: 'Memantau murid masuk dan pulang',
+            body: 'Layar kiosk menampilkan Selamat datang, Terlambat, atau Sampai jumpa beserta nama dan kelas murid, lima tap terbaru, jam, dan tombol layar penuh. Di menu Gerbang & piket, Anda melihat kehadiran masuk dan pulang hari ini, yang menyegarkan diri tiap 10 detik, lengkap dengan ringkasan per status dan daftar murid yang bisa disaring per kelas. Tap sebelum jam pulang dihitung masuk dan sesudahnya dihitung pulang. Tap masuk setelah batas terlambat ditandai terlambat.',
             tip: 'Bila jaringan putus, tap tetap tersimpan di perangkat dan dikirim ulang dengan waktu aslinya saat jaringan kembali.',
             href: '/gate',
           },
         ],
         faq: [
           {
-            q: 'Kartu ditolak karena sudah dipakai siswa lain, bagaimana?',
-            a: 'Satu kode kartu hanya boleh dipakai satu siswa. Cari kartu itu di menu Kartu RFID untuk tahu siapa pemakainya. Bila kartu berpindah tangan, hapus kartu lama lalu daftarkan ke siswa yang benar.',
+            q: 'Kartu ditolak karena sudah dipakai murid lain, bagaimana?',
+            a: 'Satu kode kartu hanya boleh dipakai satu murid. Cari kartu itu di menu Kartu RFID untuk tahu siapa pemakainya. Bila kartu berpindah tangan, hapus kartu lama lalu daftarkan ke murid yang benar.',
           },
           {
             q: 'Saya menempelkan kartu tetapi layar kiosk bilang kartu tidak dikenal. Kenapa?',
-            a: 'Kartu itu belum didaftarkan, atau siswanya tidak aktif. Buka menu Kartu RFID dan periksa apakah kartunya ada. Tap juga ditolak pada hari libur.',
+            a: 'Kartu itu belum didaftarkan, atau muridnya tidak aktif. Buka menu Kartu RFID dan periksa apakah kartunya ada. Tap juga ditolak pada hari libur.',
           },
           {
             q: 'Kunci perangkat hilang atau perangkat tidak bisa tersambung. Apa yang harus dilakukan?',
             a: 'Buka Pengaturan absensi, tab Perangkat, pilih Ganti kunci pada perangkatnya, salin kunci yang baru, lalu tempel di halaman kiosk. Kunci lama langsung mati.',
           },
           {
-            q: 'Internet gerbang sempat mati. Apakah tap siswa hilang?',
+            q: 'Internet gerbang sempat mati. Apakah tap murid hilang?',
             a: 'Tidak. Tap disimpan di perangkat dan dikirim ulang dengan waktu aslinya setelah jaringan kembali. Biarkan halaman kiosk tetap terbuka.',
           },
           {
@@ -2182,13 +2182,13 @@ export const CORE_DOCS: DocArticle[] = [
       id: {
         title: 'Absen datang & pulang manual',
         summary:
-          'Catat siswa datang dan pulang lewat satu ketukan saat kiosk RFID tidak bisa dipakai, misalnya listrik padam atau kartu hilang.',
+          'Catat murid datang dan pulang lewat satu ketukan saat kiosk RFID tidak bisa dipakai, misalnya listrik padam atau kartu hilang.',
         forWho:
           'Wali kelas, guru piket, dan pengurus absensi (Admin sekolah, Operator). Guru lain tidak melihat kelasnya.',
         sections: [
           {
             heading: 'Kapan memakai absen manual, kapan kartu RFID',
-            body: 'Kartu RFID di kiosk tetap cara utama karena cepat dan dicatat siswa sendiri. Pakai absen manual hanya sebagai cadangan: listrik atau jaringan di gerbang padam, kiosk rusak, siswa lupa atau kehilangan kartu, atau Anda perlu melengkapi catatan hari sebelumnya. Catatan manual masuk ke absensi harian yang sama dengan tap kartu, ikut terhitung di laporan, dan memberi tahu wali seperti tap biasa.',
+            body: 'Kartu RFID di kiosk tetap cara utama karena cepat dan dicatat murid sendiri. Pakai absen manual hanya sebagai cadangan: listrik atau jaringan di gerbang padam, kiosk rusak, murid lupa atau kehilangan kartu, atau Anda perlu melengkapi catatan hari sebelumnya. Catatan manual masuk ke absensi harian yang sama dengan tap kartu, ikut terhitung di laporan, dan memberi tahu wali seperti tap biasa.',
             href: '/attendance/manual',
           },
           {
@@ -2197,34 +2197,34 @@ export const CORE_DOCS: DocArticle[] = [
           },
           {
             heading: 'Mencatat datang atau pulang',
-            body: 'Pilih kelas dan tanggal (bawaan hari ini), lalu pilih Datang atau Pulang. Satu ketukan pada tombol siswa langsung mencatatnya pada jam sekarang. Sebuah pesan muncul sebentar dengan tombol Batalkan bila Anda salah mengetuk. Status Terlambat dihitung otomatis oleh sistem dari batas jam terlambat di Pengaturan absensi, dan hasilnya tampil pada lencana siswa.',
+            body: 'Pilih kelas dan tanggal (bawaan hari ini), lalu pilih Datang atau Pulang. Satu ketukan pada tombol murid langsung mencatatnya pada jam sekarang. Sebuah pesan muncul sebentar dengan tombol Batalkan bila Anda salah mengetuk. Status Terlambat dihitung otomatis oleh sistem dari batas jam terlambat di Pengaturan absensi, dan hasilnya tampil pada lencana murid.',
             steps: [
               'Buka menu Absen datang & pulang.',
               'Pilih kelas. Angka di samping nama kelas menunjukkan berapa yang sudah datang, sudah pulang, dan belum datang.',
               'Pilih Datang atau Pulang.',
-              'Ketuk tombol di baris siswa. Siswa yang sudah tercatat menampilkan jamnya; ketuk untuk mengoreksinya.',
+              'Ketuk tombol di baris murid. Murid yang sudah tercatat menampilkan jamnya; ketuk untuk mengoreksinya.',
             ],
-            tip: 'Siswa yang izin, sakit, atau alpa tidak ikut tercatat saat Anda menandai massal. Ubah statusnya lewat koreksi bila ternyata hadir.',
+            tip: 'Murid yang izin, sakit, atau alpa tidak ikut tercatat saat Anda menandai massal. Ubah statusnya lewat koreksi bila ternyata hadir.',
           },
           {
             heading: 'Mencatat untuk jam yang sudah lewat',
             body: 'Isi kolom Jam dengan format 07:15 untuk mencatat jam tertentu. Dikosongkan berarti sekarang. Untuk tanggal yang sudah lewat jam wajib diisi. Jam tidak boleh di masa depan, dan tanggal yang belum tiba tidak bisa dicatat.',
           },
           {
-            heading: 'Menandai banyak siswa sekaligus',
-            body: 'Tandai semua hadir (belum datang) mencatat semua siswa kelas yang belum punya catatan datang dan tidak berstatus izin, sakit, atau alpa. Pada mode Pulang, tombolnya menandai semua yang sudah datang tetapi belum pulang. Untuk sebagian siswa saja, pakai Pilih beberapa, centang siswanya, lalu ketuk Catat. Hasil tiap siswa dirangkum: sudah tercatat (tidak ditimpa), dilewati karena izin/sakit/alpa, pulang tanpa catatan datang, atau jam yang tidak masuk akal.',
+            heading: 'Menandai banyak murid sekaligus',
+            body: 'Tandai semua hadir (belum datang) mencatat semua murid kelas yang belum punya catatan datang dan tidak berstatus izin, sakit, atau alpa. Pada mode Pulang, tombolnya menandai semua yang sudah datang tetapi belum pulang. Untuk sebagian murid saja, pakai Pilih beberapa, centang muridnya, lalu ketuk Catat. Hasil tiap murid dirangkum: sudah tercatat (tidak ditimpa), dilewati karena izin/sakit/alpa, pulang tanpa catatan datang, atau jam yang tidak masuk akal.',
           },
           {
             heading: 'Koreksi dan pembatalan',
-            body: 'Ketuk ikon pensil pada baris siswa untuk menghapus jam datang atau pulang, mengubah jamnya, atau menetapkan status Izin, Sakit, atau Alpa beserta catatannya. Koreksi tidak mengirim pemberitahuan ke wali. Bila kedua jam dikosongkan, catatan hari itu dihapus.',
+            body: 'Ketuk ikon pensil pada baris murid untuk menghapus jam datang atau pulang, mengubah jamnya, atau menetapkan status Izin, Sakit, atau Alpa beserta catatannya. Koreksi tidak mengirim pemberitahuan ke wali. Bila kedua jam dikosongkan, catatan hari itu dihapus.',
           },
           {
             heading: 'Hari libur',
-            body: 'Pada tanggal libur atau jeda sekolah, halaman memberi tahu dan tombol pencatatan terkunci. Pilih Tetap catat bila memang ada siswa yang masuk.',
+            body: 'Pada tanggal libur atau jeda sekolah, halaman memberi tahu dan tombol pencatatan terkunci. Pilih Tetap catat bila memang ada murid yang masuk.',
           },
           {
-            heading: 'Memindai QR di kartu siswa (cadangan kiosk)',
-            body: 'Selain daftar kelas, halaman ini punya tab Pindai QR: guru mengarahkan kamera ponsel ke QR di kartu siswa, dan datang atau pulang langsung tercatat. Ini hanya cadangan saat kiosk RFID tidak bisa dipakai (listrik padam, pembaca rusak); kiosk RFID tetap cara utama. QR di kartu adalah QR identitas siswa: satu kode acak unik per siswa (bukan NIS), dicetak otomatis di kartu siswa bawaan dan dipakai semua fitur; kode hanya menunjuk siswa, sedangkan menu ini yang menentukan tindakannya (mencatat datang atau pulang). Pemindai butuh login dan izin absensi, jadi QR saja tidak memberi akses apa pun. Aturan akses, perhitungan terlambat, penjaga hari libur, dan pemberitahuan ke wali sama persis dengan pencatatan manual; catatannya bertanda sumber QR dan nama pencatat.',
+            heading: 'Memindai QR di kartu murid (cadangan kiosk)',
+            body: 'Selain daftar kelas, halaman ini punya tab Pindai QR: guru mengarahkan kamera ponsel ke QR di kartu murid, dan datang atau pulang langsung tercatat. Ini hanya cadangan saat kiosk RFID tidak bisa dipakai (listrik padam, pembaca rusak); kiosk RFID tetap cara utama. QR di kartu adalah QR identitas murid: satu kode acak unik per murid (bukan NIS), dicetak otomatis di kartu murid bawaan dan dipakai semua fitur; kode hanya menunjuk murid, sedangkan menu ini yang menentukan tindakannya (mencatat datang atau pulang). Pemindai butuh login dan izin absensi, jadi QR saja tidak memberi akses apa pun. Aturan akses, perhitungan terlambat, penjaga hari libur, dan pemberitahuan ke wali sama persis dengan pencatatan manual; catatannya bertanda sumber QR dan nama pencatat.',
             steps: [
               'Buka Absen datang & pulang lalu pilih tab Pindai QR.',
               'Pilih Datang atau Pulang dengan tombol besar. Pilihan diingat di perangkat itu.',
@@ -2232,7 +2232,7 @@ export const CORE_DOCS: DocArticle[] = [
               'Arahkan kamera ke QR kartu. Hasilnya tampil besar (nama, kelas, jam, dan Terlambat bila ya) disertai bunyi bip dan getar; kamera tetap menyala untuk kartu berikutnya.',
               'Bila kamera bermasalah, pindai QR dengan aplikasi kamera bawaan ponsel lalu tempel teksnya (diawali ES1.) di kolom Tempel kode.',
             ],
-            tip: 'QR yang sama tidak diproses ulang dalam 4 detik, dan QR lain yang bukan kartu siswa (misalnya kode toko) diabaikan. Daftar 20 pindaian terakhir tampil di bawah hasil. Kolom Ketik, tempel, atau pindai kode otomatis aktif: pemindai kode batang USB (yang bekerja seperti papan ketik) cukup diarahkan ke kartu dan kode diproses saat menerima Enter. Kode batang lewat kamera hanya didukung di Chrome atau Edge; QR terbaca di semua peramban.',
+            tip: 'QR yang sama tidak diproses ulang dalam 4 detik, dan QR lain yang bukan kartu murid (misalnya kode toko) diabaikan. Daftar 20 pindaian terakhir tampil di bawah hasil. Kolom Ketik, tempel, atau pindai kode otomatis aktif: pemindai kode batang USB (yang bekerja seperti papan ketik) cukup diarahkan ke kartu dan kode diproses saat menerima Enter. Kode batang lewat kamera hanya didukung di Chrome atau Edge; QR terbaca di semua peramban.',
             warning:
               'Kamera di peramban hanya bekerja lewat HTTPS. Bila Edusync dibuka lewat alamat http:// biasa, kamera ditolak peramban dan hanya kolom Tempel kode yang bisa dipakai. Bila izin kamera ditolak, izinkan lagi di pengaturan situs pada peramban.',
             href: '/attendance/manual',
@@ -2245,7 +2245,7 @@ export const CORE_DOCS: DocArticle[] = [
           },
           {
             heading: 'Pindai QR saat jaringan putus, dan kartu hilang',
-            body: 'Pindaian yang gagal terkirim karena jaringan disimpan di perangkat dengan jam pindai aslinya dan muncul pada spanduk Belum terkirim; dikirim otomatis saat jaringan kembali dan tidak pernah tercatat dua kali. Pindaian yang lebih dari 48 jam tidak bisa dikirim dan dibuang. Bila kartu hilang atau QR-nya bocor, admin membuka Siswa lalu kartu siswa itu dan memilih Buat ulang QR identitas: QR lama langsung tidak berlaku di semua fitur sekaligus (bukan hanya absensi) dan kartu baru perlu dicetak ulang.',
+            body: 'Pindaian yang gagal terkirim karena jaringan disimpan di perangkat dengan jam pindai aslinya dan muncul pada spanduk Belum terkirim; dikirim otomatis saat jaringan kembali dan tidak pernah tercatat dua kali. Pindaian yang lebih dari 48 jam tidak bisa dikirim dan dibuang. Bila kartu hilang atau QR-nya bocor, admin membuka Murid lalu kartu murid itu dan memilih Buat ulang QR identitas: QR lama langsung tidak berlaku di semua fitur sekaligus (bukan hanya absensi) dan kartu baru perlu dicetak ulang.',
           },
         ],
         faq: [
@@ -2254,12 +2254,12 @@ export const CORE_DOCS: DocArticle[] = [
             a: 'Kelas hanya muncul bila Anda terdaftar sebagai wali kelas pada tahun ajaran aktif. Minta admin menetapkan Anda di halaman Kelas.',
           },
           {
-            q: 'Siswa sudah tap kartu tetapi saya mengetuk lagi. Apakah dobel?',
-            a: 'Tidak. Catatan datang atau pulang yang sudah ada tidak ditimpa dan Anda diberi tahu bahwa siswa itu sudah tercatat. Untuk mengganti jamnya, pakai koreksi.',
+            q: 'Murid sudah tap kartu tetapi saya mengetuk lagi. Apakah dobel?',
+            a: 'Tidak. Catatan datang atau pulang yang sudah ada tidak ditimpa dan Anda diberi tahu bahwa murid itu sudah tercatat. Untuk mengganti jamnya, pakai koreksi.',
           },
           {
             q: 'Muncul pesan pulang tanpa catatan datang. Apa artinya?',
-            a: 'Siswa dicatat pulang padahal belum tercatat datang. Catatannya tetap tersimpan; lengkapi jam datangnya lewat koreksi bila perlu.',
+            a: 'Murid dicatat pulang padahal belum tercatat datang. Catatannya tetap tersimpan; lengkapi jam datangnya lewat koreksi bila perlu.',
           },
         ],
       },
@@ -2703,7 +2703,7 @@ export const CORE_DOCS: DocArticle[] = [
           },
           {
             heading: 'Membantu pengguna yang tidak bisa menerima email atau kode WhatsApp',
-            body: 'Wali, guru, atau siswa yang tidak bisa menerima email maupun kode WhatsApp bisa melapor lewat halaman Bantuan kata sandi di alamat sekolah (/bantuan-sandi). Laporan masuk ke menu Permintaan reset sandi. Admin sekolah dan operator memeriksa identitas pelapor, lalu membuat tautan reset sekali pakai yang bisa disalin, dikirim ke email akun, atau dikirim lewat WhatsApp.',
+            body: 'Wali, guru, atau murid yang tidak bisa menerima email maupun kode WhatsApp bisa melapor lewat halaman Bantuan kata sandi di alamat sekolah (/bantuan-sandi). Laporan masuk ke menu Permintaan reset sandi. Admin sekolah dan operator memeriksa identitas pelapor, lalu membuat tautan reset sekali pakai yang bisa disalin, dikirim ke email akun, atau dikirim lewat WhatsApp.',
             steps: [
               'Buka menu Permintaan reset sandi dan pilih laporan yang berstatus Baru.',
               'Verifikasi pelapor: telepon balik ke nomor kontak yang tertera (bukan nomor lain), lalu tanyakan nama anak, kelas, atau data lain yang hanya diketahui pemilik akun.',
@@ -3129,7 +3129,7 @@ export const CORE_DOCS: DocArticle[] = [
         title: 'Masuk dan pemulihan akun',
         summary:
           'Masuk dengan email atau NIK, dan pulihkan akun lewat email atau WhatsApp bila lupa kata sandi.',
-        forWho: 'Semua pengguna: staf, guru, wali murid, dan siswa.',
+        forWho: 'Semua pengguna: staf, guru, wali murid, dan murid.',
         sections: [
           {
             heading: 'Masuk dengan email atau NIK',
@@ -3139,7 +3139,7 @@ export const CORE_DOCS: DocArticle[] = [
               'Isi email atau NIK (16 digit) pada isian pertama.',
               'Isi kata sandi, lalu klik Masuk.',
             ],
-            tip: 'NIK siswa, guru, dan wali bisa dipakai bila akunnya sudah terhubung (siswa dan wali lewat tautan portal, guru lewat akun login guru) dan NIK itu cocok dengan tepat satu akun. Bila NIK yang sama cocok dengan lebih dari satu akun, masuk dengan NIK tidak berfungsi; masuklah dengan email.',
+            tip: 'NIK murid, guru, dan wali bisa dipakai bila akunnya sudah terhubung (murid dan wali lewat tautan portal, guru lewat akun login guru) dan NIK itu cocok dengan tepat satu akun. Bila NIK yang sama cocok dengan lebih dari satu akun, masuk dengan NIK tidak berfungsi; masuklah dengan email.',
           },
           {
             heading: 'Akun di lebih dari satu sekolah: pilih tujuan setelah masuk',
@@ -3148,7 +3148,7 @@ export const CORE_DOCS: DocArticle[] = [
           },
           {
             heading: 'Lupa kata sandi: pilih email atau WhatsApp',
-            body: 'Anda bisa memulihkan akun sendiri. Setelah mengisi email atau NIK, sistem menampilkan pilihan pengiriman kode 6 digit. Email ditampilkan sebagian (misalnya ri***@gmail.com). WhatsApp hanya tampil bila ada nomor HP, yaitu HP akun atau, bila akun belum punya, HP guru, wali, atau siswa yang terhubung (urutan: akun, guru, wali, siswa), dengan petunjuk 4 angka pertama dan 3 angka terakhir (misalnya 6281****789).',
+            body: 'Anda bisa memulihkan akun sendiri. Setelah mengisi email atau NIK, sistem menampilkan pilihan pengiriman kode 6 digit. Email ditampilkan sebagian (misalnya ri***@gmail.com). WhatsApp hanya tampil bila ada nomor HP, yaitu HP akun atau, bila akun belum punya, HP guru, wali, atau murid yang terhubung (urutan: akun, guru, wali, murid), dengan petunjuk 4 angka pertama dan 3 angka terakhir (misalnya 6281****789).',
             steps: [
               'Di halaman masuk, klik Lupa kata sandi?.',
               'Isi email atau NIK, lalu klik Lanjut.',
@@ -3162,7 +3162,7 @@ export const CORE_DOCS: DocArticle[] = [
           {
             heading: 'Bila pilihan pengiriman tidak muncul',
             body: 'Layar akan berkata bahwa pilihan tampil jika data ditemukan. Penyebabnya bisa isian yang salah ketik, NIK yang belum terhubung ke akun, atau NIK yang cocok dengan lebih dari satu akun. Coba dengan email. Bila tetap tidak berhasil, hubungi admin sekolah.',
-            tip: 'Admin sekolah perlu mengisi NIK, nomor HP, dan email siswa, guru, atau wali dengan benar; data itu dipakai untuk masuk dan pemulihan akun. Saringan Belum punya NIK di daftar Siswa, Guru, dan Data wali membantu melengkapinya. Halaman Data wali memperlihatkan wali mana yang NIK, HP, atau emailnya masih kosong sehingga belum bisa masuk atau memulihkan akun.',
+            tip: 'Admin sekolah perlu mengisi NIK, nomor HP, dan email murid, guru, atau wali dengan benar; data itu dipakai untuk masuk dan pemulihan akun. Saringan Belum punya NIK di daftar Murid, Guru, dan Data wali membantu melengkapinya. Halaman Data wali memperlihatkan wali mana yang NIK, HP, atau emailnya masih kosong sehingga belum bisa masuk atau memulihkan akun.',
           },
         ],
         faq: [
@@ -3172,7 +3172,7 @@ export const CORE_DOCS: DocArticle[] = [
           },
           {
             q: 'Mengapa WhatsApp tidak tampil sebagai pilihan?',
-            a: 'Pilihan itu hanya tampil bila ada nomor HP (milik akun, atau milik guru, wali, atau siswa yang terhubung) dan layanan WhatsApp sedang aktif. Isi nomor HP di Profil saya atau minta admin sekolah melengkapi data Anda, lalu coba lagi.',
+            a: 'Pilihan itu hanya tampil bila ada nomor HP (milik akun, atau milik guru, wali, atau murid yang terhubung) dan layanan WhatsApp sedang aktif. Isi nomor HP di Profil saya atau minta admin sekolah melengkapi data Anda, lalu coba lagi.',
           },
           {
             q: 'Apakah NIK saya aman dipakai untuk masuk?',

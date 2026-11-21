@@ -7,6 +7,31 @@ memutus kompatibilitas. Produksi hanya berubah saat tag `vX.Y.Z` dikirim; tulis 
 Cara merilis: tulis bagian baru di bawah "Belum dirilis" lalu ganti judulnya menjadi `## [x.y.z] - tanggal`, kemudian
 `pnpm release x.y.z` dan `git push edusync HEAD:main vx.y.z`.
 
+## Belum dirilis
+
+### Ditambahkan
+
+- **Ruang ujian (opsional)**: sekolah dapat mendaftar ruang (nama, kapasitas), menempatkan siswa per semester dan jenis ujian
+  (pindah manual atau penempatan otomatis menurut kapasitas, dengan semua-atau-tidak-sama-sekali bila kapasitas kurang), dan
+  mengosongkannya. Sekolah yang tidak memakai ruang tidak terpengaruh. Kolom `room` pada data kartu peserta ujian kini diisi dari
+  penempatan ini (kosong bila belum ditempatkan). Migrasi 0120. Dikelola di menu Ujian, Ruang ujian (`/exams/rooms`).
+- **Tabel jadwal di kartu peserta ujian (opsional)**: blok baru di editor kartu yang menampilkan jadwal ujian kelas siswa.
+  Dinamis: kolom bisa dipilih dan diurutkan (No, Hari dan Tanggal, Hari, Tanggal, Waktu, Mata Pelajaran), judul kolom bisa
+  diganti, sel hari yang sama bisa digabung atau tidak, baris judul bisa disembunyikan, dan ukuran huruf mengecil otomatis agar
+  semua baris muat. Pratinjau editor dan PDF memakai perhitungan yang sama.
+- **Kolom kartu ujian baru**: alamat sekolah, nama kepala sekolah, dan "kota, tanggal cetak" untuk blok tanda tangan.
+- **Tanda peserta ujian A4** sebagai titik awal opsional ("tambah dari bawaan"): kop sekolah, identitas, kotak ruang, tabel
+  jadwal, dan tanda tangan kepala sekolah dengan QR nomor peserta. Kartu ujian 100 x 60 mm tetap menjadi bawaan. Kartu
+  yang tidak muat di lembar dicetak satu per halaman seukuran kartu (A4 tegak untuk 210 x 297 mm).
+
+### Diubah
+
+- **Istilah "siswa" menjadi "murid"** pada semua teks berbahasa Indonesia yang dilihat pengguna (antarmuka, panduan,
+  pesan galat dan deskripsi API, PDF dan cetak, templat surat dan WhatsApp bawaan, templat Excel), sesuai istilah
+  regulasi. Hanya tampilan: nama kolom, rute, dan kode tidak berubah. Berkas impor Excel lama dengan kolom "Nama Siswa"
+  atau "Nomor Induk Siswa" tetap diterima. Templat dan kartu yang sudah tersimpan di sekolah tidak berubah; hanya
+  bawaan baru yang memakai istilah baru. Bahasa Inggris dan Sunda tidak diubah.
+
 ## [0.6.6] - 2026-11-16
 
 ### Diperbaiki

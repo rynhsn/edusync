@@ -1,10 +1,10 @@
 // @vitest-environment node
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { defaultExamCardLayout, defaultStudentCardLayout } from '@edusync/contracts';
+import { defaultExamCardLayout, defaultExamSlipLayout, defaultStudentCardLayout } from '@edusync/contracts';
 import { renderToBuffer } from '@react-pdf/renderer';
 import { describe, expect, it, vi } from 'vitest';
-import { ensureIds, sampleCardData } from '../../../../lib/cards/elements';
+import { ensureIds, sampleCardData, scheduleGeometry } from '../../../../lib/cards/elements';
 import { DEFAULT_SHEET } from '../../../../lib/cards/sheet-layout';
 import { CardsDocument, type CardsPdfInput } from './cards-pdf';
 
@@ -71,6 +71,67 @@ describe('PDF kartu', () => {
       sheet: DEFAULT_SHEET,
     });
     expect(pageCount(buf)).toBe(1);
+  });
+
+  it('tanda peserta A4 dengan tabel jadwal: satu halaman A4 per kartu', async () => {
+    const layout = defaultExamSlipLayout();
+    const buf = await render('tanda-peserta-a4', {
+      title: 'Tanda peserta',
+      layout: { ...layout, elements: ensureIds(layout.elements) },
+      assets: { background: null, images: {} },
+      cards: cards('exam', 2),
+      // mode lembar pada kartu A4 jatuh ke satu kartu per halaman seukuran kartu
+      mode: 'sheet',
+      sheet: DEFAULT_SHEET,
+    });
+    expect(pageCount(buf)).toBe(2);
+    // A4 = 595.28 x 841.89 pt
+    expect(buf.toString('latin1')).toMatch(/\/MediaBox \[\s*0 0 595\.2\d* 841\.8\d*\s*\]/);
+  });
+
+  it('tabel jadwal dengan kolom dan judul kustom, tanpa jadwal, dan jadwal sangat panjang tidak melempar', async () => {
+    const schedule = Array.from({ length: 40 }, (_, i) => ({
+      subject: `Mata pelajaran dengan nama yang sangat panjang sekali nomor ${i + 1} supaya terpotong`,
+      date: `2026-10-${String(12 + (i % 5)).padStart(2, '0')}`,
+      time: '07.30 - 09.00 WIB',
+    }));
+    const base = defaultExamSlipLayout();
+    const table = {
+      type: 'schedule' as const,
+      x: 10,
+      y: 90,
+      w: 190,
+      h: 140,
+      fontSize: 9,
+      color: '#111111',
+      headerFill: '#ffeeaa',
+      borderColor: '#333333',
+      borderWidth: 0.3,
+      columns: ['no', 'date', 'subject'] as ('no' | 'date' | 'subject')[],
+      headers: ['Nomor', 'Tgl', ''],
+      mergeDays: false,
+      showHeader: true,
+    };
+    const layout = { ...base, elements: [{ ...table, id: 's1' }] };
+    for (const [name, sched] of [
+      ['panjang', schedule],
+      ['kosong', []],
+    ] as const) {
+      const buf = await render(`jadwal-${name}`, {
+        title: 'Jadwal',
+        layout,
+        assets: { background: null, images: {} },
+        cards: [{ data: { ...sampleCardData('exam'), schedule: sched }, photo: null }],
+        mode: 'single',
+        sheet: DEFAULT_SHEET,
+      });
+      expect(pageCount(buf)).toBe(1);
+    }
+    // judul dan isi yang dicetak sama dengan yang dipakai PDF (geometri bersama)
+    const g = scheduleGeometry(table, { schedule });
+    expect(g.cells.filter((c) => c.header).map((c) => c.text)).toEqual(['Nomor', 'Tgl', 'Mata Pelajaran']);
+    expect(g.cells.some((c) => c.text.includes('nomor 40'))).toBe(true);
+    expect(g.fontSize).toBeLessThan(9);
   });
 
   it('tanpa kartu menghasilkan dokumen tanpa halaman', async () => {

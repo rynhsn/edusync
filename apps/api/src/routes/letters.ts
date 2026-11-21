@@ -360,7 +360,7 @@ async function checkRefs(
   }
   if (studentId) {
     const [s] = await tx.select({ id: student.id }).from(student).where(eq(student.id, studentId));
-    if (!s) throw invalidRef('Siswa tidak ditemukan.');
+    if (!s) throw invalidRef('Murid tidak ditemukan.');
   }
 }
 
@@ -517,7 +517,7 @@ export async function letterRoutes(instance: FastifyInstance) {
         tags: tag,
         summary: 'Buat templat bawaan',
         description:
-          'Izin: `letter:manage`; modul `administration`. Membuat tiga templat bawaan (surat keterangan siswa aktif, ' +
+          'Izin: `letter:manage`; modul `administration`. Membuat tiga templat bawaan (surat keterangan murid aktif, ' +
           'surat panggilan orang tua, sertifikat sederhana) hanya bila sekolah belum punya templat (409 `not_empty`).',
         headers: schoolHeader,
         response: { 201: z.array(templateSchema), 409: errorSchema, ...guarded },
@@ -979,7 +979,7 @@ export async function letterRoutes(instance: FastifyInstance) {
           'Izin: `letter:manage`; modul `administration`. Surat keluar (`direction: outgoing`) mendapat nomor otomatis ' +
           'berurutan per tahun surat, format `012/KODE/X/2026`, dari penghitung atomik. Surat masuk (`incoming`) ' +
           'mendapat nomor agenda otomatis `AG/012/2026`; `number` (nomor surat pengirim) dicatat pada awal isi. ' +
-          '`templateId` harus templat aktif dan `studentId` siswa sekolah ini (400 `invalid_reference`).',
+          '`templateId` harus templat aktif dan `studentId` murid sekolah ini (400 `invalid_reference`).',
         headers: schoolHeader,
         body: letterCreateBody,
         response: { 201: letterDetail, 400: errorSchema, 409: errorSchema, ...guarded },
@@ -1151,7 +1151,7 @@ export async function letterRoutes(instance: FastifyInstance) {
         summary: 'Isi surat dari templat',
         description:
           'Izin: `letter:manage`; modul `administration`. Mengisi templat surat (atau isi surat bila tanpa templat) ' +
-          'dengan data siswa (`studentId` atau siswa pada surat), sekolah, nomor, tanggal, dan penandatangan ' +
+          'dengan data murid (`studentId` atau murid pada surat), sekolah, nomor, tanggal, dan penandatangan ' +
           '(`signerId`, bawaan kredensial pengguna). Tidak menyimpan apa pun; simpan lewat ubah surat. ' +
           'Surat masuk tidak dapat dirender (409 `not_outgoing`).',
         headers: schoolHeader,
@@ -1183,7 +1183,7 @@ export async function letterRoutes(instance: FastifyInstance) {
         let kelas: string | null = null;
         if (studentId) {
           const [s] = await tx.select().from(student).where(eq(student.id, studentId));
-          if (!s) throw invalidRef('Siswa tidak ditemukan.');
+          if (!s) throw invalidRef('Murid tidak ditemukan.');
           nama = s.name;
           nis = s.nis;
           const [cls] = await tx

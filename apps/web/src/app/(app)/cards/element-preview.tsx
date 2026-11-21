@@ -3,7 +3,7 @@
 import type { CardData, CardElement, CardField, CardLayout } from '@edusync/contracts';
 import { User } from 'lucide-react';
 import { CODE128_QUIET, code128Bars } from '@/lib/cards/code128';
-import { codeText, elementText } from '@/lib/cards/elements';
+import { codeText, elementText, scheduleGeometry } from '@/lib/cards/elements';
 import { fontPx } from '@/lib/cards/geometry';
 import { qrShape } from '@/lib/cards/qr';
 import { fitFontSize, LINE_HEIGHT } from '@/lib/cards/text-fit';
@@ -109,6 +109,43 @@ export function ElementPreview({ el, data, scale, sample, fieldLabel, photoUrl }
           )}
         </div>
       );
+    case 'schedule': {
+      const { fontSize, cells } = scheduleGeometry(el, data);
+      const bw = Math.max(1, el.borderWidth * scale);
+      const line = `${bw}px solid ${el.borderColor}`;
+      return (
+        <div className="relative size-full overflow-hidden">
+          {cells.map((c) => (
+            <div
+              key={`${c.x}-${c.y}`}
+              className="absolute flex items-center overflow-hidden"
+              style={{
+                left: c.x * scale,
+                top: c.y * scale,
+                width: c.w * scale,
+                height: c.h * scale,
+                boxSizing: 'border-box',
+                padding: `0 ${scale}px`,
+                borderRight: line,
+                borderBottom: line,
+                borderLeft: c.edgeLeft ? line : undefined,
+                borderTop: c.edgeTop ? line : undefined,
+                backgroundColor: c.header ? el.headerFill : undefined,
+                color: el.color,
+                fontFamily: 'Helvetica, Arial, sans-serif',
+                fontSize: fontPx(fontSize, scale),
+                lineHeight: 1.1,
+                fontWeight: c.header ? 700 : 400,
+                justifyContent: c.header ? 'center' : 'flex-start',
+                textAlign: c.header ? 'center' : 'left',
+              }}
+            >
+              <span className="min-w-0 truncate">{c.text}</span>
+            </div>
+          ))}
+        </div>
+      );
+    }
     case 'qr': {
       const shape = qrShape(sample ? codeText(el, data) : '0');
       if (!shape) return null;

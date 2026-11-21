@@ -27,7 +27,7 @@ import { requireModule, requirePermission, type TenantContext } from '../identit
 import { assertStudentsReportNotFinal } from '../report-lock-lib';
 import { audit, guarded, idParams, ok, schoolHeader } from './helpers';
 
-const tag = ['Exams (siswa)'];
+const tag = ['Exams (murid)'];
 const gate = [requirePermission('portal:read'), requireModule('exams')];
 /** Ujian selesai lebih dari ini tidak lagi dimunculkan di daftar siswa. */
 const LIST_DAYS_BACK = 30;
@@ -153,10 +153,10 @@ export async function portalExamsRoutes(instance: FastifyInstance) {
       onRequest: gate,
       schema: {
         tags: tag,
-        summary: 'Daftar ujian di layar untuk siswa',
+        summary: 'Daftar ujian di layar untuk murid',
         description:
-          'Izin: `portal:read`; modul `exams`. Akun yang bukan siswa (wali, staf) mendapat daftar kosong. Ujian bermode `cbt`/`both` berstatus ' +
-          '`ready` untuk kelas siswa pada tahun ajaran semester ujian. `state`: `unscheduled` (belum ada jadwal), ' +
+          'Izin: `portal:read`; modul `exams`. Akun yang bukan murid (wali, staf) mendapat daftar kosong. Ujian bermode `cbt`/`both` berstatus ' +
+          '`ready` untuk kelas murid pada tahun ajaran semester ujian. `state`: `unscheduled` (belum ada jadwal), ' +
           '`upcoming`, `open` (boleh mulai), `in_progress`, `submitted`, `closed` (waktu lewat tanpa dikerjakan). ' +
           `Ujian yang selesai lebih dari ${LIST_DAYS_BACK} hari lalu tidak ditampilkan.`,
         headers: schoolHeader,
@@ -252,7 +252,7 @@ export async function portalExamsRoutes(instance: FastifyInstance) {
         tags: tag,
         summary: 'Mulai (atau lanjutkan) ujian',
         description:
-          'Izin: `portal:read` (akun siswa); modul `exams`. Hanya saat `state` = `open`/`in_progress`. Waktu dihitung ' +
+          'Izin: `portal:read` (akun murid); modul `exams`. Hanya saat `state` = `open`/`in_progress`. Waktu dihitung ' +
           'server: batas akhir = yang lebih awal antara mulai + durasi dan akhir jendela ujian. Memanggil lagi ' +
           'melanjutkan percobaan yang sama (tidak mengulang waktu). Sudah dikumpulkan: 409 `already_submitted`; ' +
           'belum waktunya/lewat: 409 `not_open`. Soal dikirim tanpa kunci jawaban.',
@@ -310,7 +310,7 @@ export async function portalExamsRoutes(instance: FastifyInstance) {
         tags: tag,
         summary: 'Muat ulang sesi ujian yang sedang berjalan',
         description:
-          'Izin: `portal:read` (akun siswa); modul `exams`. Soal (tanpa kunci), jawaban tersimpan, dan batas akhir; ' +
+          'Izin: `portal:read` (akun murid); modul `exams`. Soal (tanpa kunci), jawaban tersimpan, dan batas akhir; ' +
           'dipakai saat halaman dimuat ulang. 404 `not_found` bila belum dimulai. Bila waktu sudah habis, percobaan ' +
           'otomatis dikumpulkan dan `state` = `submitted`.',
         headers: schoolHeader,
@@ -338,10 +338,10 @@ export async function portalExamsRoutes(instance: FastifyInstance) {
         tags: tag,
         summary: 'Simpan jawaban (otomatis, berkala)',
         description:
-          'Izin: `portal:read` (akun siswa); modul `exams`. Menyimpan jawaban yang disebut saja. Pilihan ganda: huruf ' +
+          'Izin: `portal:read` (akun murid); modul `exams`. Menyimpan jawaban yang disebut saja. Pilihan ganda: huruf ' +
           'opsi atau kosong (400 `validation` bila huruf tidak ada); esai: teks sampai 10.000 karakter. `blurs` = ' +
-          'jumlah siswa meninggalkan tab (hanya naik). Sesudah dikumpulkan atau waktu habis: 409 `closed`; bila rapor ' +
-          'siswa pada semester ujian sudah final: 409 `report_final`.',
+          'jumlah murid meninggalkan tab (hanya naik). Sesudah dikumpulkan atau waktu habis: 409 `closed`; bila rapor ' +
+          'murid pada semester ujian sudah final: 409 `report_final`.',
         headers: schoolHeader,
         params: idParams,
         body: z.object({
@@ -418,9 +418,9 @@ export async function portalExamsRoutes(instance: FastifyInstance) {
         tags: tag,
         summary: 'Kumpulkan ujian',
         description:
-          'Izin: `portal:read` (akun siswa); modul `exams`. Menutup percobaan; sesudahnya jawaban tidak bisa diubah. ' +
-          'Memanggil ulang pada percobaan yang sudah terkumpul tidak error. Skor tidak dikembalikan ke siswa. Ditolak ' +
-          '409 `report_final` bila rapor siswa pada semester ujian sudah final.',
+          'Izin: `portal:read` (akun murid); modul `exams`. Menutup percobaan; sesudahnya jawaban tidak bisa diubah. ' +
+          'Memanggil ulang pada percobaan yang sudah terkumpul tidak error. Skor tidak dikembalikan ke murid. Ditolak ' +
+          '409 `report_final` bila rapor murid pada semester ujian sudah final.',
         headers: schoolHeader,
         params: idParams,
         response: { 200: ok, 404: errorSchema, 409: errorSchema, ...guarded },

@@ -108,7 +108,7 @@ export interface ResolvedStudent {
 export async function resolveIdentityPayload(tx: Tx, payload: string): Promise<ResolvedStudent> {
   const code = parseIdentityPayload(payload);
   if (!code) {
-    throw new HttpError(400, 'invalid_qr', 'Format QR tidak dikenali. Gunakan QR dari kartu siswa.');
+    throw new HttpError(400, 'invalid_qr', 'Format QR tidak dikenali. Gunakan QR dari kartu murid.');
   }
   const [found] = await tx
     .select({ id: student.id, name: student.name, nis: student.nis, status: student.status })

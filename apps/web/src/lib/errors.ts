@@ -243,6 +243,10 @@ const KNOWN = [
   'invalid_bands',
   'invalid_attempt',
   'max_attempts',
+  'capacity_required',
+  'rooms_full',
+  'no_rooms',
+  'room_full',
 ] as const;
 
 type KnownCode = (typeof KNOWN)[number];

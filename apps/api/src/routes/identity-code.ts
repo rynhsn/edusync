@@ -12,7 +12,7 @@ const tag = ['Students'];
 const params = z.object({ studentId: z.uuid() });
 const response = z.object({
   studentId: z.uuid(),
-  qr: z.string().describe('Isi QR identitas siswa (`ES1.<kode>`)'),
+  qr: z.string().describe('Isi QR identitas murid (`ES1.<kode>`)'),
 });
 
 /**
@@ -26,7 +26,7 @@ export async function identityCodeRoutes(instance: FastifyInstance) {
 
   const requireStudent = async (tx: Tx, studentId: string) => {
     const [s] = await tx.select({ id: student.id }).from(student).where(eq(student.id, studentId));
-    if (!s) throw new HttpError(404, 'not_found', 'Siswa tidak ditemukan.');
+    if (!s) throw new HttpError(404, 'not_found', 'Murid tidak ditemukan.');
   };
 
   app.get(
@@ -35,11 +35,11 @@ export async function identityCodeRoutes(instance: FastifyInstance) {
       onRequest: [requirePermission('student:manage')],
       schema: {
         tags: tag,
-        summary: 'QR identitas siswa',
+        summary: 'QR identitas murid',
         description:
-          'Izin: `student:manage`. Mengembalikan isi QR identitas (`ES1.<kode>`) siswa; dibuat bila belum ada ' +
-          '(idempoten). Kode ini hanya mengidentifikasi siswa dan tidak memberi akses apa pun dengan sendirinya: ' +
-          'pemindai (mis. absensi) wajib login dan punya izin fiturnya. Siswa tidak ada: 404.',
+          'Izin: `student:manage`. Mengembalikan isi QR identitas (`ES1.<kode>`) murid; dibuat bila belum ada ' +
+          '(idempoten). Kode ini hanya mengidentifikasi murid dan tidak memberi akses apa pun dengan sendirinya: ' +
+          'pemindai (mis. absensi) wajib login dan punya izin fiturnya. Murid tidak ada: 404.',
         headers: schoolHeader,
         params,
         response: { 200: response, 404: errorSchema, ...guarded },
@@ -51,7 +51,7 @@ export async function identityCodeRoutes(instance: FastifyInstance) {
       return tenant(request, async (tx) => {
         await requireStudent(tx, studentId);
         const qr = await ensureIdentityPayload(tx, ctx.schoolId, studentId);
-        if (!qr) throw new HttpError(404, 'not_found', 'Siswa tidak ditemukan.');
+        if (!qr) throw new HttpError(404, 'not_found', 'Murid tidak ditemukan.');
         return { studentId, qr };
       });
     },
@@ -63,12 +63,12 @@ export async function identityCodeRoutes(instance: FastifyInstance) {
       onRequest: [requirePermission('student:manage')],
       schema: {
         tags: tag,
-        summary: 'Buat ulang QR identitas siswa',
+        summary: 'Buat ulang QR identitas murid',
         description:
           'Izin: `student:manage`. Untuk kartu yang hilang atau QR yang bocor: isi kode diganti di tempat sehingga QR ' +
           'lama langsung tidak berlaku untuk SEMUA fitur (pindaiannya 404 `unknown_qr`). Mengembalikan `qr` baru ' +
           '(`ES1.<kode>`) untuk dicetak ulang. QR dibuat otomatis saat pertama dibutuhkan (`GET /v1/cards/students`), ' +
-          'jadi endpoint ini hanya untuk mengganti. Siswa tidak ada: 404. Satu entri audit dicatat (tanpa kode).',
+          'jadi endpoint ini hanya untuk mengganti. Murid tidak ada: 404. Satu entri audit dicatat (tanpa kode).',
         headers: schoolHeader,
         params,
         response: { 200: response, 404: errorSchema, ...guarded },
@@ -79,7 +79,7 @@ export async function identityCodeRoutes(instance: FastifyInstance) {
       const { studentId } = request.params;
       return tenant(request, async (tx) => {
         const code = await rotateIdentityCode(tx, ctx.schoolId, studentId);
-        if (!code) throw new HttpError(404, 'not_found', 'Siswa tidak ditemukan.');
+        if (!code) throw new HttpError(404, 'not_found', 'Murid tidak ditemukan.');
         await audit(tx, ctx, 'student.identity_code.rotate', 'student', studentId);
         return { studentId, qr: formatIdentityPayload(code) };
       });

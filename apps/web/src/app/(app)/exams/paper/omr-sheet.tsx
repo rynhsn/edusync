@@ -19,7 +19,7 @@ import { createPortal } from 'react-dom';
 const L = {
   instructions:
     'Gunakan pensil 2B atau pulpen hitam, hitamkan bulatan sepenuhnya, satu jawaban per nomor, hapus bersih bila salah.',
-  blankQr: 'Tempel label siswa / tulis nama',
+  blankQr: 'Tempel label murid / tulis nama',
   name: 'Nama',
   nis: 'NIS',
   class: 'Kelas',

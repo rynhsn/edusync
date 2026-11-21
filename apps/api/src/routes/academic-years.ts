@@ -111,7 +111,7 @@ export async function academicYearRoutes(instance: FastifyInstance) {
         summary: 'Jadikan tahun ajaran aktif',
         description:
           'Izin: `academic_year:manage`. Hanya satu tahun ajaran yang aktif; tahun aktif sebelumnya dinonaktifkan. ' +
-          'Penempatan siswa dan daftar kelas aktif mengikuti tahun ini.',
+          'Penempatan murid dan daftar kelas aktif mengikuti tahun ini.',
         headers: schoolHeader,
         params: z.object({ id: z.uuid() }),
         response: { 200: academicYearSchema, 401: errorSchema, 403: errorSchema, 404: errorSchema },

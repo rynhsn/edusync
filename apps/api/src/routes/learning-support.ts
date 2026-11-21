@@ -287,7 +287,7 @@ export async function learningSupportRoutes(instance: FastifyInstance) {
     // Siswa yang dikirim dua kali: yang terakhir berlaku.
     const records = [...new Map(list.map((r) => [r.studentId, r])).values()];
     if (records.some((r) => !allowed.has(r.studentId))) {
-      throw invalidRef('Ada siswa yang bukan anggota aktif kelas pendampingan ini.');
+      throw invalidRef('Ada murid yang bukan anggota aktif kelas pendampingan ini.');
     }
     await assertStudentsTakeSubject(tx, { ...scope, studentIds: records.map((r) => r.studentId) });
     await tx.delete(learningSupportParticipant).where(eq(learningSupportParticipant.supportId, supportId));
@@ -664,7 +664,7 @@ export async function learningSupportRoutes(instance: FastifyInstance) {
         tags: tag,
         summary: 'Percobaan remedial satu penilaian',
         description:
-          'Izin: `grade:read`; modul `grades`. Roster siswa aktif dan lulusan kelas penilaian dengan skor asli, percobaan remedial ' +
+          'Izin: `grade:read`; modul `grades`. Roster murid aktif dan lulusan kelas penilaian dengan skor asli, percobaan remedial ' +
           '(urut `attemptNo`), dan nilai efektif menurut kebijakan remedial semester (`policy`). `needsRemedial` = skor asli di bawah ' +
           'KKM efektif mapel (`kkm`, persen). Bila rombel menandai mapel ini hanya diikuti murid yang memilih, roster hanya murid yang ' +
           'mengambilnya pada semester penilaian. Pengguna selain pemegang configure/kepala sekolah/kurikulum hanya untuk kelas+mapel yang ' +
@@ -693,14 +693,14 @@ export async function learningSupportRoutes(instance: FastifyInstance) {
         summary: 'Catat percobaan remedial',
         description:
           'Izin: `grade:input`, dan pemegang `grade:configure` atau guru pengampu kelas+mapel penilaian itu (selain itu 403); modul ' +
-          '`grades`. Menambah percobaan baru (nomor berikutnya per siswa) untuk 1..200 catatan; siswa yang sama dikirim dua kali ' +
+          '`grades`. Menambah percobaan baru (nomor berikutnya per murid) untuk 1..200 catatan; murid yang sama dikirim dua kali ' +
           'menghasilkan dua percobaan berurutan. `value` 0..skor maksimum penilaian (400 `score_out_of_range`) atau null (percobaan ' +
           'tanpa nilai: tercatat tetapi tidak dipakai nilai efektif). `takenOn` bawaan hari ini. `supportId` opsional menautkan ke ' +
-          'pendampingan remedial pada kelas, mapel, dan semester yang sama (400 `invalid_reference`). Siswa harus anggota aktif kelas ' +
+          'pendampingan remedial pada kelas, mapel, dan semester yang sama (400 `invalid_reference`). Murid harus anggota aktif kelas ' +
           '(400 `invalid_reference`) dan, bila rombel menandai mapel ini hanya diikuti murid yang memilih, mengambil mapel itu ' +
-          '(400 `student_not_taking_subject`). Maksimal 20 percobaan per siswa dan penilaian (400 `too_many_attempts`). Skor asli TIDAK ' +
+          '(400 `student_not_taking_subject`). Maksimal 20 percobaan per murid dan penilaian (400 `too_many_attempts`). Skor asli TIDAK ' +
           'berubah. Pengaruhnya pada nilai akhir dan ketercapaian TP mengikuti kebijakan remedial sekolah (`record_only` hanya ' +
-          'mencatat). Ditolak 409 `report_final` bila rapor salah satu siswa itu pada semester tersebut sudah final. ' +
+          'mencatat). Ditolak 409 `report_final` bila rapor salah satu murid itu pada semester tersebut sudah final. ' +
           'Diaudit (`remedial_attempt.save`). Respons sama dengan GET.',
         headers: schoolHeader,
         params: idParams,
@@ -744,7 +744,7 @@ export async function learningSupportRoutes(instance: FastifyInstance) {
             const { rows } = await rosterOf(tx, a.classId);
             const allowed = new Set(rows.map((s) => s.id));
             if (records.some((r) => !allowed.has(r.studentId))) {
-              throw invalidRef('Ada siswa yang bukan anggota aktif kelas penilaian ini.');
+              throw invalidRef('Ada murid yang bukan anggota aktif kelas penilaian ini.');
             }
             await assertStudentsTakeSubject(tx, {
               classId: a.classId,
@@ -787,7 +787,7 @@ export async function learningSupportRoutes(instance: FastifyInstance) {
                 throw new HttpError(
                   400,
                   'too_many_attempts',
-                  `Satu siswa paling banyak ${MAX_REMEDIAL_ATTEMPTS} percobaan remedial per penilaian.`,
+                  `Satu murid paling banyak ${MAX_REMEDIAL_ATTEMPTS} percobaan remedial per penilaian.`,
                 );
               }
               next.set(r.studentId, no);
@@ -821,7 +821,7 @@ export async function learningSupportRoutes(instance: FastifyInstance) {
         description:
           'Izin: `grade:input`, dan pemegang `grade:configure` atau guru pengampu kelas+mapel penilaian percobaan itu (selain itu ' +
           '403); modul `grades`. Menghapus satu percobaan; nomor percobaan lain tidak berubah. Skor asli tidak tersentuh. Ditolak 409 ' +
-          '`report_final` bila rapor siswa itu pada semester tersebut sudah final. 404 `not_found` bila tidak ada. Diaudit ' +
+          '`report_final` bila rapor murid itu pada semester tersebut sudah final. 404 `not_found` bila tidak ada. Diaudit ' +
           '(`remedial_attempt.delete`).',
         headers: schoolHeader,
         params: idParams,

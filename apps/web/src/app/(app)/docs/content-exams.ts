@@ -226,6 +226,22 @@ export const EXAM_DOCS: DocArticle[] = [
             tip: 'Bila kebijakan mengganti nama ASAS menjadi Sumatif Akhir Semester, cukup ubah namanya di sini. Ujian yang sudah dibuat tidak ikut berubah.',
           },
           {
+            heading: 'Ruang ujian (opsional)',
+            body: 'Ruang ujian hanya perlu bila kartu ujian mencetak kolom Ruang. Anda mendefinisikan ruangnya (misalnya Ruang 1 berkapasitas 30), lalu menempatkan murid ke ruang untuk satu semester dan satu jenis ujian. Nama ruang murid itulah yang tercetak di kartu ujian lewat isian Ruang. Sekolah yang tidak memakai ruang tidak perlu melakukan apa pun: tidak ada yang berubah pada kartu maupun ujian.',
+            steps: [
+              'Buka Akademik, lalu Ruang ujian, dan klik Tambah ruang. Isi Nama ruang, Kapasitas (kosong berarti tanpa batas), lalu Simpan.',
+              'Di bagian Penempatan murid, pilih Semester dan Jenis ujian.',
+              'Untuk otomatis, klik Tempatkan otomatis. Murid diisikan ke ruang aktif menurut urutan, kelas, dan nama sampai kapasitas penuh. Semua ruang aktif wajib punya kapasitas.',
+              'Centang Susun ulang dari awal bila ingin membagi ulang semuanya; tanpa centang, hanya murid yang belum ditempatkan yang diisi.',
+              'Untuk manual, pada baris murid pilih Pindah ke lalu ruangnya, atau Keluarkan dari ruang. Kartu Belum ditempatkan menampung murid yang belum punya ruang.',
+              'Klik Kosongkan semua bila ingin mengulang dari nol; ruangnya tetap ada.',
+            ],
+            href: '/exams/rooms',
+            tip: 'Pada templat kartu ujian, tambahkan isian Ruang agar nama ruang tercetak.',
+            warning:
+              'Bila kapasitas ruang tidak cukup untuk semua murid, penempatan otomatis ditolak dan tidak ada yang berubah. Tambah kapasitas atau ruang lalu coba lagi.',
+          },
+          {
             heading: 'Menulis soal pilihan ganda dan esai',
             body: 'Bank soal menyimpan soal per mata pelajaran dan bisa dipakai ulang di banyak ujian. Pilihan ganda punya dua sampai enam pilihan dan satu jawaban benar. Esai punya pedoman jawaban yang hanya dilihat guru saat menilai. Setiap soal punya poin.',
             steps: [
@@ -310,6 +326,22 @@ export const EXAM_DOCS: DocArticle[] = [
             ],
             href: '/exams/types',
             tip: 'If policy renames ASAS to Summative End of Semester, just change the name here. Exams already created do not change.',
+          },
+          {
+            heading: 'Exam rooms (optional)',
+            body: 'Exam rooms are only needed if your exam cards print a Room field. You define the rooms (for example Room 1 with a capacity of 30), then place students into rooms for one semester and one exam type. The room a student is placed in is what prints on the exam card through the Room field. Schools that do not use rooms do not need to do anything: nothing changes on the cards or the exams.',
+            steps: [
+              'Open Academic, then Exam rooms, and click Add room. Fill in the Room name and Capacity (empty means no limit), then Save.',
+              'In the Student placement section, pick the Semester and the Exam type.',
+              'For automatic placement, click Place automatically. Students are filled into the active rooms in order by class and name until each is full. Every active room must have a capacity.',
+              'Tick Rearrange from scratch to divide everyone again; without it, only students not yet placed are filled in.',
+              'For manual placement, use Move to on a student row and pick the room, or Remove from room. The Not placed yet card lists students without a room.',
+              'Click Clear all to start over from zero; the rooms stay.',
+            ],
+            href: '/exams/rooms',
+            tip: 'On the exam card template, add the Room field so the room name is printed.',
+            warning:
+              'If the rooms do not have enough capacity for every student, automatic placement is refused and nothing changes. Add capacity or rooms and try again.',
           },
           {
             heading: 'Writing multiple choice and essay questions',
@@ -398,6 +430,22 @@ export const EXAM_DOCS: DocArticle[] = [
             tip: 'Upami kawijakan ngaganti ngaran ASAS jadi Sumatif Ahir Semester, cukup robah ngaranna di dieu. Ujian anu geus dijieun teu milu robah.',
           },
           {
+            heading: 'Rohang ujian (opsional)',
+            body: 'Rohang ujian ngan diperyogikeun upami kartu ujian nyitak kolom Rohang. Anjeun nangtukeun rohangna (upamana Rohang 1 kapasitas 30), tuluy nempatkeun siswa ka rohang pikeun hiji semester jeung hiji jenis ujian. Ngaran rohang siswa éta anu kacitak dina kartu ujian lewat eusian Rohang. Sakola anu henteu maké rohang teu kudu nanaon: teu aya anu robah dina kartu atawa ujian.',
+            steps: [
+              'Buka Akademik, tuluy Rohang ujian, tuluy klik Tambah rohang. Eusian Ngaran rohang, Kapasitas (kosong hartina taya wates), tuluy Simpen.',
+              'Di bagian Panempatan siswa, pilih Semester jeung Jenis ujian.',
+              'Pikeun otomatis, klik Tempatkeun otomatis. Siswa dieusian ka rohang aktif nurutkeun urutan, kelas, jeung ngaran nepi ka pinuh. Sadaya rohang aktif kudu boga kapasitas.',
+              'Centang Susun deui ti mimiti upami hoyong ngabagi deui sadayana; tanpa centang, ngan siswa anu can ditempatkeun anu dieusian.',
+              'Pikeun manual, dina baris siswa pilih Pindah ka tuluy rohangna, atawa Kaluarkeun tina rohang. Kartu Can ditempatkeun eusina siswa anu can boga rohang.',
+              'Klik Kosongkeun sadayana upami hoyong ngamimitian ti nol; rohangna tetep aya.',
+            ],
+            href: '/exams/rooms',
+            tip: 'Dina témplat kartu ujian, tambahkeun eusian Rohang supados ngaran rohang kacitak.',
+            warning:
+              'Upami kapasitas rohang teu cukup pikeun sadaya siswa, panempatan otomatis ditolak jeung teu aya anu robah. Tambahkeun kapasitas atawa rohang tuluy cobaan deui.',
+          },
+          {
             heading: 'Nulis soal pilihan ganda jeung éséy',
             body: 'Bank soal nyimpen soal per mata pelajaran jeung bisa dipaké deui dina loba ujian. Pilihan ganda boga dua nepi ka genep pilihan jeung hiji jawaban bener. Éséy boga pedoman jawaban anu ngan katingali ku guru nalika nilai. Unggal soal boga poin.',
             steps: [
@@ -476,23 +524,23 @@ export const EXAM_DOCS: DocArticle[] = [
       id: {
         title: 'Ujian: menyusun, mencetak, menilai, dan ujian di layar',
         summary:
-          'Panduan membuat ujian dari bank soal, mengatur lembar cetak, mengisi nilai, mengirim nilai ke buku nilai, dan menjalankan ujian di layar siswa (CBT).',
+          'Panduan membuat ujian dari bank soal, mengatur lembar cetak, mengisi nilai, mengirim nilai ke buku nilai, dan menjalankan ujian di layar murid (CBT).',
         forWho: 'Guru mata pelajaran, Kurikulum, Operator, dan Admin sekolah. Kepala sekolah bisa melihat.',
         sections: [
           {
             heading: 'Membuat ujian',
-            body: 'Satu ujian untuk satu mata pelajaran dan satu atau beberapa kelas. Cara pelaksanaan bisa Cetak (lembar kertas yang dinilai guru), CBT (dikerjakan di layar siswa), atau CBT dan cetak sekaligus.',
+            body: 'Satu ujian untuk satu mata pelajaran dan satu atau beberapa kelas. Cara pelaksanaan bisa Cetak (lembar kertas yang dinilai guru), CBT (dikerjakan di layar murid), atau CBT dan cetak sekaligus.',
             steps: [
               'Buka Akademik, lalu Ujian, dan klik Buat ujian.',
               'Pilih Jenis ujian, Mata pelajaran, dan Semester. Tulis Judul ujian.',
               'Centang Kelas peserta. Kelas yang tampil mengikuti tahun ajaran semester yang dipilih.',
               'Pilih Cara pelaksanaan: Cetak, CBT, atau CBT dan cetak.',
               'Isi Tanggal ujian, Jam mulai, dan Durasi (menit).',
-              'Untuk CBT, centang Acak urutan soal dan Acak urutan pilihan jawaban bila diperlukan. Urutan acak berbeda untuk tiap siswa tetapi tetap sama bila siswa membuka ulang halaman.',
+              'Untuk CBT, centang Acak urutan soal dan Acak urutan pilihan jawaban bila diperlukan. Urutan acak berbeda untuk tiap murid tetapi tetap sama bila murid membuka ulang halaman.',
               'Pilih Status: Draf atau Siap, lalu klik Simpan.',
             ],
             href: '/exams',
-            tip: 'Biarkan status Draf selama soal masih disusun. Ujian CBT baru terlihat oleh siswa setelah statusnya Siap.',
+            tip: 'Biarkan status Draf selama soal masih disusun. Ujian CBT baru terlihat oleh murid setelah statusnya Siap.',
           },
           {
             heading: 'Memilih dan mengatur soal ujian',
@@ -510,13 +558,13 @@ export const EXAM_DOCS: DocArticle[] = [
           },
           {
             heading: 'Mengatur lembar ujian cetak',
-            body: 'Lembar cetak punya kop, judul, keterangan di bawah kop, petunjuk umum, dan blok nama siswa. Semuanya diatur sekali untuk sekolah, dan boleh disesuaikan untuk satu ujian saja. Teks judul dan keterangan boleh memuat penampung dalam kurung kurawal yang terisi otomatis dari data ujian: {examName} (nama jenis ujian), {examShort} (singkatan), {semester}, {academicYear} (tahun ajaran), {subject} (mata pelajaran), {class} (kelas), {day} (hari), {date} (tanggal), {dayDate} (hari dan tanggal), {time} (rentang jam), {duration} (durasi), {teacher} (guru), dan {school} (nama sekolah).',
+            body: 'Lembar cetak punya kop, judul, keterangan di bawah kop, petunjuk umum, dan blok nama murid. Semuanya diatur sekali untuk sekolah, dan boleh disesuaikan untuk satu ujian saja. Teks judul dan keterangan boleh memuat penampung dalam kurung kurawal yang terisi otomatis dari data ujian: {examName} (nama jenis ujian), {examShort} (singkatan), {semester}, {academicYear} (tahun ajaran), {subject} (mata pelajaran), {class} (kelas), {day} (hari), {date} (tanggal), {dayDate} (hari dan tanggal), {time} (rentang jam), {duration} (durasi), {teacher} (guru), dan {school} (nama sekolah).',
             steps: [
               'Buka Akademik, lalu Lembar ujian cetak (di bagian pengaturan).',
               'Atur ukuran kertas (A4, F4, atau Letter), margin, dan ukuran huruf.',
               'Pada Kop, pilih Identitas sekolah atau Tulis sendiri. Tambahkan baris di atas nama sekolah (misalnya nama yayasan) bila perlu, dan pilih bagian kontak yang ditampilkan.',
               'Atur Judul ujian dan baris Keterangan di bawah kop (mata pelajaran, kelas, hari dan tanggal, waktu, atau baris lain).',
-              'Tulis Petunjuk umum dan pilih isian Identitas siswa.',
+              'Tulis Petunjuk umum dan pilih isian Identitas murid.',
               'Lihat Pratinjau lembar di sebelahnya, lalu klik Simpan. Klik Kembalikan ke bawaan untuk membuang semua pengaturan.',
             ],
             href: '/exams/paper',
@@ -537,27 +585,27 @@ export const EXAM_DOCS: DocArticle[] = [
           },
           {
             heading: 'Mengisi nilai dari lembar kertas',
-            body: 'Setelah siswa mengerjakan di kertas, guru mengisi hasilnya di halaman Input nilai. Tabelnya berisi satu baris per siswa dan satu kolom per soal. Pilihan ganda dinilai otomatis dari huruf jawaban; esai diberi skor oleh guru. Siswa yang sudah lulus tetap tampil pada ujian tahun lampau, tetapi hanya untuk dilihat dan tidak dapat diubah.',
+            body: 'Setelah murid mengerjakan di kertas, guru mengisi hasilnya di halaman Input nilai. Tabelnya berisi satu baris per murid dan satu kolom per soal. Pilihan ganda dinilai otomatis dari huruf jawaban; esai diberi skor oleh guru. Murid yang sudah lulus tetap tampil pada ujian tahun lampau, tetapi hanya untuk dilihat dan tidak dapat diubah.',
             steps: [
               'Buka ujian, lalu klik Input nilai.',
-              'Pada soal pilihan ganda, ketik satu huruf jawaban siswa. Kotak hijau berarti benar dan merah berarti salah.',
+              'Pada soal pilihan ganda, ketik satu huruf jawaban murid. Kotak hijau berarti benar dan merah berarti salah.',
               'Pada soal esai, ketik skor antara 0 dan poin soal. Setengah poin (misalnya 7,5) boleh.',
-              'Centang Tidak hadir untuk siswa yang tidak ikut ujian. Isian siswa itu dikosongkan.',
-              'Gunakan Enter dan tombol panah untuk berpindah sel dengan cepat. Jumlah dan persentase tiap siswa dihitung langsung.',
+              'Centang Tidak hadir untuk murid yang tidak ikut ujian. Isian murid itu dikosongkan.',
+              'Gunakan Enter dan tombol panah untuk berpindah sel dengan cepat. Jumlah dan persentase tiap murid dihitung langsung.',
               'Perhatikan ringkasan di atas tabel (sudah diisi, tidak hadir, rata-rata, terendah, tertinggi).',
               'Klik Simpan. Hanya baris yang berubah yang dikirim.',
             ],
             href: '/exams',
-            tip: 'Siswa dengan tanda esai belum dinilai masih punya esai tanpa skor. Lengkapi dulu sebelum mengirim ke buku nilai.',
+            tip: 'Murid dengan tanda esai belum dinilai masih punya esai tanpa skor. Lengkapi dulu sebelum mengirim ke buku nilai.',
           },
           {
             heading: 'Mengirim nilai ke buku nilai',
-            body: 'Nilai ujian dikirim ke menu Penilaian sebagai satu penilaian untuk tiap kelas peserta. Nilainya berskala 100, yaitu jumlah skor dibagi total poin lalu dikali 100, dengan dua angka di belakang koma. Siswa yang tidak hadir diberi nilai kosong. Siswa yang tidak punya data tidak diubah.',
+            body: 'Nilai ujian dikirim ke menu Penilaian sebagai satu penilaian untuk tiap kelas peserta. Nilainya berskala 100, yaitu jumlah skor dibagi total poin lalu dikali 100, dengan dua angka di belakang koma. Murid yang tidak hadir diberi nilai kosong. Murid yang tidak punya data tidak diubah.',
             steps: [
               'Simpan dulu semua perubahan di halaman Input nilai.',
               'Klik Kirim ke buku nilai.',
               'Pilih Komponen nilai (misalnya UTS atau UAS) dan, bila perlu, ganti tanggal penilaian. Bila dikosongkan, tanggal ujian yang dipakai.',
-              'Bila masih ada siswa dengan esai belum dinilai, aplikasi memberi peringatan dan menolak mengirim sampai Anda menegaskan bahwa esai yang belum dinilai dihitung 0.',
+              'Bila masih ada murid dengan esai belum dinilai, aplikasi memberi peringatan dan menolak mengirim sampai Anda menegaskan bahwa esai yang belum dinilai dihitung 0.',
               'Klik Kirim. Cek hasilnya di menu Penilaian.',
             ],
             tip: 'Bila Anda memilih komponen berkategori Formatif, hasil ujian menjadi umpan balik belajar: tampil di rekap tetapi tidak masuk nilai rapor. Anda juga bisa mencatat teknik penilaiannya.',
@@ -566,20 +614,20 @@ export const EXAM_DOCS: DocArticle[] = [
           },
           {
             heading: 'Ujian di layar (CBT)',
-            body: 'Pada ujian CBT, siswa mengerjakan di layar lewat akun siswanya. Pilihan ganda dinilai otomatis, dan esai tampil di Input nilai untuk dinilai guru. Siswa tidak pernah menerima kunci jawaban.',
+            body: 'Pada ujian CBT, murid mengerjakan di layar lewat akun muridnya. Pilihan ganda dinilai otomatis, dan esai tampil di Input nilai untuk dinilai guru. Murid tidak pernah menerima kunci jawaban.',
             steps: [
               'Pastikan ujian berstatus Siap, bercara pelaksanaan CBT atau CBT dan cetak, dan sudah punya tanggal, jam mulai, dan durasi.',
-              'Siswa masuk dengan akunnya, lalu buka Portal siswa, Ujian, dan klik Mulai ujian saat statusnya Dibuka. Akun wali tidak melihat ujian.',
-              'Penghitung waktu dijalankan server, jadi mengubah jam perangkat tidak menambah waktu. Batas akhir adalah yang lebih awal antara jam mulai siswa ditambah durasi dan akhir jendela ujian.',
-              'Jawaban tersimpan otomatis. Bila halaman dimuat ulang, siswa melanjutkan dari jawaban terakhir tanpa mengulang waktu.',
-              'Siswa menekan Kumpulkan, atau ujian terkumpul otomatis saat waktu habis. Setelah itu jawaban tidak bisa diubah.',
-              'Guru memantau di Input nilai: tiap siswa tampil Mengerjakan atau Dikumpulkan, dan Keluar tab bila siswa berpindah tab.',
+              'Murid masuk dengan akunnya, lalu buka Portal murid, Ujian, dan klik Mulai ujian saat statusnya Dibuka. Akun wali tidak melihat ujian.',
+              'Penghitung waktu dijalankan server, jadi mengubah jam perangkat tidak menambah waktu. Batas akhir adalah yang lebih awal antara jam mulai murid ditambah durasi dan akhir jendela ujian.',
+              'Jawaban tersimpan otomatis. Bila halaman dimuat ulang, murid melanjutkan dari jawaban terakhir tanpa mengulang waktu.',
+              'Murid menekan Kumpulkan, atau ujian terkumpul otomatis saat waktu habis. Setelah itu jawaban tidak bisa diubah.',
+              'Guru memantau di Input nilai: tiap murid tampil Mengerjakan atau Dikumpulkan, dan Keluar tab bila murid berpindah tab.',
               'Untuk membaca jawaban esai, klik ikon pada sel esai, baca jawabannya, lalu isi skor dan simpan.',
             ],
             href: '/exams',
             tip: 'Catatan Keluar tab hanya informasi. Gunakan bersama pengawasan di ruang ujian, bukan sebagai bukti tunggal.',
             warning:
-              'Bila guru sudah mengisi jawaban dari lembar kertas untuk seorang siswa, jawaban itu dikosongkan saat siswa mulai mengerjakan di layar, supaya hasil CBT yang dihitung.',
+              'Bila guru sudah mengisi jawaban dari lembar kertas untuk seorang murid, jawaban itu dikosongkan saat murid mulai mengerjakan di layar, supaya hasil CBT yang dihitung.',
           },
           {
             heading: 'Modul dan hak akses',
@@ -588,16 +636,16 @@ export const EXAM_DOCS: DocArticle[] = [
         ],
         faq: [
           {
-            q: 'Ujian CBT tidak muncul di layar siswa. Apa yang dicek?',
-            a: 'Pastikan statusnya Siap, cara pelaksanaannya CBT atau CBT dan cetak, kelas siswa termasuk kelas peserta, dan tanggal, jam mulai, serta durasi sudah diisi. Siswa harus masuk dengan akun siswa, bukan akun wali.',
+            q: 'Ujian CBT tidak muncul di layar murid. Apa yang dicek?',
+            a: 'Pastikan statusnya Siap, cara pelaksanaannya CBT atau CBT dan cetak, kelas murid termasuk kelas peserta, dan tanggal, jam mulai, serta durasi sudah diisi. Murid harus masuk dengan akun murid, bukan akun wali.',
           },
           {
-            q: 'Siswa terlambat mulai. Apakah waktunya tetap penuh?',
-            a: 'Tidak selalu. Waktu siswa berakhir paling lambat pada akhir jendela ujian (jam mulai ditambah durasi). Siswa yang mulai terlambat mendapat waktu lebih pendek.',
+            q: 'Murid terlambat mulai. Apakah waktunya tetap penuh?',
+            a: 'Tidak selalu. Waktu murid berakhir paling lambat pada akhir jendela ujian (jam mulai ditambah durasi). Murid yang mulai terlambat mendapat waktu lebih pendek.',
           },
           {
-            q: 'Siswa tidak hadir saat ujian dan ingin mengerjakan di waktu lain.',
-            a: 'Ubah tanggal, jam mulai, atau durasi ujian agar jendelanya terbuka lagi, atau buat ujian susulan untuk siswa itu.',
+            q: 'Murid tidak hadir saat ujian dan ingin mengerjakan di waktu lain.',
+            a: 'Ubah tanggal, jam mulai, atau durasi ujian agar jendelanya terbuka lagi, atau buat ujian susulan untuk murid itu.',
           },
           {
             q: 'Nilai di buku nilai berbeda dari yang saya lihat di Input nilai.',
@@ -894,25 +942,25 @@ export const EXAM_DOCS: DocArticle[] = [
       id: {
         title: 'Lembar OMR: mencetak dan memindai lembar jawaban',
         summary:
-          'Cetak lembar jawaban per siswa yang bisa dibaca otomatis, lalu foto atau pindai hasilnya supaya jawaban pilihan ganda terisi sendiri di lembar nilai.',
+          'Cetak lembar jawaban per murid yang bisa dibaca otomatis, lalu foto atau pindai hasilnya supaya jawaban pilihan ganda terisi sendiri di lembar nilai.',
         forWho: 'Guru mata pelajaran, Kurikulum, Operator, dan Admin sekolah.',
         sections: [
           {
             heading: 'Mencetak lembar OMR',
-            body: 'Lembar OMR adalah lembar jawaban khusus untuk soal pilihan ganda. Tiap lembar punya empat kotak hitam di sudut, kode QR yang menandai ujian dan siswanya, nama siswa, dan bulatan jawaban A sampai E untuk setiap soal. Karena ada kode QR, tiap siswa mendapat lembarnya sendiri.',
+            body: 'Lembar OMR adalah lembar jawaban khusus untuk soal pilihan ganda. Tiap lembar punya empat kotak hitam di sudut, kode QR yang menandai ujian dan muridnya, nama murid, dan bulatan jawaban A sampai E untuk setiap soal. Karena ada kode QR, tiap murid mendapat lembarnya sendiri.',
             steps: [
               'Buka ujian, klik Cetak, lalu pilih tampilan Lembar OMR.',
               'Pilih kelas bila ingin mencetak untuk satu kelas saja.',
-              'Centang Sertakan lembar kosong bila perlu cadangan, dan isi jumlahnya. Lembar kosong tidak punya kode QR sehingga harus dipilihkan siswanya saat dipindai.',
+              'Centang Sertakan lembar kosong bila perlu cadangan, dan isi jumlahnya. Lembar kosong tidak punya kode QR sehingga harus dipilihkan muridnya saat dipindai.',
               'Klik Cetak / simpan PDF, pilih kertas A4, skala 100 persen, dan matikan header serta footer peramban.',
-              'Bagikan satu lembar untuk tiap siswa.',
+              'Bagikan satu lembar untuk tiap murid.',
             ],
             href: '/exams',
             tip: 'Cetak satu lembar dulu dan coba pindai sebelum mencetak untuk seluruh kelas.',
           },
           {
-            heading: 'Cara siswa mengisi lembar',
-            body: 'Hasil pindai paling akurat bila bulatan dihitamkan penuh dan bersih. Beri tahu siswa sebelum ujian dimulai.',
+            heading: 'Cara murid mengisi lembar',
+            body: 'Hasil pindai paling akurat bila bulatan dihitamkan penuh dan bersih. Beri tahu murid sebelum ujian dimulai.',
             steps: [
               'Gunakan pensil 2B atau pulpen hitam.',
               'Hitamkan satu bulatan sepenuhnya untuk tiap nomor.',
@@ -937,18 +985,18 @@ export const EXAM_DOCS: DocArticle[] = [
           },
           {
             heading: 'Memeriksa hasil pindai',
-            body: 'Di halaman Pindai lembar jawaban, tiap gambar tampil sebagai kartu berisi nama siswa yang dikenali dari kode QR dan jawaban yang terbaca untuk tiap nomor. Anda tinggal memeriksa, memperbaiki bila perlu, lalu menerapkannya.',
+            body: 'Di halaman Pindai lembar jawaban, tiap gambar tampil sebagai kartu berisi nama murid yang dikenali dari kode QR dan jawaban yang terbaca untuk tiap nomor. Anda tinggal memeriksa, memperbaiki bila perlu, lalu menerapkannya.',
             steps: [
               'Buka ujian, klik Pindai lembar OMR.',
               'Tarik gambar ke kotak unggah atau klik Pilih foto, boleh banyak berkas sekaligus.',
-              'Periksa tiap kartu. Bila kode QR tidak terbaca atau siswanya tidak dikenal, pilih siswanya dari daftar.',
+              'Periksa tiap kartu. Bila kode QR tidak terbaca atau muridnya tidak dikenal, pilih muridnya dari daftar.',
               'Perhatikan tanda warna. Kuning berarti tanda tipis, merah berarti lebih dari satu tanda, dan titik berarti kosong. Klik sebuah soal untuk mengganti jawabannya.',
-              'Bila ada dua lembar untuk siswa yang sama, aplikasi memberi peringatan. Pilih lembar yang benar.',
+              'Bila ada dua lembar untuk murid yang sama, aplikasi memberi peringatan. Pilih lembar yang benar.',
               'Klik Terapkan ke lembar nilai. Jawaban pilihan ganda masuk ke Input nilai dan dinilai otomatis; esai tidak berubah.',
             ],
             href: '/exams',
             warning:
-              'Menerapkan hasil pindai menimpa jawaban pilihan ganda yang sudah ada untuk siswa itu. Periksa dulu lembar yang bertanda merah atau kuning.',
+              'Menerapkan hasil pindai menimpa jawaban pilihan ganda yang sudah ada untuk murid itu. Periksa dulu lembar yang bertanda merah atau kuning.',
           },
           {
             heading: 'Batas yang perlu diketahui',
@@ -958,11 +1006,11 @@ export const EXAM_DOCS: DocArticle[] = [
         faq: [
           {
             q: 'Kode QR tidak terbaca. Apa yang harus dilakukan?',
-            a: 'Foto ulang dengan cahaya lebih terang dan lembar rata, atau pilih siswanya sendiri dari daftar pada kartu itu.',
+            a: 'Foto ulang dengan cahaya lebih terang dan lembar rata, atau pilih muridnya sendiri dari daftar pada kartu itu.',
           },
           {
-            q: 'Hasil pindai berbeda dari jawaban siswa.',
-            a: 'Periksa tanda kuning dan merah, lalu klik soalnya untuk memperbaiki. Tanda yang sangat tipis bisa tidak terbaca; minta siswa menghitamkan lebih penuh pada ujian berikutnya.',
+            q: 'Hasil pindai berbeda dari jawaban murid.',
+            a: 'Periksa tanda kuning dan merah, lalu klik soalnya untuk memperbaiki. Tanda yang sangat tipis bisa tidak terbaca; minta murid menghitamkan lebih penuh pada ujian berikutnya.',
           },
           {
             q: 'Bisakah memindai lembar yang tidak dicetak dari aplikasi?',

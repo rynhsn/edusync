@@ -141,7 +141,7 @@ export async function lessonAttendanceRoutes(instance: FastifyInstance) {
         summary: 'Jam pelajaran pada satu tanggal',
         description:
           'Izin: `attendance:read`; modul `attendance`. Sel jadwal pada hari itu di tahun ajaran aktif, dengan jumlah ' +
-          'siswa yang sudah diabsen. Guru biasa melihat jam miliknya; pengurus dan guru piket (hari ini) melihat semua ' +
+          'murid yang sudah diabsen. Guru biasa melihat jam miliknya; pengurus dan guru piket (hari ini) melihat semua ' +
           'sehingga bisa menggantikan. `mine` menandai jam milik pengguna. Untuk mapel yang berpenanda pilihan di rombelnya, `total` ' +
           'hanya menghitung murid yang mengambil mapel itu. `lane` (jalur paralel, hanya bila > 0) dan `combinedKey` (pertemuan gabungan) ' +
           'hanya muncul pada sel yang memakainya.',
@@ -264,7 +264,7 @@ export async function lessonAttendanceRoutes(instance: FastifyInstance) {
         tags: tag,
         summary: 'Lembar absensi satu jam pelajaran',
         description:
-          'Izin: `attendance:read`; modul `attendance`. Siswa kelas itu dengan status jam ini dan status gerbang ' +
+          'Izin: `attendance:read`; modul `attendance`. Murid kelas itu dengan status jam ini dan status gerbang ' +
           '(`gate`, null bila belum tap), sehingga yang hadir di gerbang tetapi tidak di kelas terlihat. Mapel yang berpenanda pilihan di ' +
           'rombelnya hanya memuat murid yang mengambilnya, dan menyimpan untuk non-pengambil ditolak 400 `invalid_reference`. `canRecord` ' +
           'menyatakan apakah pengguna boleh mengisi; `substitute` bila pengisiannya menggantikan guru jadwal.',
@@ -390,7 +390,7 @@ export async function lessonAttendanceRoutes(instance: FastifyInstance) {
           throw new HttpError(
             400,
             'invalid_reference',
-            'Ada siswa yang bukan anggota kelas ini atau tidak mengambil mata pelajaran jam ini.',
+            'Ada murid yang bukan anggota kelas ini atau tidak mengambil mata pelajaran jam ini.',
           );
         }
         for (const r of records) {
@@ -613,7 +613,7 @@ export async function lessonAttendanceRoutes(instance: FastifyInstance) {
           throw new HttpError(
             400,
             'invalid_reference',
-            'Ada siswa yang bukan anggota pertemuan gabungan ini atau tidak mengambil mata pelajarannya.',
+            'Ada murid yang bukan anggota pertemuan gabungan ini atau tidak mengambil mata pelajarannya.',
           );
         }
         await assertStudentsReportNotFinalOnDate(

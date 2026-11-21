@@ -76,12 +76,12 @@ const feeTypeSchema = z.object({
   kind: z.enum(KINDS),
   scope: z
     .enum(FIN_FEE_SCOPES)
-    .describe('`all` = semua siswa, `class` = kelas tertentu, `student` = siswa tertentu'),
+    .describe('`all` = semua murid, `class` = kelas tertentu, `student` = murid tertentu'),
   active: z.boolean(),
   classIds: z.array(z.uuid()).describe('Kelas sasaran (cakupan `class`); kosong untuk cakupan lain'),
-  studentIds: z.array(z.uuid()).describe('Siswa sasaran (cakupan `student`); kosong untuk cakupan lain'),
-  targetCount: z.number().int().describe('Jumlah sasaran (kelas atau siswa)'),
-  targetNames: z.array(z.string()).describe('Nama kelas atau siswa sasaran, urut abjad'),
+  studentIds: z.array(z.uuid()).describe('Murid sasaran (cakupan `student`); kosong untuk cakupan lain'),
+  targetCount: z.number().int().describe('Jumlah sasaran (kelas atau murid)'),
+  targetNames: z.array(z.string()).describe('Nama kelas atau murid sasaran, urut abjad'),
   planCount: z.number().int().describe('Jumlah tarif yang memakai jenis biaya ini'),
   invoiceCount: z.number().int().describe('Jumlah tagihan yang memakai jenis biaya ini'),
 });
@@ -280,13 +280,13 @@ export async function financeRoutes(instance: FastifyInstance) {
     }
     const studentIds = [...new Set(b.studentIds ?? [])];
     if (studentIds.length === 0) {
-      throw new HttpError(400, 'targets_required', 'Pilih minimal satu siswa untuk cakupan siswa.');
+      throw new HttpError(400, 'targets_required', 'Pilih minimal satu murid untuk cakupan murid.');
     }
     const found = await tx
       .select({ id: student.id })
       .from(student)
       .where(and(inArray(student.id, studentIds), isNull(student.deletedAt)));
-    if (found.length !== studentIds.length) throw invalidRef('Ada siswa sasaran yang tidak ditemukan.');
+    if (found.length !== studentIds.length) throw invalidRef('Ada murid sasaran yang tidak ditemukan.');
     return { classIds: [] as string[], studentIds };
   }
 
@@ -316,8 +316,8 @@ export async function financeRoutes(instance: FastifyInstance) {
         summary: 'Daftar jenis biaya',
         description:
           'Izin: `finance:read`; modul `finance`. Urut nama. `planCount` dan `invoiceCount` = pemakaian jenis biaya ini. ' +
-          '`scope` = `all` (semua siswa), `class` (hanya kelas di `classIds`), atau `student` (hanya siswa di `studentIds`); ' +
-          '`targetCount` dan `targetNames` (nama kelas/siswa sasaran) untuk tampilan.',
+          '`scope` = `all` (semua murid), `class` (hanya kelas di `classIds`), atau `student` (hanya murid di `studentIds`); ' +
+          '`targetCount` dan `targetNames` (nama kelas/murid sasaran) untuk tampilan.',
         headers: schoolHeader,
         response: { 200: z.array(feeTypeSchema), ...guarded },
       },
@@ -336,8 +336,8 @@ export async function financeRoutes(instance: FastifyInstance) {
           'Izin: `finance:manage`; modul `finance`. `kind`: `monthly` (per bulan, mis. SPP), `semester` (per semester, ' +
           'mis. SPP semester atau uang ujian semester; tarif = nominal per semester), `one_time` (sekali), `yearly` ' +
           '(per tahun ajaran). Nama unik di sekolah (409 `conflict`). `scope` (bawaan `all`): `all` = ditagihkan ke semua ' +
-          'siswa; `class` = hanya siswa di kelas `classIds`; `student` = hanya siswa `studentIds`. Cakupan `class`/`student` ' +
-          'wajib berisi sasaran (400 `targets_required`); id kelas/siswa yang tidak ada di sekolah ini ditolak 400 ' +
+          'murid; `class` = hanya murid di kelas `classIds`; `student` = hanya murid `studentIds`. Cakupan `class`/`student` ' +
+          'wajib berisi sasaran (400 `targets_required`); id kelas/murid yang tidak ada di sekolah ini ditolak 400 ' +
           '`invalid_reference`.',
         headers: schoolHeader,
         body: feeTypeBody,
@@ -460,13 +460,13 @@ export async function financeRoutes(instance: FastifyInstance) {
       onRequest: readGate,
       schema: {
         tags: tag,
-        summary: 'Jenis biaya yang berlaku untuk seorang siswa',
+        summary: 'Jenis biaya yang berlaku untuk seorang murid',
         description:
-          'Izin: `finance:read`; modul `finance`. Mengembalikan jenis biaya yang berlaku bagi siswa menurut cakupan: ' +
-          '`all` selalu berlaku, `class` bila siswa terdaftar di salah satu kelas sasaran, `student` bila siswa ada di ' +
+          'Izin: `finance:read`; modul `finance`. Mengembalikan jenis biaya yang berlaku bagi murid menurut cakupan: ' +
+          '`all` selalu berlaku, `class` bila murid terdaftar di salah satu kelas sasaran, `student` bila murid ada di ' +
           'sasaran. `academicYearId` opsional membatasi pendaftaran kelas yang dihitung pada tahun ajaran itu (bila ' +
-          'kosong, semua pendaftaran siswa). Urut nama; jenis biaya nonaktif ikut tampil dengan `active` false. 404 ' +
-          '`not_found` bila siswa tak ada.',
+          'kosong, semua pendaftaran murid). Urut nama; jenis biaya nonaktif ikut tampil dengan `active` false. 404 ' +
+          '`not_found` bila murid tak ada.',
         headers: schoolHeader,
         params: z.object({ studentId: z.uuid() }),
         querystring: z.object({ academicYearId: z.uuid().optional() }),
@@ -492,7 +492,7 @@ export async function financeRoutes(instance: FastifyInstance) {
           .select({ id: student.id })
           .from(student)
           .where(and(eq(student.id, studentId), isNull(student.deletedAt)));
-        if (!s) throw notFound('Siswa');
+        if (!s) throw notFound('Murid');
         const classes = await tx
           .select({ classId: enrollment.classId })
           .from(enrollment)
@@ -679,25 +679,25 @@ export async function financeRoutes(instance: FastifyInstance) {
         tags: tag,
         summary: 'Buat tagihan massal',
         description:
-          'Izin: `finance:manage`; modul `finance`. Membuat tagihan untuk setiap siswa aktif yang terdaftar di tahun ' +
-          'ajaran itu (dibatasi `classId` bila diisi). Tarif dipilih dari tingkat kelas siswa; tarif tingkat yang cocok ' +
-          'diutamakan daripada tarif semua tingkat (level null). Siswa tanpa tarif tidak dibuatkan tagihan dan ' +
-          'dilaporkan di `missingPlan`. Idempoten: tagihan yang sudah ada (siswa, tahun, jenis biaya, periode) ' +
+          'Izin: `finance:manage`; modul `finance`. Membuat tagihan untuk setiap murid aktif yang terdaftar di tahun ' +
+          'ajaran itu (dibatasi `classId` bila diisi). Tarif dipilih dari tingkat kelas murid; tarif tingkat yang cocok ' +
+          'diutamakan daripada tarif semua tingkat (level null). Murid tanpa tarif tidak dibuatkan tagihan dan ' +
+          'dilaporkan di `missingPlan`. Idempoten: tagihan yang sudah ada (murid, tahun, jenis biaya, periode) ' +
           'dilewati dan dihitung di `skipped`. Judul otomatis, mis. "SPP Agustus 2026"; biaya semester: "SPP Semester Ganjil 2026/2027" (`S1` = ' +
           'ganjil, `S2` = genap; tarif = nominal per semester; cicilan berperiode `S1C01`.. agar tak bentrok ' +
-          'antarsemester, dan hanya tagihan semester yang sama yang membuat siswa dilewati). Galat: 400 `period_required` ' +
+          'antarsemester, dan hanya tagihan semester yang sama yang membuat murid dilewati). Galat: 400 `period_required` ' +
           '(`period` wajib TTTT-BB untuk jenis `monthly`, wajib `S1`/`S2` untuk jenis `semester` (selain itu 400 ' +
           '`period_invalid`), dan harus null untuk jenis lain), 400 `invalid_reference`, ' +
           '409 `inactive` (jenis biaya nonaktif). Tarif bernominal 0 = gratis: tagihan tidak dibuat dan dihitung di ' +
-          '`free`. Keringanan: aturan aktif yang dipasang pada siswa di tahun ajaran itu dan berlaku untuk jenis biaya ' +
+          '`free`. Keringanan: aturan aktif yang dipasang pada murid di tahun ajaran itu dan berlaku untuk jenis biaya ' +
           'ini (jenis kosong atau sama) dijumlahkan (persen dibulatkan ke bawah per aturan + nominal tetap, maksimal ' +
           'sebesar nominal) menjadi `discount` tagihan baru, nama aturan digabung di `discountReason`; `discounted` = ' +
           'jumlah tagihan baru yang berdiskon (tagihan yang sudah ada tidak diubah). `installments` (2..12, hanya jenis ' +
           'non-bulanan; 400 `installments_invalid`) membuat N tagihan berperiode `C01`..`C12` dengan nominal dibagi ' +
-          'rata (sisa ke cicilan pertama), jatuh tempo `dueDate` + (i-1) bulan, dan diskon dibagi proporsional; siswa ' +
+          'rata (sisa ke cicilan pertama), jatuh tempo `dueDate` + (i-1) bulan, dan diskon dibagi proporsional; murid ' +
           'yang sudah punya tagihan jenis itu pada tahun ajaran tsb dilewati. Cakupan jenis biaya: `scope` `class` hanya ' +
-          'menagih siswa yang pada tahun ajaran itu terdaftar di kelas sasaran, `student` hanya siswa sasaran, `all` ' +
-          'semua siswa; bila `classId` juga diisi, hasilnya irisan keduanya. Siswa di luar sasaran dihitung di ' +
+          'menagih murid yang pada tahun ajaran itu terdaftar di kelas sasaran, `student` hanya murid sasaran, `all` ' +
+          'semua murid; bila `classId` juga diisi, hasilnya irisan keduanya. Murid di luar sasaran dihitung di ' +
           '`outOfScope` (tidak masuk `missingPlan`).',
         headers: schoolHeader,
         body: generateBody,
@@ -705,12 +705,12 @@ export async function financeRoutes(instance: FastifyInstance) {
           200: z.object({
             created: z.number().int(),
             skipped: z.number().int(),
-            free: z.number().int().describe('Siswa bertarif 0 (gratis); tagihan tidak dibuat'),
+            free: z.number().int().describe('Murid bertarif 0 (gratis); tagihan tidak dibuat'),
             discounted: z.number().int().describe('Jumlah tagihan baru yang berdiskon'),
             outOfScope: z
               .number()
               .int()
-              .describe('Siswa aktif terdaftar yang dilewati karena di luar sasaran cakupan jenis biaya'),
+              .describe('Murid aktif terdaftar yang dilewati karena di luar sasaran cakupan jenis biaya'),
             missingPlan: z.array(
               z.object({
                 studentId: z.uuid(),
@@ -777,9 +777,9 @@ export async function financeRoutes(instance: FastifyInstance) {
         tags: tag,
         summary: 'Daftar tagihan',
         description:
-          'Izin: `finance:read`; modul `finance`. Filter opsional: `academicYearId`, `classId` (kelas siswa pada tahun ' +
+          'Izin: `finance:read`; modul `finance`. Filter opsional: `academicYearId`, `classId` (kelas murid pada tahun ' +
           'tagihan), `studentId`, `feeTypeId`, `period` (TTTT-BB atau `S1`/`S2`), `status`. Status diturunkan dari kwitansi yang tidak batal: ' +
-          '`unpaid`, `partial`, `paid`, `void`. Urut jatuh tempo, nama siswa. `limit` maks 100 (bawaan 50), `offset` ' +
+          '`unpaid`, `partial`, `paid`, `void`. Urut jatuh tempo, nama murid. `limit` maks 100 (bawaan 50), `offset` ' +
           'bawaan 0. `overdue` = masih ada sisa dan lewat jatuh tempo (hari ini menurut zona waktu sekolah).',
         headers: schoolHeader,
         querystring: z.object({
@@ -1021,11 +1021,11 @@ export async function financeRoutes(instance: FastifyInstance) {
       onRequest: readGate,
       schema: {
         tags: tag,
-        summary: 'Rekening siswa',
+        summary: 'Rekening murid',
         description:
-          'Izin: `finance:read`; modul `finance`. Semua tagihan siswa pada satu tahun ajaran (`academicYearId` wajib), ' +
+          'Izin: `finance:read`; modul `finance`. Semua tagihan murid pada satu tahun ajaran (`academicYearId` wajib), ' +
           'kwitansi yang menyentuh tagihan itu (termasuk yang batal, bertanda `voided`), dan total. `totals` tidak ' +
-          'menghitung tagihan batal maupun kwitansi batal. 404 `not_found` bila siswa tak ada.',
+          'menghitung tagihan batal maupun kwitansi batal. 404 `not_found` bila murid tak ada.',
         headers: schoolHeader,
         params: z.object({ studentId: z.uuid() }),
         querystring: z.object({ academicYearId: z.uuid() }),
@@ -1066,7 +1066,7 @@ export async function financeRoutes(instance: FastifyInstance) {
       const { academicYearId } = request.query;
       return tenant(request, async (tx) => {
         const [stu] = await tx.select().from(student).where(eq(student.id, studentId));
-        if (!stu) throw notFound('Siswa');
+        if (!stu) throw notFound('Murid');
         const className = await classNameOf(tx, studentId, academicYearId);
         const { items } = await invoiceRows(tx, { studentId, academicYearId });
         const payRows = await tx
@@ -1164,11 +1164,11 @@ export async function financeRoutes(instance: FastifyInstance) {
         tags: tag,
         summary: 'Catat pembayaran (buat kwitansi)',
         description:
-          'Izin: `finance:pay`; modul `finance`. Satu kwitansi untuk 1..50 tagihan milik satu siswa; `total` = jumlah ' +
+          'Izin: `finance:pay`; modul `finance`. Satu kwitansi untuk 1..50 tagihan milik satu murid; `total` = jumlah ' +
           'item. Tiap `amount` bilangan bulat > 0 dan tidak boleh melebihi sisa tagihan saat ini; pemeriksaan dilakukan ' +
           'di dalam transaksi dengan penguncian baris tagihan sehingga pembayaran paralel tidak bisa melebihi sisa. ' +
           'Nomor kwitansi `KWT-{tahun}-{6 digit}` dibuat atomik dan berurutan per sekolah per tahun. `paidAt` bawaan ' +
-          'sekarang. Galat: 400 `invalid_reference` (siswa/tagihan tak ditemukan atau bukan milik siswa itu), 400 ' +
+          'sekarang. Galat: 400 `invalid_reference` (murid/tagihan tak ditemukan atau bukan milik murid itu), 400 ' +
           '`duplicate_item` (tagihan yang sama dua kali), 400 `invalid_method` (`method` bukan metode aktif sekolah; ' +
           'lihat `/v1/finance/payment-methods`), 409 `invoice_void`, 409 `overpay`.',
         headers: schoolHeader,
@@ -1197,7 +1197,7 @@ export async function financeRoutes(instance: FastifyInstance) {
       const created = await tenant(request, async (tx) => {
         await requireActiveMethod(tx, ctx.schoolId, b.method);
         const [stu] = await tx.select({ id: student.id }).from(student).where(eq(student.id, b.studentId));
-        if (!stu) throw invalidRef('Siswa tidak ditemukan.');
+        if (!stu) throw invalidRef('Murid tidak ditemukan.');
         // Urut id agar dua kwitansi yang menyentuh tagihan sama tidak saling menunggu (tanpa deadlock).
         const locked = await tx
           .select()
@@ -1206,7 +1206,7 @@ export async function financeRoutes(instance: FastifyInstance) {
           .orderBy(asc(finInvoice.id))
           .for('update');
         if (locked.length !== ids.length || locked.some((i) => i.studentId !== b.studentId)) {
-          throw invalidRef('Tagihan tidak ditemukan atau bukan milik siswa ini.');
+          throw invalidRef('Tagihan tidak ditemukan atau bukan milik murid ini.');
         }
         if (locked.some((i) => i.status === 'void')) {
           throw new HttpError(409, 'invoice_void', 'Ada tagihan yang sudah dibatalkan.');
@@ -1355,7 +1355,7 @@ export async function financeRoutes(instance: FastifyInstance) {
         tags: tag,
         summary: 'Detail kwitansi',
         description:
-          'Izin: `finance:read`; modul `finance`. Data cetak kwitansi: nomor, siswa, rincian tagihan, nama kasir, dan ' +
+          'Izin: `finance:read`; modul `finance`. Data cetak kwitansi: nomor, murid, rincian tagihan, nama kasir, dan ' +
           'tanda batal (`voided`, `voidReason`). `school.address` diambil dari pengaturan rapor (null bila belum diisi). ' +
           '404 `not_found` bila tak ada.',
         headers: schoolHeader,
@@ -1417,7 +1417,7 @@ export async function financeRoutes(instance: FastifyInstance) {
         tags: tag,
         summary: 'Laporan tunggakan',
         description:
-          'Izin: `finance:read`; modul `finance`. Per siswa yang masih punya sisa tagihan pada satu tahun ajaran ' +
+          'Izin: `finance:read`; modul `finance`. Per murid yang masih punya sisa tagihan pada satu tahun ajaran ' +
           '(`academicYearId` wajib; `classId` opsional; `asOf` bawaan hari ini). `overdueOutstanding` = sisa pada tagihan ' +
           'yang jatuh temponya sebelum `asOf`; `oldestDue` = jatuh tempo tertua di antara tagihan bersisa. Urut sisa ' +
           'terbesar. Tagihan batal tidak dihitung.',

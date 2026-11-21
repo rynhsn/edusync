@@ -14,7 +14,7 @@ export const ok = z.object({ ok: z.literal(true) });
  */
 export const remedialMarkSchema = z
   .object({
-    attempts: z.number().int().describe('Jumlah percobaan remedial siswa pada mapel ini (semua penilaian)'),
+    attempts: z.number().int().describe('Jumlah percobaan remedial murid pada mapel ini (semua penilaian)'),
     effectiveSource: z
       .enum(['original', 'remedial'])
       .describe(

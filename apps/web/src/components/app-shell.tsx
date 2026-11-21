@@ -299,6 +299,14 @@ export const NAV_GROUPS = [
         settings: true,
       },
       {
+        href: '/exams/rooms',
+        labelKey: 'examRooms',
+        icon: DoorOpen,
+        permission: 'exam:read',
+        module: 'exams',
+        settings: true,
+      },
+      {
         href: '/grades/settings',
         labelKey: 'gradeSettings',
         icon: SlidersHorizontal,

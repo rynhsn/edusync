@@ -106,17 +106,17 @@ export async function gateManualRoutes(instance: FastifyInstance) {
         description:
           'Izin: `attendance:manage`; modul `attendance`. Cadangan bila kiosk RFID tidak bisa dipakai. ' +
           RULES +
-          ' Maksimal 200 siswa per permintaan. `date` bawaan hari ini (zona waktu sekolah); tanggal lampau wajib ' +
+          ' Maksimal 200 murid per permintaan. `date` bawaan hari ini (zona waktu sekolah); tanggal lampau wajib ' +
           'memberi jam. Jam (`at` di tingkat permintaan atau per entri; entri menang) bawaannya sekarang, tidak boleh ' +
           'di masa depan dan harus pada `date`. Perilaku meniru tap: menulis `tap_event` bersumber `manual` dengan ' +
           '`recordedBy` pencatat, memperbarui absensi harian, dan memberi tahu wali (arrival/departure). Datang: ' +
           'status dihitung dari kebijakan `lateAfter` (terlambat bila jam lebih dari batas) kecuali entri memberi ' +
           '`status` `present`/`late`. Aman diulang: catatan datang/pulang yang sudah ada tidak ditimpa (`already_in`, ' +
-          '`already_out`) kecuali `overwrite: true`; siswa berstatus izin/sakit/alpa dilewati (`skipped_status`) ' +
+          '`already_out`) kecuali `overwrite: true`; murid berstatus izin/sakit/alpa dilewati (`skipped_status`) ' +
           'kecuali `overwrite`. Pulang tanpa catatan datang tetap dicatat dengan peringatan `no_check_in`. Pulang ' +
           'sebelum jam datang (atau datang setelah jam pulang) menghasilkan `invalid_time`. Tanggal libur/jeda ' +
           'sekolah: 409 `school_closed` kecuali `force: true`. Hasil per entri: `in`, `out`, `already_in`, ' +
-          '`already_out`, `skipped_status`, `not_found` (siswa tidak ada atau tidak aktif), `invalid_time`; `summary` ' +
+          '`already_out`, `skipped_status`, `not_found` (murid tidak ada atau tidak aktif), `invalid_time`; `summary` ' +
           'merangkum. Satu entri audit ringkas dicatat.',
         headers: schoolHeader,
         body: z.object({
@@ -179,11 +179,11 @@ export async function gateManualRoutes(instance: FastifyInstance) {
         description:
           'Izin: `attendance:manage`; modul `attendance`. ' +
           RULES +
-          ' Jalan pintas atas `/v1/gate/manual` untuk satu kelas: `direction` `in` mencatat semua siswa kelas yang ' +
+          ' Jalan pintas atas `/v1/gate/manual` untuk satu kelas: `direction` `in` mencatat semua murid kelas yang ' +
           'belum punya catatan datang dan tidak berstatus izin/sakit/alpa; `out` mencatat semua yang sudah datang tetapi ' +
-          'belum pulang. Siswa yang tidak memenuhi syarat tidak disentuh. Jam `at` (HH:MM atau ISO) dan `date` sama ' +
-          'seperti `/v1/gate/manual`. Respons sama dengan `/v1/gate/manual` (hanya siswa yang diproses), ditambah ' +
-          '`candidates` (jumlah siswa yang dipilih). Kelas tidak ada: 404; libur: 409 `school_closed` kecuali `force`.',
+          'belum pulang. Murid yang tidak memenuhi syarat tidak disentuh. Jam `at` (HH:MM atau ISO) dan `date` sama ' +
+          'seperti `/v1/gate/manual`. Respons sama dengan `/v1/gate/manual` (hanya murid yang diproses), ditambah ' +
+          '`candidates` (jumlah murid yang dipilih). Kelas tidak ada: 404; libur: 409 `school_closed` kecuali `force`.',
         headers: schoolHeader,
         body: z.object({
           classId: z.uuid(),
@@ -278,7 +278,7 @@ export async function gateManualRoutes(instance: FastifyInstance) {
           'Izin: `attendance:manage`; modul `attendance`. ' +
           RULES +
           ' `scope`: `all` (pengurus), `duty` (piket hari ini: semua kelas), atau `homeroom` (hanya kelas yang ' +
-          'diwalikan; bisa kosong). Per kelas (tahun ajaran aktif): `total` siswa aktif, `checkedIn` (sudah ada jam ' +
+          'diwalikan; bisa kosong). Per kelas (tahun ajaran aktif): `total` murid aktif, `checkedIn` (sudah ada jam ' +
           'datang), `checkedOut` (sudah ada jam pulang), `away` (izin/sakit/alpa), `notYet` (belum datang dan bukan ' +
           'izin/sakit/alpa), dan `homeroom` (apakah pengguna wali kelasnya). `closed` terisi bila hari ini libur.',
         headers: schoolHeader,
@@ -384,7 +384,7 @@ export async function gateManualRoutes(instance: FastifyInstance) {
       onRequest: gate,
       schema: {
         tags: tag,
-        summary: 'Koreksi absensi gerbang satu siswa pada satu tanggal',
+        summary: 'Koreksi absensi gerbang satu murid pada satu tanggal',
         description:
           'Izin: `attendance:manage`; modul `attendance`. ' +
           RULES +
@@ -393,8 +393,8 @@ export async function gateManualRoutes(instance: FastifyInstance) {
           '`checkInAt`. `status` bila tidak dikirim: dihitung dari kebijakan saat jam datang diubah, selain itu tetap. ' +
           'Bila kedua jam dikosongkan tanpa `status` dan status lama `present`/`late`, catatan dihapus (kembali ke ' +
           '"belum ada catatan"; `removed: true`). Jam yang baru diset ikut dicatat sebagai `tap_event` `manual`. ' +
-          'Tidak ada pemberitahuan ke wali. Siswa tidak ada/tidak aktif: 404. Ditolak 409 `report_final` bila tanggalnya ' +
-          'berada di semester yang rapor siswanya sudah final. Satu entri audit dicatat.',
+          'Tidak ada pemberitahuan ke wali. Murid tidak ada/tidak aktif: 404. Ditolak 409 `report_final` bila tanggalnya ' +
+          'berada di semester yang rapor muridnya sudah final. Satu entri audit dicatat.',
         headers: schoolHeader,
         params: z.object({ studentId: z.uuid() }),
         body: z.object({
@@ -434,7 +434,7 @@ export async function gateManualRoutes(instance: FastifyInstance) {
           .select({ id: student.id, name: student.name })
           .from(student)
           .where(and(eq(student.id, studentId), eq(student.status, 'active'), isNull(student.deletedAt)));
-        if (!stu) throw new HttpError(404, 'not_found', 'Siswa tidak ditemukan.');
+        if (!stu) throw new HttpError(404, 'not_found', 'Murid tidak ditemukan.');
         const cls = (await classesOf(tx, [studentId])).get(studentId) ?? null;
         const scope = await manualScope(tx, ctx, b.date);
         if (!canRecordClass(scope, cls?.id ?? null)) throw forbiddenClass();

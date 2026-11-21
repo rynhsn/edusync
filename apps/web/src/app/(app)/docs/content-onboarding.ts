@@ -11,13 +11,13 @@ export const ONBOARDING_DOCS: DocArticle[] = [
       id: {
         title: 'Panduan awal sekolah',
         summary:
-          'Urutan mengisi data dasar sekolah baru: identitas, tingkat, tahun ajaran, mata pelajaran, kelas, guru, siswa, dan jenis ujian.',
+          'Urutan mengisi data dasar sekolah baru: identitas, tingkat, tahun ajaran, mata pelajaran, kelas, guru, murid, dan jenis ujian.',
         forWho: 'Admin sekolah yang baru pertama kali masuk dan melihat halaman-halaman masih kosong.',
         sections: [
           {
             heading: 'Mengapa halaman terlihat kosong',
             body: 'Sekolah baru dimulai tanpa data apa pun. Banyak halaman bergantung pada data lain, misalnya ujian butuh mata pelajaran dan semester, kelas butuh tahun ajaran. Bila data itu belum ada, halaman menampilkan pemberitahuan apa yang kurang beserta tombol menuju halaman untuk membuatnya.',
-            tip: 'Di beranda, kartu Panduan awal sekolah mencentang langkah otomatis begitu datanya ada. Kartu ringkas: terbuka saat kunjungan pertama, lalu hanya menampilkan langkah berikutnya beserta tombolnya; pilih Lihat semua langkah untuk daftar lengkap. Bila ditutup dengan tombol silang, tombol kecil Panduan di beranda membukanya kembali. Kartu hilang sendiri saat semua langkah selesai. Halaman daftar yang masih kosong (siswa, guru, kelas, mata pelajaran, ujian, bank soal, tagihan) juga menjelaskan fungsinya dan langkah pertamanya.',
+            tip: 'Di beranda, kartu Panduan awal sekolah mencentang langkah otomatis begitu datanya ada. Kartu ringkas: terbuka saat kunjungan pertama, lalu hanya menampilkan langkah berikutnya beserta tombolnya; pilih Lihat semua langkah untuk daftar lengkap. Bila ditutup dengan tombol silang, tombol kecil Panduan di beranda membukanya kembali. Kartu hilang sendiri saat semua langkah selesai. Halaman daftar yang masih kosong (murid, guru, kelas, mata pelajaran, ujian, bank soal, tagihan) juga menjelaskan fungsinya dan langkah pertamanya.',
             href: '/dashboard',
           },
           {
@@ -30,7 +30,7 @@ export const ONBOARDING_DOCS: DocArticle[] = [
               'Mata pelajaran (menu Mata pelajaran): diperlukan untuk jadwal, nilai, bank soal, dan ujian.',
               'Kelas (menu Kelas): pilih tahun ajaran, lalu buat kelas dan wali kelasnya.',
               'Guru (menu Guru): tambah satu per satu atau impor dari Excel.',
-              'Siswa (menu Siswa): tambah atau impor dari Excel, lalu tempatkan ke kelas.',
+              'Murid (menu Murid): tambah atau impor dari Excel, lalu tempatkan ke kelas.',
               'Jenis ujian (menu Ujian, Jenis ujian): hanya bila modul Ujian aktif, misalnya ASTS dan ASAS.',
             ],
             href: '/school-settings',

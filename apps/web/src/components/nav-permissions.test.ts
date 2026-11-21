@@ -55,6 +55,7 @@ const PRIMARY: Record<string, string> = {
   '/exams/paper': 'PUT /v1/exam/paper-settings',
   '/exams/bank': 'GET /v1/exam/questions',
   '/exams/types': 'POST /v1/exam/types',
+  '/exams/rooms': 'GET /v1/exam/rooms',
   '/finance': 'POST /v1/finance/payments',
   '/finance/invoices': 'GET /v1/finance/invoices',
   '/finance/reports': 'GET /v1/finance/reports/arrears',

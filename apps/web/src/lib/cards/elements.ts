@@ -1,4 +1,5 @@
 import {
+  buildScheduleTable,
   type CardData,
   type CardElement,
   type CardKind,
@@ -6,11 +7,16 @@ import {
   cardFieldsFor,
   cardLayoutSchema,
   codeFieldsFor,
+  DEFAULT_SCHEDULE_COLUMNS,
+  fitScheduleFont,
   formatParticipantNo,
   MAX_CARD_ELEMENTS,
   MAX_CARD_MM,
   MIN_CARD_MM,
   resolveFieldValue,
+  SCHEDULE_COLUMNS,
+  type ScheduleColumn,
+  scheduleRowHeightMm,
 } from '@edusync/contracts';
 import { type Box, clampBox, snap } from './geometry';
 
@@ -25,9 +31,14 @@ export const ELEMENT_TYPES: readonly ElementType[] = [
   'barcode',
   'rect',
   'line',
+  'schedule',
 ];
 
-export type PresetKey = 'cr80' | 'cr80Portrait' | 'exam' | 'a7' | 'a6' | 'a6Portrait' | 'a5';
+/** Jenis elemen yang ditawarkan di editor: tabel jadwal hanya untuk kartu ujian. */
+export const elementTypesFor = (kind: CardKind): readonly ElementType[] =>
+  ELEMENT_TYPES.filter((t) => t !== 'schedule' || kind === 'exam');
+
+export type PresetKey = 'cr80' | 'cr80Portrait' | 'exam' | 'a7' | 'a6' | 'a6Portrait' | 'a5' | 'a4';
 
 export interface CanvasPreset {
   key: PresetKey;
@@ -44,6 +55,7 @@ export const CANVAS_PRESETS: readonly CanvasPreset[] = [
   { key: 'a6', w: 148, h: 105 },
   { key: 'a6Portrait', w: 105, h: 148 },
   { key: 'a5', w: 210, h: 148 },
+  { key: 'a4', w: 210, h: 297 },
 ];
 
 export const boxOf = (el: Pick<CardElement, 'x' | 'y' | 'w' | 'h'>): Box => ({
@@ -139,7 +151,155 @@ export function createElement(
       };
     case 'line':
       return { type, id, ...place(40, 0), color: '#111111', thickness: 0.3 };
+    case 'schedule':
+      return {
+        type,
+        id,
+        ...place(Math.round(canvas.w * 0.8), Math.round(canvas.h * 0.5)),
+        fontSize: 8,
+        color: '#111111',
+        headerFill: '#f1f5f9',
+        borderColor: '#111111',
+        borderWidth: 0.2,
+        columns: [...DEFAULT_SCHEDULE_COLUMNS],
+        mergeDays: true,
+        showHeader: true,
+      };
   }
+}
+
+/* ---------- Tabel jadwal ---------- */
+
+/** Bobot lebar relatif tiap kolom tabel jadwal. */
+const SCHEDULE_WEIGHT: Record<ScheduleColumn, number> = {
+  no: 0.4,
+  dayDate: 1.7,
+  day: 0.9,
+  date: 1.2,
+  time: 1.3,
+  subject: 2.4,
+};
+
+export interface ScheduleCell {
+  /** Posisi dan ukuran (mm) relatif terhadap kotak elemen. */
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  text: string;
+  header: boolean;
+  /** Sisi kiri dan atas hanya digambar pada sel di tepi tabel (sisi kanan dan bawah selalu). */
+  edgeLeft: boolean;
+  edgeTop: boolean;
+}
+
+export interface ScheduleGeometry {
+  /** Ukuran huruf (pt) hasil penyesuaian. */
+  fontSize: number;
+  cells: ScheduleCell[];
+}
+
+/**
+ * Letak tiap sel tabel jadwal (mm) dari data; dipakai bersama pratinjau dan PDF supaya sama. Sel gabungan (hari yang
+ * sama) membentang beberapa baris. Tinggi baris tetap, jadi teks panjang dipotong oleh pemakai (overflow hidden).
+ */
+export function scheduleGeometry(
+  el: Extract<CardElement, { type: 'schedule' }>,
+  data: CardData,
+): ScheduleGeometry {
+  const table = buildScheduleTable(data.schedule ?? [], {
+    columns: el.columns,
+    headers: el.headers,
+    mergeDays: el.mergeDays,
+  });
+  const fontSize = fitScheduleFont(table.rows.length, el.h, el.fontSize);
+  const rowH = scheduleRowHeightMm(fontSize);
+  const total = table.columns.reduce((s, c) => s + SCHEDULE_WEIGHT[c], 0);
+  let acc = 0;
+  const cols = table.columns.map((c) => {
+    const x = (acc / total) * el.w;
+    acc += SCHEDULE_WEIGHT[c];
+    return { x, w: (acc / total) * el.w - x };
+  });
+  const cells: ScheduleCell[] = [];
+  const top = el.showHeader ? 1 : 0;
+  if (el.showHeader) {
+    table.headers.forEach((text, ci) => {
+      const col = cols[ci];
+      if (col) cells.push({ ...col, y: 0, h: rowH, text, header: true, edgeLeft: ci === 0, edgeTop: true });
+    });
+  }
+  table.rows.forEach((row, ri) => {
+    row.cells.forEach((text, ci) => {
+      const col = cols[ci];
+      if (text === null || !col) return;
+      cells.push({
+        ...col,
+        y: (top + ri) * rowH,
+        h: (row.spans[ci] ?? 1) * rowH,
+        text,
+        header: false,
+        edgeLeft: ci === 0,
+        edgeTop: !el.showHeader && ri === 0,
+      });
+    });
+  });
+  return { fontSize, cells };
+}
+
+/* Penyunting kolom tabel jadwal: judul (`headers`) selalu sejajar dengan `columns`. */
+
+type ScheduleCols = { columns: ScheduleColumn[]; headers?: string[] | undefined };
+
+/** Tabel kolom + judul sesudah diubah; `headers` dibuang bila semuanya kosong. */
+const scheduleCols = (columns: ScheduleColumn[], headers: string[]): ScheduleCols => ({
+  columns,
+  headers: headers.some((h) => h.trim()) ? headers : undefined,
+});
+
+/** Pasangan kolom-judul menurut urutan sekarang. */
+const pairs = (s: ScheduleCols) => s.columns.map((c, i) => ({ c, h: s.headers?.[i] ?? '' }));
+
+/** Kolom yang belum tampil, urut seperti SCHEDULE_COLUMNS. */
+export const hiddenScheduleColumns = (columns: readonly ScheduleColumn[]) =>
+  SCHEDULE_COLUMNS.filter((c) => !columns.includes(c));
+
+/** Tampilkan (ditaruh di akhir) atau sembunyikan satu kolom; kolom terakhir tidak bisa disembunyikan. */
+export function toggleScheduleColumn(s: ScheduleCols, column: ScheduleColumn, on: boolean): ScheduleCols {
+  const list = pairs(s);
+  const has = list.some((p) => p.c === column);
+  if (on && !has) list.push({ c: column, h: '' });
+  else if (!on && has && list.length > 1)
+    list.splice(
+      list.findIndex((p) => p.c === column),
+      1,
+    );
+  return scheduleCols(
+    list.map((p) => p.c),
+    list.map((p) => p.h),
+  );
+}
+
+/** Geser satu kolom ke kiri (-1) atau kanan (+1). */
+export function moveScheduleColumn(s: ScheduleCols, column: ScheduleColumn, dir: -1 | 1): ScheduleCols {
+  const list = pairs(s);
+  const i = list.findIndex((p) => p.c === column);
+  const j = i + dir;
+  if (i < 0 || j < 0 || j >= list.length) return scheduleCols(s.columns, s.headers ?? []);
+  [list[i], list[j]] = [list[j] as (typeof list)[number], list[i] as (typeof list)[number]];
+  return scheduleCols(
+    list.map((p) => p.c),
+    list.map((p) => p.h),
+  );
+}
+
+/** Ganti judul satu kolom (kosong = judul bawaan). */
+export function setScheduleHeader(s: ScheduleCols, column: ScheduleColumn, header: string): ScheduleCols {
+  const list = pairs(s).map((p) => (p.c === column ? { ...p, h: header } : p));
+  return scheduleCols(
+    list.map((p) => p.c),
+    list.map((p) => p.h),
+  );
 }
 
 export function updateElement(
@@ -252,7 +412,16 @@ export function sampleCardData(kind: CardKind): CardData {
     examTitle: 'Asesmen Sumatif Tengah Semester Ganjil 2026/2027',
     typeName: 'Asesmen Sumatif Tengah Semester',
     participantNo: formatParticipantNo('ASTS', '2026', 7),
-    room: 'Ruang 3',
+    room: '02',
+    principalName: 'Drs. H. Ahmad Fauzi, M.Pd.',
+    cityDate: 'Bandung, 5 Oktober 2026',
+    schedule: [
+      { subject: 'Matematika', date: '2026-10-12', time: '07.30 - 09.00 WIB' },
+      { subject: 'Bahasa Indonesia', date: '2026-10-12', time: '09.30 - 11.00 WIB' },
+      { subject: 'Ilmu Pengetahuan Alam', date: '2026-10-13', time: '07.30 - 09.00 WIB' },
+      { subject: 'Bahasa Inggris', date: '2026-10-14', time: '07.30 - 09.00 WIB' },
+      { subject: 'Pendidikan Agama dan Budi Pekerti', date: '2026-10-15', time: '07.30 - 09.00 WIB' },
+    ],
     date: '12 Oktober 2026 s.d. 16 Oktober 2026',
     time: '07.30 - 09.00 WIB',
     subjectList: [

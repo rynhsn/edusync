@@ -732,7 +732,7 @@ export async function academicStructureRoutes(instance: FastifyInstance) {
         tags: ['Academic'],
         summary: 'Hapus kelas',
         description:
-          'Izin: `class:manage`. Ditolak 409 `in_use` bila masih ada siswa, penugasan guru, atau keputusan kenaikan kelas yang merujuk kelas itu.',
+          'Izin: `class:manage`. Ditolak 409 `in_use` bila masih ada murid, penugasan guru, atau keputusan kenaikan kelas yang merujuk kelas itu.',
         headers: schoolHeader,
         params: idParams,
         response: { 200: ok, 404: errorSchema, 409: errorSchema, ...guarded },

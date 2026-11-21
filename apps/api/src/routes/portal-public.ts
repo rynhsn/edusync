@@ -87,7 +87,7 @@ export async function portalPublicRoutes(instance: FastifyInstance, options: { e
         tags: tag,
         summary: 'Lihat undangan portal dari tautan',
         description:
-          'Publik, hanya untuk pemegang token. Mengembalikan sekolah, jenis (wali/siswa), nama yang ditautkan, dan ' +
+          'Publik, hanya untuk pemegang token. Mengembalikan sekolah, jenis (wali/murid), nama yang ditautkan, dan ' +
           'email yang dikunci undangan (null bila bebas), serta apakah email itu sudah punya akun. 410 ' +
           '`invitation_invalid` bila token salah, sudah dipakai, kedaluwarsa, dicabut, atau sekolah ditangguhkan; ' +
           '403 `module_disabled` bila portal tidak aktif.',
@@ -136,7 +136,7 @@ export async function portalPublicRoutes(instance: FastifyInstance, options: { e
         summary: 'Terima undangan portal dan buat akun',
         description:
           'Publik, hanya untuk pemegang token; sekali pakai. Membuat akun masuk baru (nama, email, kata sandi 12-128 ' +
-          'karakter) lalu keanggotaan sekolah dengan peran `guardian`/`student` dan tautan portal ke wali/siswa ' +
+          'karakter) lalu keanggotaan sekolah dengan peran `guardian`/`student` dan tautan portal ke wali/murid ' +
           'undangan. Bila undangan mengunci email, `email` harus sama (400 `email_mismatch`). Bila email sudah punya ' +
           'akun, kata sandi akun itu dipakai untuk memastikan pemiliknya (401 `invalid_credentials` bila salah) dan ' +
           'akun yang sama ditautkan; 409 `already_member` bila akun itu sudah anggota sekolah ini, 409 ' +

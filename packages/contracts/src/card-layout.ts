@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { examDateParts } from './exam-paper';
 
 /**
  * Tata letak kartu cetak (kartu siswa dan kartu peserta ujian). Semua koordinat dan ukuran dalam milimeter dari
@@ -36,7 +37,10 @@ export const EXAM_CARD_FIELDS = [
   'time',
   'subjectList',
   'schoolName',
+  'address',
   'academicYear',
+  'principalName',
+  'cityDate',
 ] as const;
 
 /** Gabungan semua kolom terikat (tanpa duplikat). */
@@ -59,6 +63,8 @@ export const CARD_FIELDS = [
   'date',
   'time',
   'subjectList',
+  'principalName',
+  'cityDate',
 ] as const;
 export type CardField = (typeof CARD_FIELDS)[number];
 
@@ -114,7 +120,7 @@ export const CARD_FIELD_LABELS: Record<CardField, string> = {
   birthPlaceDate: 'Tempat, tanggal lahir',
   gender: 'Jenis kelamin',
   rfidCode: 'Kode kartu RFID',
-  qrCode: 'QR identitas siswa',
+  qrCode: 'QR identitas murid',
   schoolName: 'Nama sekolah',
   address: 'Alamat',
   examTitle: 'Judul ujian',
@@ -124,6 +130,8 @@ export const CARD_FIELD_LABELS: Record<CardField, string> = {
   date: 'Tanggal ujian',
   time: 'Jam ujian',
   subjectList: 'Jadwal mata pelajaran',
+  principalName: 'Nama kepala sekolah',
+  cityDate: 'Kota dan tanggal cetak',
 };
 
 export function cardFieldsFor(kind: CardKind): readonly CardField[] {
@@ -226,6 +234,48 @@ export const lineElementSchema = z.object({
   thickness: z.number().min(0.1).max(5).default(0.3),
 });
 
+/**
+ * Tabel jadwal ujian (Hari/Tanggal, Waktu, Mata Pelajaran) dari jadwal ujian kelas siswa; hanya untuk kartu ujian.
+ * Hari yang sama digabung menjadi satu sel. Ukuran huruf diperkecil otomatis bila baris tidak muat di tinggi kotak.
+ */
+export const SCHEDULE_COLUMNS = ['no', 'dayDate', 'day', 'date', 'time', 'subject'] as const;
+export type ScheduleColumn = (typeof SCHEDULE_COLUMNS)[number];
+
+/** Judul bawaan tiap kolom tabel jadwal; sekolah dapat menggantinya per elemen (`headers`). */
+export const SCHEDULE_COLUMN_LABELS: Record<ScheduleColumn, string> = {
+  no: 'No',
+  dayDate: 'Hari, Tanggal',
+  day: 'Hari',
+  date: 'Tanggal',
+  time: 'Waktu',
+  subject: 'Mata Pelajaran',
+};
+
+/** Susunan kolom bawaan: seperti tanda peserta pada umumnya. */
+export const DEFAULT_SCHEDULE_COLUMNS: ScheduleColumn[] = ['dayDate', 'time', 'subject'];
+
+export const scheduleElementSchema = z.object({
+  type: z.literal('schedule'),
+  ...box,
+  fontSize: fontSize.default(8),
+  color: color.default('#111111'),
+  headerFill: color.default('#f1f5f9'),
+  borderColor: color.default('#111111'),
+  borderWidth: z.number().min(0.1).max(2).default(0.2),
+  /** Kolom yang tampil, berurutan; tiap kolom hanya boleh sekali. Bawaan: Hari, Tanggal | Waktu | Mata Pelajaran. */
+  columns: z
+    .array(z.enum(SCHEDULE_COLUMNS))
+    .min(1)
+    .max(SCHEDULE_COLUMNS.length)
+    .refine((cols) => new Set(cols).size === cols.length, 'Kolom tidak boleh ganda.')
+    .default(DEFAULT_SCHEDULE_COLUMNS),
+  /** Judul kolom pengganti (urutan sama dengan `columns`); kosong atau tidak diisi = judul bawaan. */
+  headers: z.array(z.string().max(30)).max(SCHEDULE_COLUMNS.length).optional(),
+  /** Gabungkan sel hari/tanggal yang sama menjadi satu sel (rowspan). */
+  mergeDays: z.boolean().default(true),
+  showHeader: z.boolean().default(true),
+});
+
 export const cardElementSchema = z.discriminatedUnion('type', [
   textElementSchema,
   fieldElementSchema,
@@ -235,6 +285,7 @@ export const cardElementSchema = z.discriminatedUnion('type', [
   barcodeElementSchema,
   rectElementSchema,
   lineElementSchema,
+  scheduleElementSchema,
 ]);
 
 export type CardElement = z.infer<typeof cardElementSchema>;
@@ -275,6 +326,7 @@ export function invalidFieldsForKind(kind: CardKind, elements: readonly CardElem
       // NIS dan kode kartu RFID hanya boleh tampil sebagai teks, tidak sebagai isi QR / kode batang.
       bad.add(`${el.field} (isi ${el.type === 'qr' ? 'QR' : 'kode batang'})`);
     }
+    if (el.type === 'schedule' && kind !== 'exam') bad.add('schedule');
     // QR identitas hanya untuk gambar kode; sebagai teks akan membocorkan isinya di kartu.
     if (el.type === 'field' && el.field === 'qrCode') bad.add(el.field);
   }
@@ -282,7 +334,155 @@ export function invalidFieldsForKind(kind: CardKind, elements: readonly CardElem
 }
 
 /** Nilai kolom untuk satu kartu. Larik digabung per baris; nilai kosong menjadi string kosong. */
-export type CardData = Partial<Record<CardField, string | readonly string[] | null | undefined>>;
+export type CardData = Partial<Record<CardField, string | readonly string[] | null | undefined>> & {
+  /** Jadwal ujian kelas siswa untuk elemen tabel jadwal (kartu ujian). */
+  schedule?: readonly ExamScheduleLine[] | null;
+};
+
+/** Satu baris jadwal ujian pada kartu. */
+export interface ExamScheduleLine {
+  subject: string;
+  /** Tanggal kalender `YYYY-MM-DD`; kosong bila ujian belum dijadwalkan. */
+  date: string | null;
+  /** "07.30 - 09.00 WIB" atau kosong. */
+  time: string;
+}
+
+const MONTHS_LONG = [
+  'Januari',
+  'Februari',
+  'Maret',
+  'April',
+  'Mei',
+  'Juni',
+  'Juli',
+  'Agustus',
+  'September',
+  'Oktober',
+  'November',
+  'Desember',
+];
+
+/** "2025-06-04" -> "Kamis, 04 Juni 2025"; tanpa tanggal -> "Belum dijadwalkan". */
+export function scheduleDayLabel(iso: string | null): string {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso ?? '');
+  if (!m) return 'Belum dijadwalkan';
+  const { day } = examDateParts(iso);
+  return `${day}, ${m[3]} ${MONTHS_LONG[Number(m[2]) - 1] ?? ''} ${m[1]}`;
+}
+
+export interface ScheduleDayGroup {
+  label: string;
+  rows: { time: string; subject: string }[];
+}
+
+/** Kelompokkan jadwal per tanggal (urut tanggal, lalu jam, lalu mata pelajaran); tanpa tanggal ditaruh di akhir. */
+export function groupScheduleByDay(lines: readonly ExamScheduleLine[]): ScheduleDayGroup[] {
+  const sorted = [...lines].sort(
+    (a, b) =>
+      (a.date ?? '9999').localeCompare(b.date ?? '9999') ||
+      a.time.localeCompare(b.time) ||
+      a.subject.localeCompare(b.subject),
+  );
+  const groups: ScheduleDayGroup[] = [];
+  for (const l of sorted) {
+    const label = scheduleDayLabel(l.date);
+    const last = groups[groups.length - 1];
+    if (last && last.label === label) last.rows.push({ time: l.time, subject: l.subject });
+    else groups.push({ label, rows: [{ time: l.time, subject: l.subject }] });
+  }
+  return groups;
+}
+
+/** "2025-06-04" -> "04 Juni 2025"; tanpa tanggal -> "". */
+function scheduleDateOnly(iso: string | null): string {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso ?? '');
+  return m ? `${m[3]} ${MONTHS_LONG[Number(m[2]) - 1] ?? ''} ${m[1]}` : '';
+}
+
+export interface ScheduleTableRow {
+  /** Teks tiap kolom; `null` = sel ini sudah tercakup sel di atasnya (rowspan). */
+  cells: (string | null)[];
+  /** Jumlah baris yang dicakup tiap sel (1 = tidak digabung). */
+  spans: number[];
+}
+
+export interface ScheduleTable {
+  columns: ScheduleColumn[];
+  headers: string[];
+  rows: ScheduleTableRow[];
+}
+
+/**
+ * Susun tabel jadwal dari baris jadwal ujian menurut pilihan elemen (kolom, judul, penggabungan hari). Murni, dipakai
+ * bersama pratinjau editor dan PDF supaya tampilannya sama. Kolom hari/tanggal digabung per tanggal bila `mergeDays`.
+ */
+export function buildScheduleTable(
+  lines: readonly ExamScheduleLine[],
+  opts: {
+    columns?: readonly ScheduleColumn[];
+    headers?: readonly string[] | undefined;
+    mergeDays?: boolean;
+  } = {},
+): ScheduleTable {
+  const columns = [...(opts.columns?.length ? opts.columns : DEFAULT_SCHEDULE_COLUMNS)];
+  const headers = columns.map((c, i) => opts.headers?.[i]?.trim() || SCHEDULE_COLUMN_LABELS[c]);
+  const merge = opts.mergeDays ?? true;
+  const sorted = [...lines].sort(
+    (a, b) =>
+      (a.date ?? '9999').localeCompare(b.date ?? '9999') ||
+      a.time.localeCompare(b.time) ||
+      a.subject.localeCompare(b.subject),
+  );
+  const dayColumns: ScheduleColumn[] = ['dayDate', 'day', 'date'];
+  const rows: ScheduleTableRow[] = sorted.map((l, i) => {
+    const parts = examDateParts(l.date);
+    const text: Record<ScheduleColumn, string> = {
+      no: String(i + 1),
+      dayDate: scheduleDayLabel(l.date),
+      day: parts.day || 'Belum dijadwalkan',
+      date: scheduleDateOnly(l.date),
+      time: l.time,
+      subject: l.subject,
+    };
+    return { cells: columns.map((c) => text[c]), spans: columns.map(() => 1) };
+  });
+  if (merge) {
+    columns.forEach((c, ci) => {
+      if (!dayColumns.includes(c)) return;
+      let start = 0;
+      for (let r = 1; r <= rows.length; r++) {
+        const same = r < rows.length && sorted[r]?.date === sorted[start]?.date;
+        if (same) continue;
+        const span = r - start;
+        if (span > 1) {
+          (rows[start] as ScheduleTableRow).spans[ci] = span;
+          for (let k = start + 1; k < r; k++) (rows[k] as ScheduleTableRow).cells[ci] = null;
+        }
+        start = r;
+      }
+    });
+  }
+  return { columns, headers, rows };
+}
+
+const PT_TO_MM = 25.4 / 72;
+const SCHEDULE_ROW_FACTOR = 1.9;
+
+/**
+ * Ukuran huruf (pt) tabel jadwal supaya semua baris (plus satu baris judul) muat di tinggi `heightMm`; tidak melebihi
+ * `fontSize` dan tidak kurang dari 4. Dipakai bersama pratinjau dan PDF agar tampilannya sama.
+ */
+export function fitScheduleFont(rowCount: number, heightMm: number, fontSize: number): number {
+  const lines = Math.max(1, rowCount) + 1;
+  const fit = heightMm / (lines * PT_TO_MM * SCHEDULE_ROW_FACTOR);
+  return Math.max(4, Math.min(fontSize, Math.floor(fit * 10) / 10));
+}
+
+/** Tinggi satu baris tabel jadwal (mm) untuk ukuran huruf tertentu. */
+export function scheduleRowHeightMm(fontSize: number): number {
+  return fontSize * PT_TO_MM * SCHEDULE_ROW_FACTOR;
+}
 
 const GENDER_LABEL: Record<string, string> = { L: 'Laki-laki', P: 'Perempuan' };
 
@@ -331,7 +531,7 @@ export function defaultStudentCardLayout(): CardLayout {
       { type: 'qr', field: 'qrCode', color: '#000000', x: 63, y: 25, w: 19, h: 19 },
       {
         type: 'text',
-        text: 'Kode identitas siswa',
+        text: 'Kode identitas murid',
         x: 60,
         y: 44.5,
         w: 25,
@@ -455,15 +655,180 @@ export function defaultExamCardLayout(): CardLayout {
   };
 }
 
+/**
+ * Tanda peserta ujian satu halaman A4 (210 x 297 mm): kop sekolah, identitas, kotak ruang, tabel jadwal, dan tanda tangan
+ * kepala sekolah dengan QR nomor peserta. Logo bisa ditambahkan di editor lewat elemen gambar.
+ */
+export function defaultExamSlipLayout(): CardLayout {
+  // Label dan nilai dipisah supaya titik dua rata walau huruf proporsional.
+  const info = (label: string, field: 'participantNo' | 'name' | 'className', y: number): CardElement[] => [
+    { type: 'text', text: label, x: 12, y, w: 34, h: 6, ...DEFAULT_TEXT, fontSize: 10 },
+    { type: 'field', field, prefix: ': ', x: 46, y, w: 88, h: 6, ...DEFAULT_TEXT, fontSize: 10 },
+  ];
+  return {
+    widthMm: 210,
+    heightMm: 297,
+    elements: [
+      {
+        type: 'field',
+        field: 'schoolName',
+        x: 12,
+        y: 10,
+        w: 186,
+        h: 8,
+        fontSize: 15,
+        bold: true,
+        align: 'center',
+        color: '#111111',
+      },
+      {
+        type: 'field',
+        field: 'address',
+        x: 12,
+        y: 19,
+        w: 186,
+        h: 8,
+        fontSize: 8,
+        bold: false,
+        align: 'center',
+        color: '#111111',
+      },
+      { type: 'line', x: 12, y: 29, w: 186, h: 0, color: '#111111', thickness: 0.6 },
+      {
+        type: 'text',
+        text: 'TANDA PESERTA',
+        x: 12,
+        y: 32,
+        w: 186,
+        h: 7,
+        fontSize: 14,
+        bold: true,
+        align: 'center',
+        color: '#111111',
+      },
+      {
+        type: 'field',
+        field: 'examTitle',
+        x: 12,
+        y: 40,
+        w: 186,
+        h: 7,
+        fontSize: 11,
+        bold: true,
+        align: 'center',
+        color: '#111111',
+      },
+      ...info('Nomor Peserta', 'participantNo', 54),
+      ...info('Nama Peserta', 'name', 61),
+      ...info('Kelas', 'className', 68),
+      {
+        type: 'rect',
+        x: 140,
+        y: 52,
+        w: 58,
+        h: 28,
+        fill: null,
+        borderColor: '#111111',
+        borderWidth: 0.8,
+        radius: 0,
+      },
+      {
+        type: 'text',
+        text: 'RUANG',
+        x: 140,
+        y: 54,
+        w: 58,
+        h: 5,
+        fontSize: 10,
+        bold: true,
+        align: 'center',
+        color: '#111111',
+      },
+      {
+        type: 'field',
+        field: 'room',
+        x: 140,
+        y: 60,
+        w: 58,
+        h: 16,
+        fontSize: 32,
+        bold: true,
+        align: 'center',
+        color: '#111111',
+      },
+      {
+        type: 'schedule',
+        x: 12,
+        y: 88,
+        w: 186,
+        h: 150,
+        fontSize: 9,
+        color: '#111111',
+        headerFill: '#f1f5f9',
+        borderColor: '#111111',
+        borderWidth: 0.2,
+        columns: DEFAULT_SCHEDULE_COLUMNS,
+        mergeDays: true,
+        showHeader: true,
+      },
+      {
+        type: 'text',
+        text: '* Tanda peserta ini harus dibawa selama ujian berlangsung',
+        x: 12,
+        y: 241,
+        w: 186,
+        h: 5,
+        ...DEFAULT_TEXT,
+        fontSize: 8,
+      },
+      {
+        type: 'field',
+        field: 'cityDate',
+        x: 128,
+        y: 249,
+        w: 70,
+        h: 5,
+        ...DEFAULT_TEXT,
+        fontSize: 9,
+      },
+      {
+        type: 'text',
+        text: 'Kepala Sekolah,',
+        x: 128,
+        y: 255,
+        w: 70,
+        h: 5,
+        ...DEFAULT_TEXT,
+        fontSize: 9,
+      },
+      { type: 'qr', field: 'participantNo', color: '#000000', x: 128, y: 261, w: 22, h: 22 },
+      {
+        type: 'field',
+        field: 'principalName',
+        x: 128,
+        y: 285,
+        w: 70,
+        h: 6,
+        ...DEFAULT_TEXT,
+        fontSize: 9,
+        bold: true,
+      },
+    ],
+  };
+}
+
 export function defaultCardLayout(kind: CardKind): CardLayout {
   return kind === 'student' ? defaultStudentCardLayout() : defaultExamCardLayout();
 }
 
 /** Nama templat bawaan yang ditawarkan ke sekolah. */
 export const DEFAULT_CARD_TEMPLATE_NAME: Record<CardKind, string> = {
-  student: 'Kartu siswa bawaan',
+  student: 'Kartu murid bawaan',
   exam: 'Kartu peserta ujian bawaan',
 };
+
+/** Nama templat tanda peserta A4 bawaan (jenis kartu `exam`, dengan tabel jadwal dan ruang). */
+export const DEFAULT_EXAM_SLIP_TEMPLATE_NAME = 'Tanda peserta ujian A4 bawaan';
 
 /**
  * Aturan nomor peserta ujian: `<singkatan jenis>-<yy>-<urutan 3 digit>`, mis. "ASTS-26-007". `yy` = dua digit

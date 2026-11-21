@@ -1,4 +1,10 @@
-import { type CardElement, defaultExamCardLayout, defaultStudentCardLayout } from '@edusync/contracts';
+import {
+  type CardElement,
+  defaultExamCardLayout,
+  defaultExamSlipLayout,
+  defaultStudentCardLayout,
+  type ScheduleColumn,
+} from '@edusync/contracts';
 import { describe, expect, it } from 'vitest';
 import {
   CANVAS_PRESETS,
@@ -7,11 +13,17 @@ import {
   createElement,
   duplicateElement,
   elementText,
+  elementTypesFor,
   ensureIds,
+  hiddenScheduleColumns,
   moveInOrder,
+  moveScheduleColumn,
   removeElement,
   resizeCanvas,
   sampleCardData,
+  scheduleGeometry,
+  setScheduleHeader,
+  toggleScheduleColumn,
   validateLayout,
 } from './elements';
 
@@ -155,6 +167,82 @@ describe('teks elemen dan data contoh', () => {
 
   it('contoh kartu ujian memuat nomor peserta menurut aturan', () => {
     expect(sampleCardData('exam').participantNo).toBe('ASTS-26-007');
+  });
+});
+
+describe('tabel jadwal', () => {
+  const sched = (patch: Partial<Extract<CardElement, { type: 'schedule' }>> = {}) =>
+    ({ ...createElement('schedule', 'exam', { w: 210, h: 297 }), ...patch }) as Extract<
+      CardElement,
+      { type: 'schedule' }
+    >;
+
+  it('contoh kartu ujian memuat jadwal, ruang, alamat, kepala sekolah, dan kota-tanggal', () => {
+    const d = sampleCardData('exam');
+    expect(d.schedule?.length).toBeGreaterThan(3);
+    // dua sesi pada satu hari
+    expect(d.schedule?.filter((l) => l.date === d.schedule?.[0]?.date).length).toBe(2);
+    expect(d.room).toBe('02');
+    expect(d.principalName).toBeTruthy();
+    expect(d.cityDate).toBeTruthy();
+    expect(d.address).toBeTruthy();
+  });
+
+  it('elemen baru sah, 80% lebar kanvas, hanya ditawarkan untuk kartu ujian', () => {
+    const el = createElement('schedule', 'exam', { w: 100, h: 60 });
+    expect(el.w).toBe(80);
+    expect(validateLayout({ widthMm: 100, heightMm: 60, elements: [el] })).toEqual([]);
+    expect(elementTypesFor('exam')).toContain('schedule');
+    expect(elementTypesFor('student')).not.toContain('schedule');
+  });
+
+  it('sel mengikuti kolom dan judul kustom; hari yang sama digabung', () => {
+    const el = sched();
+    const g = scheduleGeometry(el, sampleCardData('exam'));
+    const texts = g.cells.map((c) => c.text);
+    expect(texts).toEqual(expect.arrayContaining(['Hari, Tanggal', 'Waktu', 'Mata Pelajaran', 'Matematika']));
+    // Senin 12 Oktober punya dua mapel: satu sel hari setinggi dua baris
+    const day = g.cells.find((c) => c.text.startsWith('Senin'));
+    const row = g.cells.find((c) => c.text === 'Matematika');
+    expect(day?.h).toBeCloseTo((row?.h ?? 0) * 2);
+    expect(g.cells.filter((c) => c.text.startsWith('Senin'))).toHaveLength(1);
+
+    const custom = scheduleGeometry(
+      sched({ columns: ['no', 'subject'], headers: ['Nomor', ''], mergeDays: false }),
+      sampleCardData('exam'),
+    );
+    expect(custom.cells.filter((c) => c.header).map((c) => c.text)).toEqual(['Nomor', 'Mata Pelajaran']);
+    expect(custom.cells.some((c) => c.text === 'Waktu')).toBe(false);
+  });
+
+  it('tanpa baris judul tidak ada sel judul dan tabel tanpa jadwal tidak melempar', () => {
+    const g = scheduleGeometry(sched({ showHeader: false }), { schedule: [] });
+    expect(g.cells).toEqual([]);
+    const h = scheduleGeometry(sched(), { schedule: null });
+    expect(h.cells.every((c) => c.header)).toBe(true);
+  });
+
+  it('penyunting kolom: tambah, hapus, geser menjaga judul sejajar', () => {
+    let s: { columns: ScheduleColumn[]; headers?: string[] | undefined } = {
+      columns: ['dayDate', 'time', 'subject'],
+    };
+    s = setScheduleHeader(s, 'time', 'Jam');
+    expect(s.headers).toEqual(['', 'Jam', '']);
+    s = moveScheduleColumn(s, 'time', -1);
+    expect(s.columns).toEqual(['time', 'dayDate', 'subject']);
+    expect(s.headers).toEqual(['Jam', '', '']);
+    s = toggleScheduleColumn(s, 'no', true);
+    expect(s.columns).toEqual(['time', 'dayDate', 'subject', 'no']);
+    s = toggleScheduleColumn(s, 'time', false);
+    expect(s.columns).toEqual(['dayDate', 'subject', 'no']);
+    expect(s.headers).toBeUndefined();
+    expect(hiddenScheduleColumns(s.columns)).toEqual(['day', 'date', 'time']);
+    // kolom terakhir tidak bisa disembunyikan
+    expect(toggleScheduleColumn({ columns: ['subject'] }, 'subject', false).columns).toEqual(['subject']);
+  });
+
+  it('templat tanda peserta A4 bawaan sah', () => {
+    expect(validateLayout(defaultExamSlipLayout())).toEqual([]);
   });
 });
 

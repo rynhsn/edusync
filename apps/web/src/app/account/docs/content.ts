@@ -131,7 +131,7 @@ export const DOC_ARTICLES: DocArticle[] = [
         sections: [
           {
             heading: 'Masuk ke Portal Akun',
-            body: 'Portal Akun adalah halaman milik lembaga. Di sini Anda melihat langganan, unit sekolah, dan tagihan. Pekerjaan harian sekolah (siswa, absensi, nilai) tidak dikerjakan di sini, melainkan di sekolahnya masing-masing.',
+            body: 'Portal Akun adalah halaman milik lembaga. Di sini Anda melihat langganan, unit sekolah, dan tagihan. Pekerjaan harian sekolah (murid, absensi, nilai) tidak dikerjakan di sini, melainkan di sekolahnya masing-masing.',
             steps: [
               'Buka halaman masuk Edusync, isi Email dan Kata sandi, lalu klik Masuk.',
               'Buka Ringkasan pada Menu akun.',
@@ -157,7 +157,7 @@ export const DOC_ARTICLES: DocArticle[] = [
             steps: [
               'Atur Tahun ajaran dan kalender.',
               'Tambah Kelas dan Mata pelajaran.',
-              'Tambah Guru dan Siswa.',
+              'Tambah Guru dan Murid.',
               'Lengkapi Pengaturan sekolah.',
             ],
             tip: 'Langkah rinci tiap menu ada di panduan Dokumentasi di panel sekolah (menu Dokumentasi).',
@@ -186,7 +186,7 @@ export const DOC_ARTICLES: DocArticle[] = [
           },
           {
             q: 'Dari mana saya mulai mengisi sekolah?',
-            a: 'Klik Buka sekolah di Unit sekolah, lalu isi Data induk: Tahun ajaran, Kelas, Mata pelajaran, Guru, dan Siswa. Panduan tiap menu ada di menu Dokumentasi dalam sekolah.',
+            a: 'Klik Buka sekolah di Unit sekolah, lalu isi Data induk: Tahun ajaran, Kelas, Mata pelajaran, Guru, dan Murid. Panduan tiap menu ada di menu Dokumentasi dalam sekolah.',
           },
           {
             q: 'Di mana saya melihat berapa lama langganan masih berlaku?',
@@ -346,41 +346,41 @@ export const DOC_ARTICLES: DocArticle[] = [
     group: 'school_ops',
     text: {
       id: {
-        title: 'Data siswa dan jumlah siswa di paket',
+        title: 'Data murid dan jumlah murid di paket',
         summary:
-          'Gambaran singkat memasukkan siswa ke sekolah, dan menyesuaikan paket dengan jumlah siswa. Langkah rinci ada di panduan Dokumentasi di panel sekolah.',
-        forWho: 'Pengelola lembaga yang ingin tahu cara memasukkan siswa dan kapan paket perlu dinaikkan.',
+          'Gambaran singkat memasukkan murid ke sekolah, dan menyesuaikan paket dengan jumlah murid. Langkah rinci ada di panduan Dokumentasi di panel sekolah.',
+        forWho: 'Pengelola lembaga yang ingin tahu cara memasukkan murid dan kapan paket perlu dinaikkan.',
         sections: [
           {
-            heading: 'Memasukkan banyak siswa sekaligus',
-            body: 'Untuk puluhan siswa atau lebih, impor dari Excel jauh lebih cepat. Pekerjaan ini dilakukan di dalam sekolah, bukan di Portal Akun.',
+            heading: 'Memasukkan banyak murid sekaligus',
+            body: 'Untuk puluhan murid atau lebih, impor dari Excel jauh lebih cepat. Pekerjaan ini dilakukan di dalam sekolah, bukan di Portal Akun.',
             steps: [
               'Buka Unit sekolah lalu klik Buka sekolah.',
-              'Buka menu Siswa di kelompok Data induk, lalu klik Impor Excel dan unduh templat.',
+              'Buka menu Murid di kelompok Data induk, lalu klik Impor Excel dan unduh templat.',
               'Isi templat. Yang wajib hanya Nama dan Jenis Kelamin (L atau P), dan isi Kelas persis seperti nama kelas.',
               'Unggah berkas dan periksa pratinjau.',
               'Klik impor bila semua baris sudah benar.',
             ],
             warning:
-              'Bila ada satu baris yang salah, tidak ada siswa yang disimpan. Satu berkas paling banyak 1000 baris.',
+              'Bila ada satu baris yang salah, tidak ada murid yang disimpan. Satu berkas paling banyak 1000 baris.',
             href: '/account/units',
           },
           {
-            heading: 'Menambah satu siswa',
-            body: 'Untuk siswa pindahan atau tambahan di tengah tahun, tambahkan satu per satu.',
+            heading: 'Menambah satu murid',
+            body: 'Untuk murid pindahan atau tambahan di tengah tahun, tambahkan satu per satu.',
             steps: [
-              'Buka sekolah, lalu buka menu Siswa.',
-              'Klik Tambah siswa dan isi nama serta jenis kelamin.',
+              'Buka sekolah, lalu buka menu Murid.',
+              'Klik Tambah murid dan isi nama serta jenis kelamin.',
               'Pilih Kelas bila sudah ada, lalu klik Tambah.',
             ],
-            tip: 'Belum punya semua data? Simpan nama dan jenis kelamin dulu, lengkapi nanti lewat Ubah. Panduan lengkapnya ada di artikel Mengelola data siswa dan wali di menu Dokumentasi sekolah.',
+            tip: 'Belum punya semua data? Simpan nama dan jenis kelamin dulu, lengkapi nanti lewat Ubah. Panduan lengkapnya ada di artikel Mengelola data murid dan wali di menu Dokumentasi sekolah.',
           },
           {
-            heading: 'Menyesuaikan paket dengan jumlah siswa',
-            body: 'Setiap unit punya pilihan Jumlah siswa pada paketnya. Pilih tingkat yang sesuai dengan jumlah siswa aktif di sekolah itu.',
+            heading: 'Menyesuaikan paket dengan jumlah murid',
+            body: 'Setiap unit punya pilihan Jumlah murid pada paketnya. Pilih tingkat yang sesuai dengan jumlah murid aktif di sekolah itu.',
             steps: [
               'Buka Unit sekolah dan klik Ubah paket pada unit itu.',
-              'Pada Jumlah siswa, pilih tingkat yang sesuai.',
+              'Pada Jumlah murid, pilih tingkat yang sesuai.',
               'Periksa Ringkasan: Dibayar sekarang dan Total.',
               'Klik Bayar dan terapkan, lalu selesaikan pembayaran.',
             ],
@@ -395,11 +395,11 @@ export const DOC_ARTICLES: DocArticle[] = [
             a: 'Periksa tiga hal: judul kolom tidak diubah, Jenis Kelamin hanya L atau P, dan isi Kelas sama persis dengan nama kelas pada tahun ajaran aktif. Pratinjau menandai baris yang salah.',
           },
           {
-            q: 'Siswa kami bertambah banyak. Apa yang perlu saya lakukan?',
-            a: 'Buka Unit sekolah, klik Ubah paket, lalu pilih tingkat Jumlah siswa yang lebih besar dan bayar. Kenaikan langsung berlaku setelah pembayaran terkonfirmasi.',
+            q: 'Murid kami bertambah banyak. Apa yang perlu saya lakukan?',
+            a: 'Buka Unit sekolah, klik Ubah paket, lalu pilih tingkat Jumlah murid yang lebih besar dan bayar. Kenaikan langsung berlaku setelah pembayaran terkonfirmasi.',
           },
           {
-            q: 'Siapa yang boleh menambah atau mengubah data siswa?',
+            q: 'Siapa yang boleh menambah atau mengubah data murid?',
             a: 'Di dalam sekolah, Admin sekolah dan Operator. Peran lain hanya melihat. Pengelola lembaga yang membuka sekolah dari Portal Akun menjadi admin awalnya.',
           },
         ],
@@ -533,7 +533,7 @@ export const DOC_ARTICLES: DocArticle[] = [
       id: {
         title: 'Absensi kartu dan gerbang',
         summary:
-          'Gambaran singkat menyalakan absensi lewat kartu siswa di gerbang. Langkah rinci ada di panduan Dokumentasi di panel sekolah.',
+          'Gambaran singkat menyalakan absensi lewat kartu murid di gerbang. Langkah rinci ada di panduan Dokumentasi di panel sekolah.',
         forWho: 'Pengelola lembaga yang ingin sekolahnya memakai absensi kartu di gerbang.',
         sections: [
           {
@@ -552,7 +552,7 @@ export const DOC_ARTICLES: DocArticle[] = [
             steps: [
               'Buka sekolah, lalu buka Pengaturan absensi di kelompok Kehadiran. Di tab Kebijakan, isi Terlambat setelah dan Pulang mulai.',
               'Di tab Perangkat, klik Tambah perangkat dan beri nama untuk perangkat di gerbang. Salin kunci yang tampil.',
-              'Buka menu Kartu RFID dan daftarkan kartu siswa. Untuk satu kelas sekaligus, pakai Daftar cepat atau impor dari Excel.',
+              'Buka menu Kartu RFID dan daftarkan kartu murid. Untuk satu kelas sekaligus, pakai Daftar cepat atau impor dari Excel.',
               'Pasang kunci tadi di halaman kiosk pada perangkat gerbang.',
             ],
             warning:
@@ -574,8 +574,8 @@ export const DOC_ARTICLES: DocArticle[] = [
             a: 'Buka sekolah, masuk ke Pengaturan absensi tab Perangkat, klik Ganti kunci pada perangkatnya, lalu salin kunci baru dan tempel di halaman kiosk.',
           },
           {
-            q: 'Kartu siswa ditempel tetapi tidak tercatat. Apa yang diperiksa?',
-            a: 'Pastikan kartu siswa itu sudah terdaftar di menu Kartu RFID dan perangkat gerbang tidak dinonaktifkan di tab Perangkat. Periksa juga bahwa kunci yang terpasang di kiosk adalah yang terbaru.',
+            q: 'Kartu murid ditempel tetapi tidak tercatat. Apa yang diperiksa?',
+            a: 'Pastikan kartu murid itu sudah terdaftar di menu Kartu RFID dan perangkat gerbang tidak dinonaktifkan di tab Perangkat. Periksa juga bahwa kunci yang terpasang di kiosk adalah yang terbaru.',
           },
         ],
       },
@@ -709,7 +709,7 @@ export const DOC_ARTICLES: DocArticle[] = [
             steps: [
               'Buka sekolah, lalu periksa Tahun ajaran dan Kelas.',
               'Periksa Mata pelajaran dan Guru.',
-              'Pastikan Siswa sudah masuk ke kelasnya.',
+              'Pastikan Murid sudah masuk ke kelasnya.',
             ],
           },
           {
@@ -735,7 +735,7 @@ export const DOC_ARTICLES: DocArticle[] = [
           },
           {
             q: 'Rapor belum bisa diunduh. Apa yang kurang?',
-            a: 'Biasanya nilai belum diisi atau data kelas dan siswa belum lengkap. Periksa dulu Penilaian untuk kelas itu, lalu buka lagi menu Rapor.',
+            a: 'Biasanya nilai belum diisi atau data kelas dan murid belum lengkap. Periksa dulu Penilaian untuk kelas itu, lalu buka lagi menu Rapor.',
           },
         ],
       },
@@ -860,13 +860,13 @@ export const DOC_ARTICLES: DocArticle[] = [
         title: 'Keuangan sekolah dan tagihan Edusync',
         summary:
           'Gambaran singkat modul Keuangan sekolah untuk bendahara, dan perbedaannya dengan tagihan langganan di Portal Akun. Langkah rinci ada di panduan Dokumentasi di panel sekolah.',
-        forWho: 'Pengelola lembaga yang ingin sekolahnya mencatat tagihan dan pembayaran siswa di Edusync.',
+        forWho: 'Pengelola lembaga yang ingin sekolahnya mencatat tagihan dan pembayaran murid di Edusync.',
         sections: [
           {
             heading: 'Memahami dua jenis tagihan',
-            body: 'Ada dua hal yang sama-sama bernama tagihan. Tagihan di Portal Akun adalah tagihan langganan lembaga Anda kepada Edusync. Tagihan di dalam sekolah adalah tagihan siswa kepada sekolah, seperti SPP.',
+            body: 'Ada dua hal yang sama-sama bernama tagihan. Tagihan di Portal Akun adalah tagihan langganan lembaga Anda kepada Edusync. Tagihan di dalam sekolah adalah tagihan murid kepada sekolah, seperti SPP.',
             warning:
-              'Pembayaran siswa dicatat sekolah di menu Kasir. Jangan membayar tagihan langganan dari uang kasir tanpa mencatatnya terpisah.',
+              'Pembayaran murid dicatat sekolah di menu Kasir. Jangan membayar tagihan langganan dari uang kasir tanpa mencatatnya terpisah.',
           },
           {
             heading: 'Mengaktifkan modul Keuangan sekolah',
@@ -883,8 +883,8 @@ export const DOC_ARTICLES: DocArticle[] = [
             body: 'Pekerjaan ini dilakukan di dalam sekolah. Garis besarnya sebagai berikut.',
             steps: [
               'Di Jenis biaya & tarif, atur biaya sekolah seperti SPP beserta nominalnya.',
-              'Di menu Tagihan (kelompok Keuangan), buat tagihan siswa, bisa massal per kelas.',
-              'Di menu Kasir, cari siswa, pilih tagihan yang dibayar, lalu terima pembayaran dan unduh kwitansi PDF.',
+              'Di menu Tagihan (kelompok Keuangan), buat tagihan murid, bisa massal per kelas.',
+              'Di menu Kasir, cari murid, pilih tagihan yang dibayar, lalu terima pembayaran dan unduh kwitansi PDF.',
               'Pantau penerimaan dan tunggakan di Laporan keuangan.',
             ],
             tip: 'Panduan lengkap ada di artikel Keuangan pada menu Dokumentasi sekolah.',
@@ -902,7 +902,7 @@ export const DOC_ARTICLES: DocArticle[] = [
         faq: [
           {
             q: 'Orang tua membayar SPP ke mana?',
-            a: 'Pembayaran siswa dicatat oleh sekolah di menu Kasir di dalam sekolah. Portal Akun hanya untuk tagihan langganan lembaga.',
+            a: 'Pembayaran murid dicatat oleh sekolah di menu Kasir di dalam sekolah. Portal Akun hanya untuk tagihan langganan lembaga.',
           },
           {
             q: 'Menu Keuangan tidak muncul di sekolah kami. Kenapa?',
@@ -914,7 +914,7 @@ export const DOC_ARTICLES: DocArticle[] = [
           },
           {
             q: 'Saya melihat dua angka tagihan. Mana yang harus saya bayar?',
-            a: 'Yang Anda bayar sebagai pengelola lembaga adalah tagihan di Portal Akun, menu Tagihan dan pembayaran. Tagihan di dalam sekolah adalah urusan siswa dan bendahara.',
+            a: 'Yang Anda bayar sebagai pengelola lembaga adalah tagihan di Portal Akun, menu Tagihan dan pembayaran. Tagihan di dalam sekolah adalah urusan murid dan bendahara.',
           },
         ],
       },
@@ -1052,10 +1052,10 @@ export const DOC_ARTICLES: DocArticle[] = [
     group: 'school_ops',
     text: {
       id: {
-        title: 'SPMB (penerimaan siswa baru)',
+        title: 'SPMB (penerimaan murid baru)',
         summary:
-          'Gambaran singkat membuka pendaftaran siswa baru dan menyiapkan paket untuk siswa yang masuk. Langkah rinci ada di panduan Dokumentasi di panel sekolah.',
-        forWho: 'Pengelola lembaga yang ingin sekolahnya menerima pendaftar siswa baru secara daring.',
+          'Gambaran singkat membuka pendaftaran murid baru dan menyiapkan paket untuk murid yang masuk. Langkah rinci ada di panduan Dokumentasi di panel sekolah.',
+        forWho: 'Pengelola lembaga yang ingin sekolahnya menerima pendaftar murid baru secara daring.',
         sections: [
           {
             heading: 'Mengaktifkan modul SPMB',
@@ -1068,22 +1068,22 @@ export const DOC_ARTICLES: DocArticle[] = [
             href: '/account/units',
           },
           {
-            heading: 'Membuka pendaftaran siswa baru',
+            heading: 'Membuka pendaftaran murid baru',
             body: 'Pekerjaan ini dilakukan di dalam sekolah oleh panitia. Garis besarnya sebagai berikut.',
             steps: [
               'Buka sekolah, lalu buka menu SPMB dan buat Periode SPMB.',
               'Bagikan tautan atau poster pendaftaran supaya calon murid mendaftar di halaman publik sekolah.',
               'Periksa dokumen pendaftar, lalu verifikasi dan putuskan Diterima atau Ditolak (bisa massal dengan Aksi massal).',
-              'Daftarkan yang diterima sebagai siswa.',
+              'Daftarkan yang diterima sebagai murid.',
             ],
             tip: 'Panduan lengkap ada di artikel SPMB pada menu Dokumentasi sekolah.',
           },
           {
-            heading: 'Menyiapkan paket untuk siswa yang masuk',
-            body: 'Setelah pendaftar diterima, jumlah siswa sekolah bertambah. Periksa apakah tingkat Jumlah siswa pada paket masih cukup.',
+            heading: 'Menyiapkan paket untuk murid yang masuk',
+            body: 'Setelah pendaftar diterima, jumlah murid sekolah bertambah. Periksa apakah tingkat Jumlah murid pada paket masih cukup.',
             steps: [
               'Buka Unit sekolah dan klik Ubah paket pada unit itu.',
-              'Lihat pilihan Jumlah siswa, lalu pilih tingkat yang sesuai.',
+              'Lihat pilihan Jumlah murid, lalu pilih tingkat yang sesuai.',
               'Klik Bayar dan terapkan bila ada kenaikan.',
             ],
             warning:
@@ -1101,8 +1101,8 @@ export const DOC_ARTICLES: DocArticle[] = [
             a: 'Modul SPMB mungkin belum aktif. Buka Unit sekolah, klik Ubah paket, tambahkan SPMB, lalu bayar.',
           },
           {
-            q: 'Apakah pendaftar yang diterima langsung jadi siswa?',
-            a: 'Belum. Panitia perlu mendaftarkan pendaftar yang diterima sebagai siswa di menu SPMB. Setelah itu mereka muncul di menu Siswa.',
+            q: 'Apakah pendaftar yang diterima langsung jadi murid?',
+            a: 'Belum. Panitia perlu mendaftarkan pendaftar yang diterima sebagai murid di menu SPMB. Setelah itu mereka muncul di menu Murid.',
           },
         ],
       },
@@ -1248,7 +1248,7 @@ export const DOC_ARTICLES: DocArticle[] = [
           },
           {
             heading: 'Menyiapkan templat pesan',
-            body: 'Isi pesan bisa diubah dan nama pengganti seperti nama siswa dapat disisipkan dengan sekali klik.',
+            body: 'Isi pesan bisa diubah dan nama pengganti seperti nama murid dapat disisipkan dengan sekali klik.',
             steps: [
               'Buka sekolah, lalu buka menu Notifikasi WhatsApp di kelompok Komunikasi dan situs.',
               'Pilih peristiwa pada bagian templat pesan.',
@@ -1604,18 +1604,18 @@ export const DOC_ARTICLES: DocArticle[] = [
             href: '/account',
           },
           {
-            heading: 'Mengubah paket: menambah atau melepas modul dan jumlah siswa',
-            body: 'Paket diatur per unit sekolah. Penambahan modul atau kenaikan Jumlah siswa dihitung prorata untuk sisa periode dan berlaku setelah dibayar.',
+            heading: 'Mengubah paket: menambah atau melepas modul dan jumlah murid',
+            body: 'Paket diatur per unit sekolah. Penambahan modul atau kenaikan Jumlah murid dihitung prorata untuk sisa periode dan berlaku setelah dibayar.',
             steps: [
               'Buka Unit sekolah dan klik Ubah paket pada unit yang dimaksud.',
               'Centang modul yang ingin ditambah, atau hilangkan centang untuk melepas. Modul yang menjadi syarat modul lain ikut ditambahkan.',
-              'Ubah Jumlah siswa bila perlu.',
+              'Ubah Jumlah murid bila perlu.',
               'Periksa Ringkasan: Dibayar sekarang dan Total.',
               'Klik Bayar dan terapkan, atau Simpan perubahan bila tidak ada yang perlu dibayar sekarang.',
               'Selesaikan pembayaran. Perubahan langsung berlaku setelah terkonfirmasi.',
             ],
             warning:
-              'Melepas modul atau menurunkan Jumlah siswa baru berlaku di periode berikutnya. Modul yang dilepas tetap aktif sampai akhir periode berjalan.',
+              'Melepas modul atau menurunkan Jumlah murid baru berlaku di periode berikutnya. Modul yang dilepas tetap aktif sampai akhir periode berjalan.',
             href: '/account/units',
           },
           {
@@ -1624,7 +1624,7 @@ export const DOC_ARTICLES: DocArticle[] = [
             steps: [
               'Klik Tambah unit sekolah (di Ringkasan atau Unit sekolah).',
               'Isi Nama sekolah, pilih alamat sekolah yang tersedia, dan isi NPSN (Nomor Pokok Sekolah Nasional, 8 angka; cek di referensi.data.kemendikdasmen.go.id). NPSN wajib dan tidak boleh sama dengan sekolah lain di Edusync.',
-              'Pilih modul dan Jumlah siswa.',
+              'Pilih modul dan Jumlah murid.',
               'Periksa Ringkasan sampai muncul Total.',
               'Klik Bayar dan buat unit, lalu selesaikan pembayaran.',
               'Setelah terkonfirmasi, klik Buka sekolah pada unit baru.',

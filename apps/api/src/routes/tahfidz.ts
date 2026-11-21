@@ -246,7 +246,7 @@ export async function tahfidzRoutes(instance: FastifyInstance) {
       .select({ id: student.id })
       .from(student)
       .where(and(inArray(student.id, ids), isNull(student.deletedAt), eq(student.status, 'active')));
-    if (found.length !== ids.length) throw invalidRef('Ada siswa yang tidak ditemukan atau tidak aktif.');
+    if (found.length !== ids.length) throw invalidRef('Ada murid yang tidak ditemukan atau tidak aktif.');
     const members = await membershipsOf(tx, ids, yearId);
     if (ctx.permissions.has('tahfidz:manage')) {
       if (managerNeedsScope) {
@@ -258,7 +258,7 @@ export async function tahfidzRoutes(instance: FastifyInstance) {
           : [];
         const inClass = new Set(enrolled.map((e) => e.studentId));
         if (ids.some((id) => !members.has(id) && !inClass.has(id))) {
-          throw invalidRef('Ada siswa yang bukan anggota halaqah atau kelas.');
+          throw invalidRef('Ada murid yang bukan anggota halaqah atau kelas.');
         }
       }
       return members;
@@ -266,9 +266,9 @@ export async function tahfidzRoutes(instance: FastifyInstance) {
     const mine = await myTeacherId(tx, ctx);
     for (const id of ids) {
       const m = members.get(id);
-      if (!m) throw invalidRef('Ada siswa yang bukan anggota halaqah mana pun pada tahun ajaran itu.');
+      if (!m) throw invalidRef('Ada murid yang bukan anggota halaqah mana pun pada tahun ajaran itu.');
       if (!mine || m.mentorTeacherId !== mine) {
-        throw forbidden('Hanya mentor halaqah siswa itu atau pengelola tahfidz yang boleh melakukannya.');
+        throw forbidden('Hanya mentor halaqah murid itu atau pengelola tahfidz yang boleh melakukannya.');
       }
     }
     return members;
@@ -537,8 +537,8 @@ export async function tahfidzRoutes(instance: FastifyInstance) {
         tags: tag,
         summary: 'Anggota halaqah',
         description:
-          'Izin: `tahfidz:read`; modul `tahfidz`. Siswa aktif anggota halaqah, urut nama. `className` adalah kelas ' +
-          'siswa pada tahun ajaran halaqah.',
+          'Izin: `tahfidz:read`; modul `tahfidz`. Murid aktif anggota halaqah, urut nama. `className` adalah kelas ' +
+          'murid pada tahun ajaran halaqah.',
         headers: schoolHeader,
         params: idParams,
         response: {
@@ -584,9 +584,9 @@ export async function tahfidzRoutes(instance: FastifyInstance) {
         summary: 'Tambah anggota halaqah',
         description:
           'Izin: `tahfidz:read` ditambah pengelola (`tahfidz:manage`) atau guru mentor halaqah ini; selain itu 403 ' +
-          '`forbidden`. Hanya siswa aktif sekolah ini (400 `invalid_reference` bila ada yang bukan). Satu siswa satu ' +
-          'halaqah per tahun ajaran: siswa yang sudah berada di halaqah mana pun pada tahun ajaran halaqah ini ' +
-          'dilewati dan dilaporkan di `skipped` beserta nama halaqahnya. Maksimal 200 siswa per permintaan.',
+          '`forbidden`. Hanya murid aktif sekolah ini (400 `invalid_reference` bila ada yang bukan). Satu murid satu ' +
+          'halaqah per tahun ajaran: murid yang sudah berada di halaqah mana pun pada tahun ajaran halaqah ini ' +
+          'dilewati dan dilaporkan di `skipped` beserta nama halaqahnya. Maksimal 200 murid per permintaan.',
         headers: schoolHeader,
         params: idParams,
         body: z.object({ studentIds: z.array(z.uuid()).min(1).max(200) }),
@@ -610,7 +610,7 @@ export async function tahfidzRoutes(instance: FastifyInstance) {
           .select({ id: student.id, name: student.name })
           .from(student)
           .where(and(inArray(student.id, ids), isNull(student.deletedAt), eq(student.status, 'active')));
-        if (found.length !== ids.length) throw invalidRef('Ada siswa yang tidak ditemukan atau tidak aktif.');
+        if (found.length !== ids.length) throw invalidRef('Ada murid yang tidak ditemukan atau tidak aktif.');
         const existing = await membershipsOf(tx, ids, h.academicYearId);
         const skipped = found
           .filter((s) => existing.has(s.id))
@@ -744,10 +744,10 @@ export async function tahfidzRoutes(instance: FastifyInstance) {
         tags: tag,
         summary: 'Catat setoran hafalan',
         description:
-          'Izin: `tahfidz:read` ditambah pengelola (`tahfidz:manage`) atau guru mentor halaqah siswa itu; guru lain 403 ' +
+          'Izin: `tahfidz:read` ditambah pengelola (`tahfidz:manage`) atau guru mentor halaqah murid itu; guru lain 403 ' +
           '`forbidden`. Tanggal tidak boleh belum tiba (409 `future_date`). Rentang ayat harus ada dan awal tidak ' +
-          'melewati akhir (400 `invalid_range`). Selain pengelola, siswa harus anggota halaqah pada tahun ajaran yang ' +
-          'mencakup tanggal (400 `invalid_reference`); setoran pengelola untuk siswa tanpa halaqah tersimpan tanpa ' +
+          'melewati akhir (400 `invalid_range`). Selain pengelola, murid harus anggota halaqah pada tahun ajaran yang ' +
+          'mencakup tanggal (400 `invalid_reference`); setoran pengelola untuk murid tanpa halaqah tersimpan tanpa ' +
           'halaqah. `kind`: `ziyadah` (hafalan baru) atau `murajaah`; `quality`: `fluent`, `fair`, atau `repeat` ' +
           '(harus diulang, tidak dihitung sebagai hafalan baru).',
         headers: schoolHeader,
@@ -873,7 +873,7 @@ export async function tahfidzRoutes(instance: FastifyInstance) {
       onRequest: readGate,
       schema: {
         tags: tag,
-        summary: 'Progres hafalan siswa',
+        summary: 'Progres hafalan murid',
         description:
           'Izin: `tahfidz:read`; modul `tahfidz`. `coverage` menghitung ayat unik dari seluruh setoran ziyadah dengan ' +
           'kualitas selain `repeat` (rentang tumpang tindih tidak menggandakan); `juzComplete` = jumlah juz yang ' +
@@ -924,7 +924,7 @@ export async function tahfidzRoutes(instance: FastifyInstance) {
           .select({ id: student.id, name: student.name })
           .from(student)
           .where(and(eq(student.id, studentId), isNull(student.deletedAt)));
-        if (!st) throw notFound('Siswa');
+        if (!st) throw notFound('Murid');
         const sem = await resolveSemester(tx, request.query.semesterId);
         const yearId = sem?.academicYearId ?? (await yearForDate(tx, today));
         const members = await membershipsOf(tx, [studentId], yearId);
@@ -1020,7 +1020,7 @@ export async function tahfidzRoutes(instance: FastifyInstance) {
           'terakhir, maksimal 366 hari, selain itu 400 `invalid_range`), `lastEntryDate` dan `daysSinceLast` (hari ' +
           'sejak setoran terakhir sampai hari ini; null bila belum pernah). `onTarget`: membandingkan capaian dalam ' +
           'semester yang memuat tanggal `to` (atau semester aktif tahun halaqah) dengan target yang dibagi rata per ' +
-          'hari sampai `to`; null bila siswa belum punya target atau tidak ada semester.',
+          'hari sampai `to`; null bila murid belum punya target atau tidak ada semester.',
         headers: schoolHeader,
         params: idParams,
         querystring: rangeQuery,
@@ -1131,7 +1131,7 @@ export async function tahfidzRoutes(instance: FastifyInstance) {
     halaqahId: z.uuid().nullable(),
     ziyadahAyahs: z.number().int(),
     murajaahAyahs: z.number().int(),
-    set: z.boolean().describe('Sudah ada target tersimpan untuk siswa ini'),
+    set: z.boolean().describe('Sudah ada target tersimpan untuk murid ini'),
   });
 
   app.get(
@@ -1143,7 +1143,7 @@ export async function tahfidzRoutes(instance: FastifyInstance) {
         summary: 'Target hafalan per semester',
         description:
           'Izin: `tahfidz:read`; modul `tahfidz`. Dengan `halaqahId`: seluruh anggota halaqah (target 0 dan `set: false` ' +
-          'bila belum ditetapkan). Tanpa `halaqahId`: semua siswa yang punya target pada semester itu. Semester tak ' +
+          'bila belum ditetapkan). Tanpa `halaqahId`: semua murid yang punya target pada semester itu. Semester tak ' +
           'dikenal: 400 `invalid_reference`.',
         headers: schoolHeader,
         querystring: z.object({ semesterId: z.uuid(), halaqahId: z.uuid().optional() }),
@@ -1213,9 +1213,9 @@ export async function tahfidzRoutes(instance: FastifyInstance) {
         tags: tag,
         summary: 'Simpan target hafalan',
         description:
-          'Izin: `tahfidz:read` ditambah pengelola (`tahfidz:manage`) atau guru mentor halaqah tiap siswa pada tahun ' +
-          'ajaran semester itu; guru lain 403 `forbidden`. Semester harus milik sekolah ini dan siswa aktif (400 ' +
-          '`invalid_reference`). Selain pengelola, siswa harus anggota halaqah mentor itu. Target berupa jumlah ayat ' +
+          'Izin: `tahfidz:read` ditambah pengelola (`tahfidz:manage`) atau guru mentor halaqah tiap murid pada tahun ' +
+          'ajaran semester itu; guru lain 403 `forbidden`. Semester harus milik sekolah ini dan murid aktif (400 ' +
+          '`invalid_reference`). Selain pengelola, murid harus anggota halaqah mentor itu. Target berupa jumlah ayat ' +
           'baru (ziyadah) dan ayat murajaah selama semester. Maksimal 200 baris.',
         headers: schoolHeader,
         body: z.object({
@@ -1457,7 +1457,7 @@ export async function tahfidzRoutes(instance: FastifyInstance) {
       .select({ id: student.id, name: student.name })
       .from(student)
       .where(and(eq(student.id, scope.studentId as string), isNull(student.deletedAt)));
-    if (!st) throw notFound('Siswa');
+    if (!st) throw notFound('Murid');
     return { halaqah: null, students: [st] };
   }
 
@@ -1558,10 +1558,10 @@ export async function tahfidzRoutes(instance: FastifyInstance) {
         tags: tag,
         summary: 'Simpan lembar ibadah harian',
         description:
-          'Izin: `tahfidz:read` ditambah pengelola (`tahfidz:manage`) atau guru mentor halaqah tiap siswa; guru lain 403 ' +
-          '`forbidden`. Tanggal tidak boleh belum tiba (409 `future_date`). Siswa harus aktif dan anggota halaqah atau ' +
+          'Izin: `tahfidz:read` ditambah pengelola (`tahfidz:manage`) atau guru mentor halaqah tiap murid; guru lain 403 ' +
+          '`forbidden`. Tanggal tidak boleh belum tiba (409 `future_date`). Murid harus aktif dan anggota halaqah atau ' +
           'terdaftar di kelas pada tahun ajaran tanggal itu; butir harus aktif (400 `invalid_reference`). Mengganti ' +
-          'catatan yang sudah ada (satu catatan per siswa per butir per tanggal). Maksimal 500 baris.',
+          'catatan yang sudah ada (satu catatan per murid per butir per tanggal). Maksimal 500 baris.',
         headers: schoolHeader,
         body: z.object({
           date: dateField,
@@ -1640,7 +1640,7 @@ export async function tahfidzRoutes(instance: FastifyInstance) {
         description:
           'Izin: `tahfidz:read`; modul `tahfidz`. Berikan tepat satu dari `halaqahId`, `classId`, atau `studentId` ' +
           '(400 `invalid_scope`). Rentang `from`..`to` bawaan 30 hari terakhir, maksimal 366 hari (400 ' +
-          '`invalid_range`). Per siswa per butir: `total` = jumlah hari yang tercatat, `done` = yang dikerjakan, ' +
+          '`invalid_range`). Per murid per butir: `total` = jumlah hari yang tercatat, `done` = yang dikerjakan, ' +
           '`percent` = done/total (dua desimal; 0 bila belum ada catatan). Butir mencakup yang aktif dan yang punya ' +
           'catatan pada rentang itu.',
         headers: schoolHeader,

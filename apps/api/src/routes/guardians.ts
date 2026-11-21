@@ -86,7 +86,7 @@ const linkSchema = z.object({
   occupation: z.string().nullable(),
   relation: z.enum(RELATIONS),
   isPrimary: z.boolean(),
-  studentCount: z.number().int().describe('Jumlah siswa yang dinaungi wali ini (kakak-adik)'),
+  studentCount: z.number().int().describe('Jumlah murid yang dinaungi wali ini (kakak-adik)'),
 });
 
 const notFound = (what: string) => new HttpError(404, 'not_found', `${what} tidak ditemukan.`);
@@ -96,7 +96,7 @@ async function requireStudent(tx: Tx, studentId: string) {
     .select({ id: student.id })
     .from(student)
     .where(and(eq(student.id, studentId), isNull(student.deletedAt)));
-  if (!s) throw notFound('Siswa');
+  if (!s) throw notFound('Murid');
 }
 
 async function linksOf(tx: Tx, studentId: string, canManage: boolean) {
@@ -144,7 +144,7 @@ export async function guardianRoutes(instance: FastifyInstance) {
       onRequest: [requirePermission('student:read')],
       schema: {
         tags: ['People'],
-        summary: 'Wali seorang siswa',
+        summary: 'Wali seorang murid',
         description:
           'Izin: `student:read`. NIK wali utuh hanya untuk pemegang `student:manage`; yang lain menerima `nikMasked`.',
         headers: schoolHeader,
@@ -172,7 +172,7 @@ export async function guardianRoutes(instance: FastifyInstance) {
         summary: 'Cari wali',
         description:
           'Izin: `student:read`. Mencari pada nama, telepon, atau email; dipakai untuk menautkan wali yang sudah ada ' +
-          '(mis. kakak-adik) ke siswa lain. Maksimal 20 hasil.',
+          '(mis. kakak-adik) ke murid lain. Maksimal 20 hasil.',
         headers: schoolHeader,
         querystring: z.object({ q: z.string().trim().min(2).max(80) }),
         response: {
@@ -205,7 +205,7 @@ export async function guardianRoutes(instance: FastifyInstance) {
           'Izin: `student:read`. Daftar semua wali sekolah untuk halaman Data wali, urut nama. `q` mencari pada nama, ' +
           'email, nama anak, NIK (angka), dan telepon (0812… cocok dengan 62812…). `missingNik=true` hanya wali tanpa ' +
           'NIK. `portal`: `has` (punya akun portal), `invited` (undangan terbuka belum kedaluwarsa), `none` (belum ' +
-          'punya akun dan belum diundang). `studentId` hanya wali siswa itu. Tiap wali memuat anak (maksimal ' +
+          'punya akun dan belum diundang). `studentId` hanya wali murid itu. Tiap wali memuat anak (maksimal ' +
           `${CHILD_CAP}, jumlah penuh di \`childCount\`), status portal, dan email akun portal yang disamarkan. ` +
           '`totals` berlaku untuk seluruh sekolah (tanpa saringan). NIK utuh hanya untuk pemegang `student:manage`; ' +
           'yang lain menerima `nikMasked`.',
@@ -236,7 +236,7 @@ export async function guardianRoutes(instance: FastifyInstance) {
                 childCount: z
                   .number()
                   .int()
-                  .describe('Jumlah siswa yang dinaungi (semua, bukan hanya yang tampil)'),
+                  .describe('Jumlah murid yang dinaungi (semua, bukan hanya yang tampil)'),
                 children: z.array(
                   z.object({
                     studentId: z.uuid(),
@@ -281,8 +281,8 @@ export async function guardianRoutes(instance: FastifyInstance) {
         tags: ['People'],
         summary: 'Hapus data wali',
         description:
-          'Izin: `student:manage`. Hanya wali yang tidak menaungi siswa mana pun dan tidak punya akun portal; selain itu ' +
-          '409 `guardian_in_use` (lepas dulu dari siswa atau cabut akun portalnya). Undangan portal yang belum dipakai ' +
+          'Izin: `student:manage`. Hanya wali yang tidak menaungi murid mana pun dan tidak punya akun portal; selain itu ' +
+          '409 `guardian_in_use` (lepas dulu dari murid atau cabut akun portalnya). Undangan portal yang belum dipakai ' +
           'ikut dihapus. Wali yang riwayatnya masih dirujuk (mis. pesan) juga 409 `guardian_in_use`.',
         headers: schoolHeader,
         params: idParams,
@@ -295,7 +295,7 @@ export async function guardianRoutes(instance: FastifyInstance) {
         new HttpError(
           409,
           'guardian_in_use',
-          'Wali ini masih terhubung dengan siswa atau akun portal, sehingga tidak bisa dihapus.',
+          'Wali ini masih terhubung dengan murid atau akun portal, sehingga tidak bisa dihapus.',
         );
       await tenant(request, async (tx) => {
         const [g] = await tx
@@ -336,11 +336,11 @@ export async function guardianRoutes(instance: FastifyInstance) {
       onRequest: [requirePermission('student:manage')],
       schema: {
         tags: ['People'],
-        summary: 'Tambah wali untuk siswa',
+        summary: 'Tambah wali untuk murid',
         description:
           'Izin: `student:manage`. Kirim `guardianId` untuk menautkan wali yang sudah ada, atau `name` (dan opsional ' +
           'telepon, email, NIK 16 digit, alamat, pekerjaan) untuk membuat wali baru. Telepon dinormalkan ke digit ' +
-          'berawalan 62. NIK wali harus unik di sekolah (409 `nik_taken`). Satu siswa hanya ' +
+          'berawalan 62. NIK wali harus unik di sekolah (409 `nik_taken`). Satu murid hanya ' +
           'punya satu wali utama; menandai wali utama melepas tanda dari yang lain.',
         headers: schoolHeader,
         params: idParams,
@@ -395,7 +395,7 @@ export async function guardianRoutes(instance: FastifyInstance) {
             .where(
               and(eq(studentGuardian.studentId, request.params.id), eq(studentGuardian.guardianId, gid)),
             );
-          if (existing.length > 0) throw new HttpError(409, 'conflict', 'Wali ini sudah tertaut ke siswa.');
+          if (existing.length > 0) throw new HttpError(409, 'conflict', 'Wali ini sudah tertaut ke murid.');
           // Wali pertama siswa otomatis menjadi wali utama.
           const has = await tx
             .select({ id: studentGuardian.guardianId })
@@ -432,7 +432,7 @@ export async function guardianRoutes(instance: FastifyInstance) {
         tags: ['People'],
         summary: 'Ubah data wali',
         description:
-          'Izin: `student:manage`. Perubahan berlaku untuk semua siswa yang dinaungi wali ini (kakak-adik).',
+          'Izin: `student:manage`. Perubahan berlaku untuk semua murid yang dinaungi wali ini (kakak-adik).',
         headers: schoolHeader,
         params: idParams,
         body: guardianBody,
@@ -527,9 +527,9 @@ export async function guardianRoutes(instance: FastifyInstance) {
       onRequest: [requirePermission('student:manage')],
       schema: {
         tags: ['People'],
-        summary: 'Lepas wali dari siswa',
+        summary: 'Lepas wali dari murid',
         description:
-          'Izin: `student:manage`. Wali yang tidak menaungi siswa mana pun lagi ikut dihapus. Bila yang dilepas adalah ' +
+          'Izin: `student:manage`. Wali yang tidak menaungi murid mana pun lagi ikut dihapus. Bila yang dilepas adalah ' +
           'wali utama, wali berikutnya (bila ada) menjadi utama.',
         headers: schoolHeader,
         params: z.object({ id: z.uuid(), guardianId: z.uuid() }),

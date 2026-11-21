@@ -130,7 +130,9 @@ export function PrintPanel({ kind, templates, selectedId, onSelect }: Props) {
   const fits = !!grid && grid.perPage > 0;
   const sheets = grid ? pagesNeeded(items.length, grid.perPage) : 0;
   const busy = progress !== null;
-  const canDownload = !!template && items.length > 0 && !busy && (mode === 'single' || fits);
+  // Kartu yang tidak muat di lembar (mis. tanda peserta A4) otomatis dicetak satu per halaman seukuran kartu.
+  const oversized = mode === 'sheet' && !!grid && !fits;
+  const canDownload = !!template && items.length > 0 && !busy;
 
   async function download() {
     if (!template) return;
@@ -149,7 +151,7 @@ export function PrintPanel({ kind, templates, selectedId, onSelect }: Props) {
           layout: template.layout,
           backgroundPath: template.backgroundPath,
           cards,
-          mode,
+          mode: oversized ? 'single' : mode,
           sheet,
         },
         setProgress,
@@ -304,7 +306,7 @@ export function PrintPanel({ kind, templates, selectedId, onSelect }: Props) {
       </div>
 
       {mode === 'sheet' && grid && (
-        <p className={`text-sm ${fits ? 'text-muted-foreground' : 'text-destructive'}`}>
+        <p className="text-muted-foreground text-sm">
           {fits
             ? t('gridInfo', { cols: grid.cols, rows: grid.rows, per: grid.perPage, sheets })
             : t('gridNoFit')}

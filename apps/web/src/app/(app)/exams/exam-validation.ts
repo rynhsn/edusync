@@ -38,6 +38,27 @@ export function validateExamType(v: ExamTypeValues): FieldErrors<ExamTypeField> 
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
+// Ruang ujian (apps/api/src/routes/exam-rooms.ts, `roomBody`)
+
+export interface ExamRoomValues {
+  name: string;
+  /** Kosong = tanpa batas. */
+  capacity: string;
+  /** Kosong = ditaruh di urutan terakhir oleh server. */
+  sort: string;
+}
+export type ExamRoomField = keyof ExamRoomValues;
+export const EXAM_ROOM_ORDER: ExamRoomField[] = ['name', 'capacity', 'sort'];
+
+export function validateExamRoom(v: ExamRoomValues): FieldErrors<ExamRoomField> {
+  return compactErrors<ExamRoomField>([
+    ['name', requiredText(v.name, 40)],
+    ['capacity', intInRange(v.capacity, 1, 500, { required: false })],
+    ['sort', intInRange(v.sort, 0, 10_000, { required: false })],
+  ]);
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
 // Ujian
 
 export interface ExamValues {

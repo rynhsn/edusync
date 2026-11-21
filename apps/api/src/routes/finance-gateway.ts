@@ -310,7 +310,7 @@ export async function financeGatewayRoutes(instance: FastifyInstance, options: {
         .select({ id: student.id, name: student.name })
         .from(student)
         .where(eq(student.id, studentId));
-      if (!stu) throw new HttpError(400, 'invalid_reference', 'Siswa tidak ditemukan.');
+      if (!stu) throw new HttpError(400, 'invalid_reference', 'Murid tidak ditemukan.');
       const locked = await tx
         .select()
         .from(finInvoice)
@@ -318,7 +318,7 @@ export async function financeGatewayRoutes(instance: FastifyInstance, options: {
         .orderBy(asc(finInvoice.id))
         .for('update');
       if (locked.length !== invoiceIds.length || locked.some((i) => i.studentId !== studentId)) {
-        throw new HttpError(400, 'invalid_reference', 'Tagihan tidak ditemukan atau bukan milik siswa ini.');
+        throw new HttpError(400, 'invalid_reference', 'Tagihan tidak ditemukan atau bukan milik murid ini.');
       }
       if (locked.some((i) => i.status === 'void')) {
         throw new HttpError(409, 'invoice_void', 'Ada tagihan yang sudah dibatalkan.');
@@ -408,10 +408,10 @@ export async function financeGatewayRoutes(instance: FastifyInstance, options: {
       onRequest: payGate,
       schema: {
         tags: tag,
-        summary: 'Buat pembayaran online untuk tagihan siswa',
+        summary: 'Buat pembayaran online untuk tagihan murid',
         description:
           'Izin: `finance:pay`; modul `finance`. Membuat transaksi Midtrans (Snap) milik sekolah untuk 1..50 tagihan satu ' +
-          'siswa. Nominal dihitung server dari sisa tagihan (nominal dari klien tidak dipakai). Kwitansi baru tercatat ' +
+          'murid. Nominal dihitung server dari sisa tagihan (nominal dari klien tidak dipakai). Kwitansi baru tercatat ' +
           'setelah Midtrans mengabarkan pembayaran berhasil. Galat: 409 `gateway_disabled`, 409 `already_paid`, 409 ' +
           '`invoice_void`, 400 `invalid_reference`, 400 `duplicate_item`, 502 `gateway_error`.',
         headers: schoolHeader,
@@ -433,7 +433,7 @@ export async function financeGatewayRoutes(instance: FastifyInstance, options: {
         tags: tagPortal,
         summary: 'Bayar tagihan anak secara online',
         description:
-          'Izin: `portal:read`; modul `parent_portal` dan `finance`. Wali hanya untuk anaknya, siswa hanya untuk dirinya ' +
+          'Izin: `portal:read`; modul `parent_portal` dan `finance`. Wali hanya untuk anaknya, murid hanya untuk dirinya ' +
           '(selain itu 404 `not_found`). Perilaku dan galat sama dengan `/v1/finance/invoices/pay-online`.',
         headers: schoolHeader,
         params: z.object({ studentId: z.uuid() }),
@@ -766,7 +766,7 @@ export async function financeGatewayRoutes(instance: FastifyInstance, options: {
         tags: tag,
         summary: 'Daftar transaksi online',
         description:
-          'Izin: `finance:read`; modul `finance`. Transaksi Midtrans terbaru sekolah (terbaru dulu), beserta nama siswa ' +
+          'Izin: `finance:read`; modul `finance`. Transaksi Midtrans terbaru sekolah (terbaru dulu), beserta nama murid ' +
           'dan nomor kwitansi bila sudah dibayar. `limit` bawaan 50 (maksimal 200); `status` menyaring.',
         headers: schoolHeader,
         querystring: z.object({

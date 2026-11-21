@@ -30,25 +30,25 @@ export const SERVICE_DOCS: DocArticle[] = [
           },
           {
             heading: 'Menentukan siapa yang ditagih (Berlaku untuk)',
-            body: 'Setiap jenis biaya punya pilihan Berlaku untuk: Semua siswa, Kelas tertentu, atau Siswa tertentu. Saat Buat tagihan dijalankan, hanya siswa yang masuk sasaran yang ditagih. Siswa lain dihitung di hasil sebagai "Di luar sasaran" dan tidak dianggap kekurangan tarif.',
+            body: 'Setiap jenis biaya punya pilihan Berlaku untuk: Semua murid, Kelas tertentu, atau Murid tertentu. Saat Buat tagihan dijalankan, hanya murid yang masuk sasaran yang ditagih. Murid lain dihitung di hasil sebagai "Di luar sasaran" dan tidak dianggap kekurangan tarif.',
             steps: [
               'Buka Keuangan, Jenis biaya & tarif, lalu klik Tambah jenis biaya (atau Ubah pada jenis biaya yang ada).',
-              'Pada Berlaku untuk, pilih Kelas tertentu lalu centang kelasnya, atau pilih Siswa tertentu lalu cari dan pilih siswanya.',
+              'Pada Berlaku untuk, pilih Kelas tertentu lalu centang kelasnya, atau pilih Murid tertentu lalu cari dan pilih muridnya.',
               'Simpan. Daftar jenis biaya menampilkan lencana cakupan dan ringkasan sasarannya.',
-              'Di Kasir, setelah memilih siswa, jenis biaya yang berlaku untuknya tampil di bawah kartu siswa.',
+              'Di Kasir, setelah memilih murid, jenis biaya yang berlaku untuknya tampil di bawah kartu murid.',
             ],
-            tip: 'Contoh: Renang cukup dipasang ke kelas yang mengikuti renang; Praktikum dipasang ke siswa tertentu saja.',
+            tip: 'Contoh: Renang cukup dipasang ke kelas yang mengikuti renang; Praktikum dipasang ke murid tertentu saja.',
             warning:
-              'Kelas sasaran dipilih dari tahun ajaran yang sedang dipilih. Di Buat tagihan, memilih kelas di luar sasaran jenis biaya akan menampilkan peringatan karena tidak ada siswa yang ditagih.',
+              'Kelas sasaran dipilih dari tahun ajaran yang sedang dipilih. Di Buat tagihan, memilih kelas di luar sasaran jenis biaya akan menampilkan peringatan karena tidak ada murid yang ditagih.',
             href: '/finance/settings',
           },
           {
             heading: 'Memberi keringanan atau beasiswa',
-            body: 'Di halaman Jenis biaya & tarif, buat aturan potongan (persen atau nominal, untuk satu jenis biaya atau semua), lalu pasang ke satu kelas atau beberapa siswa tertentu. Potongan ini otomatis dipakai saat tagihan baru dibuat.',
+            body: 'Di halaman Jenis biaya & tarif, buat aturan potongan (persen atau nominal, untuk satu jenis biaya atau semua), lalu pasang ke satu kelas atau beberapa murid tertentu. Potongan ini otomatis dipakai saat tagihan baru dibuat.',
             steps: [
               'Di kartu Keringanan dan beasiswa, klik Tambah aturan. Isi nama aturan, jenis potongan, dan besarnya.',
-              'Pada bagian Pasang ke siswa, pilih aturan yang tadi dibuat.',
-              'Pilih Lingkup: Satu kelas atau Siswa tertentu, lalu pilih kelas atau siswanya dan isi alasan.',
+              'Pada bagian Pasang ke murid, pilih aturan yang tadi dibuat.',
+              'Pilih Lingkup: Satu kelas atau Murid tertentu, lalu pilih kelas atau muridnya dan isi alasan.',
               'Klik Pasang, lalu baca hasil pemasangan.',
             ],
             warning:
@@ -56,8 +56,8 @@ export const SERVICE_DOCS: DocArticle[] = [
             href: '/finance/settings',
           },
           {
-            heading: 'Membuat tagihan untuk satu kelas atau semua siswa',
-            body: 'Tagihan dibuat untuk siswa aktif sesuai tarif tingkat kelasnya. Bila Anda menjalankannya dua kali untuk jenis biaya dan bulan yang sama, tagihan yang sudah ada dilewati sehingga tidak menjadi ganda.',
+            heading: 'Membuat tagihan untuk satu kelas atau semua murid',
+            body: 'Tagihan dibuat untuk murid aktif sesuai tarif tingkat kelasnya. Bila Anda menjalankannya dua kali untuk jenis biaya dan bulan yang sama, tagihan yang sudah ada dilewati sehingga tidak menjadi ganda.',
             steps: [
               'Buka menu Tagihan, pilih Tahun ajaran, lalu klik Buat tagihan.',
               'Pilih Jenis biaya. Untuk jenis Bulanan, pilih juga Periode (bulan dan tahunnya). Untuk jenis Per semester, pilih Semester Ganjil atau Semester Genap; judul tagihan menjadi, misalnya, "SPP Semester Ganjil 2026/2027".',
@@ -67,14 +67,14 @@ export const SERVICE_DOCS: DocArticle[] = [
               'Klik Buat tagihan, lalu baca hasilnya: dibuat, sudah ada (dilewati), tanpa tarif, atau tarif nol.',
             ],
             warning:
-              'Tagihan dibuat sekaligus untuk banyak siswa. Periksa jenis biaya, kelas, dan bulan sebelum menekan tombol. Tagihan yang sudah ada pembayarannya tidak dapat dibatalkan.',
+              'Tagihan dibuat sekaligus untuk banyak murid. Periksa jenis biaya, kelas, dan bulan sebelum menekan tombol. Tagihan yang sudah ada pembayarannya tidak dapat dibatalkan.',
             href: '/finance/invoices',
           },
           {
             heading: 'Menerima pembayaran SPP di kasir',
-            body: 'Satu kwitansi bisa melunasi beberapa tagihan milik satu siswa. Nomor kwitansi berurutan setiap tahun dan dapat diunduh sebagai PDF.',
+            body: 'Satu kwitansi bisa melunasi beberapa tagihan milik satu murid. Nomor kwitansi berurutan setiap tahun dan dapat diunduh sebagai PDF.',
             steps: [
-              'Buka menu Kasir, lalu ketik nama atau NIS siswa (minimal 2 huruf) dan pilih siswanya.',
+              'Buka menu Kasir, lalu ketik nama atau NIS murid (minimal 2 huruf) dan pilih muridnya.',
               'Centang tagihan yang dibayar. Untuk pembayaran sebagian, ubah Jumlah bayar.',
               'Pilih Metode dan Tanggal bayar. Isi Catatan bila perlu.',
               'Klik Terima pembayaran, periksa ringkasannya, lalu konfirmasi.',
@@ -82,12 +82,12 @@ export const SERVICE_DOCS: DocArticle[] = [
             ],
             tip: 'Daftar metode bayar yang muncul di kasir dapat diatur di Jenis biaya & tarif, kartu Metode pembayaran.',
             warning:
-              'Setelah dikonfirmasi, pembayaran langsung tercatat dan kwitansi terbit. Periksa nama siswa dan jumlahnya dulu.',
+              'Setelah dikonfirmasi, pembayaran langsung tercatat dan kwitansi terbit. Periksa nama murid dan jumlahnya dulu.',
             href: '/finance',
           },
           {
             heading: 'Mengisi rekening sekolah untuk pembayaran transfer',
-            body: 'Agar wali dan siswa tahu ke mana harus mentransfer, isi rekening bank sekolah. Rekening yang aktif tampil di tab Tagihan pada portal wali dan siswa, lengkap dengan tombol Salin nomor. Kasir tetap mencatat pembayaran transfer setelah bukti transfer dikonfirmasi.',
+            body: 'Agar wali dan murid tahu ke mana harus mentransfer, isi rekening bank sekolah. Rekening yang aktif tampil di tab Tagihan pada portal wali dan murid, lengkap dengan tombol Salin nomor. Kasir tetap mencatat pembayaran transfer setelah bukti transfer dikonfirmasi.',
             steps: [
               'Buka Keuangan, Jenis biaya & tarif, lalu gulir ke kartu Rekening sekolah.',
               'Klik Tambah rekening. Isi Nama bank, Nomor rekening (angka, spasi, atau tanda hubung), dan Atas nama. Catatan boleh diisi, misalnya berita transfer yang diminta.',
@@ -101,9 +101,9 @@ export const SERVICE_DOCS: DocArticle[] = [
           },
           {
             heading: 'Membatalkan pembayaran yang salah catat',
-            body: 'Bila pembayaran tercatat pada siswa atau jumlah yang salah, batalkan pembayarannya. Tagihannya kembali menjadi belum dibayar, dan pembatalan tercatat beserta alasannya.',
+            body: 'Bila pembayaran tercatat pada murid atau jumlah yang salah, batalkan pembayarannya. Tagihannya kembali menjadi belum dibayar, dan pembatalan tercatat beserta alasannya.',
             steps: [
-              'Buka Kasir dan pilih siswa yang bersangkutan.',
+              'Buka Kasir dan pilih murid yang bersangkutan.',
               'Di Riwayat pembayaran, cari kwitansi yang salah.',
               'Klik Batalkan pembayaran, isi Alasan, lalu konfirmasi.',
               'Catat ulang pembayaran yang benar bila perlu.',
@@ -127,7 +127,7 @@ export const SERVICE_DOCS: DocArticle[] = [
           },
           {
             heading: 'Melihat tunggakan dan menerapkan denda',
-            body: 'Menu Laporan keuangan punya tab Tunggakan (per siswa dan per kelas, pada tanggal yang Anda pilih), Kas harian (penerimaan per metode, jenis biaya, dan hari; rentang paling lama 366 hari), dan Denda. Tunggakan dan Kas harian dapat diekspor ke Excel atau PDF.',
+            body: 'Menu Laporan keuangan punya tab Tunggakan (per murid dan per kelas, pada tanggal yang Anda pilih), Kas harian (penerimaan per metode, jenis biaya, dan hari; rentang paling lama 366 hari), dan Denda. Tunggakan dan Kas harian dapat diekspor ke Excel atau PDF.',
             steps: [
               'Buka menu Laporan keuangan, lalu pilih tab yang dibutuhkan dan atur tanggalnya.',
               'Klik Ekspor Excel atau Ekspor PDF bila ingin menyimpan atau mencetak laporan.',
@@ -140,7 +140,7 @@ export const SERVICE_DOCS: DocArticle[] = [
           },
           {
             heading: 'Mengaktifkan pembayaran online (Midtrans)',
-            body: 'Sekolah dapat menerima pembayaran tagihan secara online lewat akun Midtrans milik sekolah sendiri, dengan uang langsung masuk ke akun sekolah. Setelah diaktifkan, wali dan siswa dapat mencentang tagihan di portal lalu menekan Bayar online. Kwitansi tercatat otomatis saat Midtrans mengabarkan pembayaran berhasil.',
+            body: 'Sekolah dapat menerima pembayaran tagihan secara online lewat akun Midtrans milik sekolah sendiri, dengan uang langsung masuk ke akun sekolah. Setelah diaktifkan, wali dan murid dapat mencentang tagihan di portal lalu menekan Bayar online. Kwitansi tercatat otomatis saat Midtrans mengabarkan pembayaran berhasil.',
             steps: [
               'Daftar atau masuk ke dasbor Midtrans. Untuk mencoba, pakai mode Sandbox dulu.',
               'Di Midtrans, buka Settings, lalu Access Keys, kemudian salin Merchant ID, Client Key, dan Server Key.',
@@ -158,15 +158,15 @@ export const SERVICE_DOCS: DocArticle[] = [
         faq: [
           {
             q: 'Pembayaran sudah dicatat tetapi tagihan masih belum lunas, kenapa?',
-            a: 'Kemungkinan pembayaran dicatat sebagian, karena Jumlah bayar lebih kecil dari sisa tagihan. Statusnya menjadi Sebagian. Buka Kasir, pilih siswa itu lagi, lalu terima sisanya.',
+            a: 'Kemungkinan pembayaran dicatat sebagian, karena Jumlah bayar lebih kecil dari sisa tagihan. Statusnya menjadi Sebagian. Buka Kasir, pilih murid itu lagi, lalu terima sisanya.',
           },
           {
-            q: 'Saya salah memasukkan jumlah atau salah memilih siswa. Bagaimana memperbaikinya?',
-            a: 'Buka Kasir, pilih siswa, lalu di Riwayat pembayaran klik Batalkan pembayaran pada kwitansi yang salah dan isi alasannya. Tagihan kembali terbuka. Setelah itu catat pembayaran yang benar.',
+            q: 'Saya salah memasukkan jumlah atau salah memilih murid. Bagaimana memperbaikinya?',
+            a: 'Buka Kasir, pilih murid, lalu di Riwayat pembayaran klik Batalkan pembayaran pada kwitansi yang salah dan isi alasannya. Tagihan kembali terbuka. Setelah itu catat pembayaran yang benar.',
           },
           {
-            q: 'Setelah Buat tagihan, ada siswa yang tidak mendapat tagihan. Kenapa?',
-            a: 'Hasilnya menyebut jumlah siswa "tanpa tarif" atau "tarif nol". Artinya tarif untuk tingkat siswa itu belum diisi. Tambahkan tarifnya di Jenis biaya & tarif, lalu jalankan Buat tagihan lagi. Tagihan yang sudah ada dilewati, jadi tidak ganda.',
+            q: 'Setelah Buat tagihan, ada murid yang tidak mendapat tagihan. Kenapa?',
+            a: 'Hasilnya menyebut jumlah murid "tanpa tarif" atau "tarif nol". Artinya tarif untuk tingkat murid itu belum diisi. Tambahkan tarifnya di Jenis biaya & tarif, lalu jalankan Buat tagihan lagi. Tagihan yang sudah ada dilewati, jadi tidak ganda.',
           },
           {
             q: 'Saya mengubah tarif, tetapi tagihan lama tidak ikut berubah. Kenapa?',
@@ -526,7 +526,7 @@ export const SERVICE_DOCS: DocArticle[] = [
       id: {
         title: 'SPMB: penerimaan murid baru',
         summary:
-          'Panduan panitia SPMB: membuka pendaftaran, membagikan tautan, memeriksa berkas, memutuskan penerimaan, lalu mendaftarkan sebagai siswa.',
+          'Panduan panitia SPMB: membuka pendaftaran, membagikan tautan, memeriksa berkas, memutuskan penerimaan, lalu mendaftarkan sebagai murid.',
         forWho: 'Admin sekolah dan Operator (panitia SPMB). Kepala sekolah dapat melihat data pendaftar.',
         sections: [
           {
@@ -567,16 +567,16 @@ export const SERVICE_DOCS: DocArticle[] = [
             href: '/admissions',
           },
           {
-            heading: 'Mendaftarkan pendaftar yang diterima sebagai siswa',
-            body: 'Pendaftar berstatus Diterima dapat dijadikan siswa. Data calon murid dan walinya langsung dibuat di daftar siswa, dan Anda dapat menempatkannya di kelas pada tahun ajaran aktif.',
+            heading: 'Mendaftarkan pendaftar yang diterima sebagai murid',
+            body: 'Pendaftar berstatus Diterima dapat dijadikan murid. Data calon murid dan walinya langsung dibuat di daftar murid, dan Anda dapat menempatkannya di kelas pada tahun ajaran aktif.',
             steps: [
               'Buka pendaftar yang berstatus Diterima.',
-              'Klik Daftarkan sebagai siswa.',
+              'Klik Daftarkan sebagai murid.',
               'Pilih Kelas, atau pilih Tanpa kelas dulu bila belum ditentukan.',
-              'Konfirmasi. Statusnya menjadi Terdaftar dan muncul tombol Buka daftar siswa.',
+              'Konfirmasi. Statusnya menjadi Terdaftar dan muncul tombol Buka daftar murid.',
             ],
             warning:
-              'Setelah Terdaftar, status tidak dapat diubah lagi. Pendaftaran gagal bila NISN calon murid sudah dipakai siswa lain.',
+              'Setelah Terdaftar, status tidak dapat diubah lagi. Pendaftaran gagal bila NISN calon murid sudah dipakai murid lain.',
             href: '/admissions',
           },
         ],
@@ -598,8 +598,8 @@ export const SERVICE_DOCS: DocArticle[] = [
             a: 'Kode itu hanya tampil sekali saat mendaftar dan tidak bisa ditampilkan lagi. Cari nama atau nomor pendaftarannya di halaman SPMB, lalu sampaikan statusnya kepada wali.',
           },
           {
-            q: 'Daftarkan sebagai siswa gagal. Apa penyebabnya?',
-            a: 'Biasanya NISN calon murid sudah dipakai oleh siswa lain. Periksa data di daftar siswa dan pastikan NISN pendaftar sudah benar.',
+            q: 'Daftarkan sebagai murid gagal. Apa penyebabnya?',
+            a: 'Biasanya NISN calon murid sudah dipakai oleh murid lain. Periksa data di daftar murid dan pastikan NISN pendaftar sudah benar.',
           },
         ],
       },
@@ -785,7 +785,7 @@ export const SERVICE_DOCS: DocArticle[] = [
             body: 'Surat keluar disusun dari templat atau ditulis sendiri, dengan pratinjau kertas A4. Nomor surat dibuat otomatis saat draf pertama kali disimpan, dan draf masih boleh diubah atau dihapus.',
             steps: [
               'Buka menu Surat, lalu klik Surat keluar baru.',
-              'Pilih Templat (atau Tanpa templat) dan, bila perlu, pilih siswa. Isian seperti {{nama}}, {{nis}}, dan {{kelas}} terisi otomatis.',
+              'Pilih Templat (atau Tanpa templat) dan, bila perlu, pilih murid. Isian seperti {{nama}}, {{nis}}, dan {{kelas}} terisi otomatis.',
               'Isi Penerima, Tanggal surat, dan Isi surat. Lihat hasilnya di Pratinjau.',
               'Klik Simpan draf.',
               'Penandatangan membuka detail surat lalu klik Tandatangani.',
@@ -825,7 +825,7 @@ export const SERVICE_DOCS: DocArticle[] = [
             body: 'Templat adalah kerangka surat atau sertifikat yang datanya terisi otomatis. Format nomor mengatur kode sekolah dan pola nomor untuk surat keluar dan nomor agenda.',
             steps: [
               'Buka menu Templat surat.',
-              'Bila belum ada templat, klik Pasang templat bawaan (surat keterangan siswa aktif, surat panggilan orang tua, dan sertifikat). Atau klik Templat baru untuk membuat sendiri.',
+              'Bila belum ada templat, klik Pasang templat bawaan (surat keterangan murid aktif, surat panggilan orang tua, dan sertifikat). Atau klik Templat baru untuk membuat sendiri.',
               'Pada kartu Format nomor, isi Kode sekolah dan pola nomor, lalu klik Simpan format.',
             ],
             warning:
@@ -1078,7 +1078,7 @@ export const SERVICE_DOCS: DocArticle[] = [
             steps: [
               'Buka menu Pengumuman, lalu klik Tulis pengumuman.',
               'Isi Judul dan Isi, lalu pilih Kategori.',
-              'Pilih Audiens: Publik, Portal wali dan siswa, Staf, atau Semua.',
+              'Pilih Audiens: Publik, Portal wali dan murid, Staf, atau Semua.',
               'Isi Tampil sampai bila pengumuman punya batas waktu.',
               'Lihat tab Pratinjau untuk melihat tampilannya di situs sekolah.',
               'Centang Terbitkan sekarang agar langsung terbit, atau biarkan kosong untuk menyimpannya sebagai draf. Lalu klik Simpan.',
@@ -1088,7 +1088,7 @@ export const SERVICE_DOCS: DocArticle[] = [
           },
           {
             heading: 'Menentukan siapa yang membaca',
-            body: 'Publik tampil di situs sekolah tanpa perlu masuk. Portal wali dan siswa hanya terlihat oleh wali dan siswa yang sudah masuk portal. Staf hanya terlihat oleh guru dan staf, di dasbor mereka. Semua tampil di ketiganya.',
+            body: 'Publik tampil di situs sekolah tanpa perlu masuk. Portal wali dan murid hanya terlihat oleh wali dan murid yang sudah masuk portal. Staf hanya terlihat oleh guru dan staf, di dasbor mereka. Semua tampil di ketiganya.',
             href: '/announcements',
           },
           {
@@ -1303,7 +1303,7 @@ export const SERVICE_DOCS: DocArticle[] = [
               'Buka tab Pengaturan, lalu nyalakan Aktifkan notifikasi.',
               'Isi Kirim mulai jam dan Kirim sampai jam. Pesan di luar jam ini menunggu sampai jam berikutnya.',
               'Atur Jeda acak minimum dan maksimum antar-pesan, serta Jam pengingat belum tiba.',
-              'Pada bagian Peristiwa dan templat pesan, ubah isi pesan bila perlu. Klik nama pengganti (misalnya nama siswa) untuk menyisipkannya, lihat Pratinjau, lalu Simpan. Klik Kembalikan ke bawaan untuk mengulang.',
+              'Pada bagian Peristiwa dan templat pesan, ubah isi pesan bila perlu. Klik nama pengganti (misalnya nama murid) untuk menyisipkannya, lihat Pratinjau, lalu Simpan. Klik Kembalikan ke bawaan untuk mengulang.',
               'Pada kartu Header dan footer pesan, isi teks pembuka dan penutup (kosongkan untuk tanpa), lihat Pratinjau, lalu Simpan. Teks ini ditambahkan ke semua pesan saat dikirim.',
             ],
             tip: 'Jeda acak membuat pesan tidak terkirim serentak, sehingga lebih aman bagi nomor sekolah.',
@@ -1311,8 +1311,8 @@ export const SERVICE_DOCS: DocArticle[] = [
           },
           {
             heading: 'Mengetahui pesan apa saja yang dikirim ke wali',
-            body: 'Pesan otomatis dikirim untuk: siswa tiba dan siswa pulang (dari tap kartu di gerbang), belum tiba (pada jam pengingat), bolos pelajaran (hadir di gerbang tetapi ditandai alpa di satu jam pelajaran), pembayaran diterima, tagihan jatuh tempo, dan rapor terbit. Pesan dikirim ke setiap nomor wali yang valid, satu pesan per nomor, wali utama lebih dulu.',
-            tip: 'Pastikan nomor ponsel wali terisi di data siswa. Tanpa nomor yang valid, tidak ada pesan yang bisa dikirim.',
+            body: 'Pesan otomatis dikirim untuk: murid tiba dan murid pulang (dari tap kartu di gerbang), belum tiba (pada jam pengingat), bolos pelajaran (hadir di gerbang tetapi ditandai alpa di satu jam pelajaran), pembayaran diterima, tagihan jatuh tempo, dan rapor terbit. Pesan dikirim ke setiap nomor wali yang valid, satu pesan per nomor, wali utama lebih dulu.',
+            tip: 'Pastikan nomor ponsel wali terisi di data murid. Tanpa nomor yang valid, tidak ada pesan yang bisa dikirim.',
             href: '/messaging',
           },
           {
@@ -1380,7 +1380,7 @@ export const SERVICE_DOCS: DocArticle[] = [
           },
           {
             q: 'Wali mengatakan tidak menerima pesan. Apa yang harus diperiksa?',
-            a: 'Periksa berurutan: status Koneksi harus Terhubung, Aktifkan notifikasi menyala, isi pesan untuk peristiwa itu menyala, dan wali punya nomor ponsel yang valid di data siswa. Lalu cek tab Riwayat untuk melihat statusnya.',
+            a: 'Periksa berurutan: status Koneksi harus Terhubung, Aktifkan notifikasi menyala, isi pesan untuk peristiwa itu menyala, dan wali punya nomor ponsel yang valid di data murid. Lalu cek tab Riwayat untuk melihat statusnya.',
           },
           {
             q: 'Pesan berstatus Gagal atau Dilewati. Apakah bisa dikirim lagi?',
@@ -1672,17 +1672,17 @@ export const SERVICE_DOCS: DocArticle[] = [
     module: 'parent_portal',
     text: {
       id: {
-        title: 'Portal wali dan siswa',
+        title: 'Portal wali dan murid',
         summary:
-          'Panduan mengundang wali atau siswa agar dapat melihat kehadiran, nilai, tagihan, dan rapor lewat ponsel. Memerlukan modul Absensi.',
-        forWho: 'Admin sekolah dan Operator yang mengelola data siswa.',
+          'Panduan mengundang wali atau murid agar dapat melihat kehadiran, nilai, tagihan, dan rapor lewat ponsel. Memerlukan modul Absensi.',
+        forWho: 'Admin sekolah dan Operator yang mengelola data murid.',
         sections: [
           {
-            heading: 'Mengundang wali atau siswa',
-            body: 'Undangan berupa tautan sekali pakai untuk satu orang, berlaku 14 hari. Wali yang diundang harus sudah tercatat pada data siswa di halaman Siswa.',
+            heading: 'Mengundang wali atau murid',
+            body: 'Undangan berupa tautan sekali pakai untuk satu orang, berlaku 14 hari. Wali yang diundang harus sudah tercatat pada data murid di halaman Murid.',
             steps: [
-              'Buka menu Akun portal, lalu ketik nama, NIS, atau NISN siswa di kolom Cari siswa.',
-              'Pilih wali yang diundang, atau pilih siswa itu sendiri.',
+              'Buka menu Akun portal, lalu ketik nama, NIS, atau NISN murid di kolom Cari murid.',
+              'Pilih wali yang diundang, atau pilih murid itu sendiri.',
               'Isi Email bila ingin undangan hanya bisa diterima dengan email itu (boleh dikosongkan).',
               'Klik Buat tautan, lalu klik Salin dan kirim tautannya kepada orang yang diundang.',
             ],
@@ -1692,7 +1692,7 @@ export const SERVICE_DOCS: DocArticle[] = [
           },
           {
             heading: 'Membantu wali menerima undangan',
-            body: 'Orang yang diundang membuka tautan, lalu melihat nama sekolah dan siswa yang tertaut. Mereka membuat akun sendiri, atau menautkan akun yang sudah ada bila emailnya sudah terdaftar.',
+            body: 'Orang yang diundang membuka tautan, lalu melihat nama sekolah dan murid yang tertaut. Mereka membuat akun sendiri, atau menautkan akun yang sudah ada bila emailnya sudah terdaftar.',
             steps: [
               'Buka tautan undangan dari sekolah.',
               'Isi Nama lengkap dan kata sandi (minimal 12 karakter). Email yang dipakai untuk masuk sudah terisi dari undangan bila Anda mengisinya.',
@@ -1701,8 +1701,8 @@ export const SERVICE_DOCS: DocArticle[] = [
             tip: 'Tuntun wali lewat telepon atau pesan pada kali pertama. Setelah itu mereka dapat masuk sendiri kapan saja.',
           },
           {
-            heading: 'Mengetahui apa yang dilihat wali dan siswa',
-            body: 'Wali melihat anak yang tertaut pada datanya, sedangkan siswa hanya melihat dirinya sendiri. Beranda memuat kelas, kehadiran 30 hari terakhir, tunggakan, nilai terbaru, dan pengumuman untuk portal. Rincian per anak punya tab Absensi, Nilai, Tagihan (beserta kwitansi), Rapor yang sudah final, Tahfidz, dan Kabar. Bagian tertentu hanya muncul bila modulnya aktif di sekolah.',
+            heading: 'Mengetahui apa yang dilihat wali dan murid',
+            body: 'Wali melihat anak yang tertaut pada datanya, sedangkan murid hanya melihat dirinya sendiri. Beranda memuat kelas, kehadiran 30 hari terakhir, tunggakan, nilai terbaru, dan pengumuman untuk portal. Rincian per anak punya tab Absensi, Nilai, Tagihan (beserta kwitansi), Rapor yang sudah final, Tahfidz, dan Kabar. Bagian tertentu hanya muncul bila modulnya aktif di sekolah.',
           },
           {
             heading: 'Melihat rapor dan menulis tanggapan',
@@ -1724,14 +1724,14 @@ export const SERVICE_DOCS: DocArticle[] = [
               'Konfirmasi pencabutan.',
             ],
             warning:
-              'Setelah akun dicabut, orang itu tidak dapat membuka portal lagi, dan bila tidak punya peran lain di sekolah ia tidak bisa masuk. Wali atau siswa tetap dapat diundang ulang.',
+              'Setelah akun dicabut, orang itu tidak dapat membuka portal lagi, dan bila tidak punya peran lain di sekolah ia tidak bisa masuk. Wali atau murid tetap dapat diundang ulang.',
             href: '/portal-admin',
           },
         ],
         faq: [
           {
             q: 'Wali tidak muncul di pilihan saat mengundang. Kenapa?',
-            a: 'Siswa itu belum punya wali di datanya. Buka halaman Siswa, tambahkan wali (nama dan nomor ponselnya), lalu kembali ke Akun portal.',
+            a: 'Murid itu belum punya wali di datanya. Buka halaman Murid, tambahkan wali (nama dan nomor ponselnya), lalu kembali ke Akun portal.',
           },
           {
             q: 'Wali kehilangan tautan undangan. Bagaimana?',

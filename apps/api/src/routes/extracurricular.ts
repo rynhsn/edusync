@@ -50,7 +50,7 @@ const studentStatusField = z
   .enum(['active', 'graduated'])
   .optional()
   .describe(
-    'Status siswa; `graduated` = lulusan yang hanya tampil untuk dibaca (tidak dapat diisi atau diubah)',
+    'Status murid; `graduated` = lulusan yang hanya tampil untuk dibaca (tidak dapat diisi atau diubah)',
   );
 
 const extracurricularSchema = z.object({
@@ -420,8 +420,8 @@ export async function extracurricularRoutes(instance: FastifyInstance) {
         summary: 'Anggota ekstrakurikuler',
         description:
           'Izin: `extracurricular:read`; modul `extracurricular`. Anggota pada tahun ajaran `academicYearId` (bawaan: ' +
-          'tahun ajaran aktif; 409 `no_active_year` bila tidak ada). `className` adalah kelas siswa pada tahun itu. ' +
-          'Lulusan yang punya keanggotaan pada tahun itu ikut tampil; siswa pindah/keluar tidak.',
+          'tahun ajaran aktif; 409 `no_active_year` bila tidak ada). `className` adalah kelas murid pada tahun itu. ' +
+          'Lulusan yang punya keanggotaan pada tahun itu ikut tampil; murid pindah/keluar tidak.',
         headers: schoolHeader,
         params: idParams,
         querystring: z.object({ academicYearId: z.uuid().optional() }),
@@ -474,8 +474,8 @@ export async function extracurricularRoutes(instance: FastifyInstance) {
         summary: 'Tambah anggota ekstrakurikuler',
         description:
           'Izin: `extracurricular:read` ditambah pengelola (`extracurricular:manage`) atau guru pembina ekskul ini; ' +
-          'selain itu 403 `forbidden`. Hanya siswa aktif sekolah ini (400 `invalid_reference` bila ada yang bukan). ' +
-          'Siswa yang sudah menjadi anggota dilewati (`skipped`). Maksimal 200 siswa per permintaan.',
+          'selain itu 403 `forbidden`. Hanya murid aktif sekolah ini (400 `invalid_reference` bila ada yang bukan). ' +
+          'Murid yang sudah menjadi anggota dilewati (`skipped`). Maksimal 200 murid per permintaan.',
         headers: schoolHeader,
         params: idParams,
         body: z.object({
@@ -502,7 +502,7 @@ export async function extracurricularRoutes(instance: FastifyInstance) {
           .select({ id: student.id })
           .from(student)
           .where(and(inArray(student.id, ids), isNull(student.deletedAt), eq(student.status, 'active')));
-        if (found.length !== ids.length) throw invalidRef('Ada siswa yang tidak ditemukan atau tidak aktif.');
+        if (found.length !== ids.length) throw invalidRef('Ada murid yang tidak ditemukan atau tidak aktif.');
         const inserted = await tx
           .insert(extracurricularMember)
           .values(
@@ -790,7 +790,7 @@ export async function extracurricularRoutes(instance: FastifyInstance) {
         summary: 'Simpan absensi pertemuan ekstrakurikuler',
         description:
           'Izin: `extracurricular:read` ditambah pengelola (`extracurricular:manage`) atau guru pembina ekskul ini; ' +
-          'selain itu 403 `forbidden`. Semua siswa harus anggota ekskul pada tahun ajaran pertemuan itu ' +
+          'selain itu 403 `forbidden`. Semua murid harus anggota ekskul pada tahun ajaran pertemuan itu ' +
           '(400 `invalid_reference`). Maksimal 200 baris.',
         headers: schoolHeader,
         params: z.object({ sessionId: z.uuid() }),
@@ -824,7 +824,7 @@ export async function extracurricularRoutes(instance: FastifyInstance) {
         const members = yearId ? await membersOf(tx, ek.id, yearId) : [];
         const allowed = new Set(members.map((m) => m.id));
         if (records.some((r) => !allowed.has(r.studentId))) {
-          throw invalidRef('Ada siswa yang bukan anggota ekstrakurikuler ini.');
+          throw invalidRef('Ada murid yang bukan anggota ekstrakurikuler ini.');
         }
         for (const r of records) {
           await tx
@@ -927,9 +927,9 @@ export async function extracurricularRoutes(instance: FastifyInstance) {
         summary: 'Simpan penilaian ekstrakurikuler',
         description:
           'Izin: `extracurricular:read` ditambah pengelola (`extracurricular:manage`) atau guru pembina ekskul ini; ' +
-          'selain itu 403 `forbidden`. Siswa harus anggota pada tahun ajaran semester itu dan semester harus milik ' +
+          'selain itu 403 `forbidden`. Murid harus anggota pada tahun ajaran semester itu dan semester harus milik ' +
           'sekolah ini (400 `invalid_reference`). Predikat A-D; dipakai nanti oleh rapor. Ditolak 409 `report_final` ' +
-          'bila rapor salah satu siswa pada semester itu sudah final.',
+          'bila rapor salah satu murid pada semester itu sudah final.',
         headers: schoolHeader,
         params: idParams,
         body: z.object({
@@ -963,7 +963,7 @@ export async function extracurricularRoutes(instance: FastifyInstance) {
         const members = await membersOf(tx, request.params.id, sem.academicYearId);
         const allowed = new Set(members.map((m) => m.id));
         if (records.some((r) => !allowed.has(r.studentId))) {
-          throw invalidRef('Ada siswa yang bukan anggota ekstrakurikuler ini.');
+          throw invalidRef('Ada murid yang bukan anggota ekstrakurikuler ini.');
         }
         await assertStudentsReportNotFinal(
           tx,

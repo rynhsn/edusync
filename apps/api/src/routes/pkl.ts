@@ -786,7 +786,7 @@ export async function pklRoutes(instance: FastifyInstance) {
         tags: tag,
         summary: 'Daftar penempatan PKL',
         description:
-          'Izin: `pkl:read`; modul `internship`. Filter `periodId`, `partnerId`, `status`, dan `q` (nama siswa atau mitra). ' +
+          'Izin: `pkl:read`; modul `internship`. Filter `periodId`, `partnerId`, `status`, dan `q` (nama murid atau mitra). ' +
           '`finalScore` null bila belum ada nilai; `canWrite` menandai penempatan yang boleh diisi pengguna ini.',
         headers: schoolHeader,
         querystring: z.object({
@@ -851,11 +851,11 @@ export async function pklRoutes(instance: FastifyInstance) {
       onRequest: manageGate,
       schema: {
         tags: tag,
-        summary: 'Tempatkan siswa PKL (massal)',
+        summary: 'Tempatkan murid PKL (massal)',
         description:
-          'Izin: `pkl:manage`; modul `internship`. Satu siswa hanya boleh satu penempatan per periode: yang sudah ' +
+          'Izin: `pkl:manage`; modul `internship`. Satu murid hanya boleh satu penempatan per periode: yang sudah ' +
           'ditempatkan dilaporkan di `skipped` (alasan `already_placed`), sisanya dibuat. Periode, mitra aktif, ' +
-          'siswa aktif, dan guru pembimbing harus milik sekolah ini (400 `invalid_reference`).',
+          'murid aktif, dan guru pembimbing harus milik sekolah ini (400 `invalid_reference`).',
         headers: schoolHeader,
         body: placementCreateBody,
         response: {
@@ -892,7 +892,7 @@ export async function pklRoutes(instance: FastifyInstance) {
             ),
           );
         if (found.length !== studentIds.length)
-          throw invalidRef('Ada siswa yang tidak ditemukan atau tidak aktif.');
+          throw invalidRef('Ada murid yang tidak ditemukan atau tidak aktif.');
         const existing = await tx
           .select({ studentId: pklPlacement.studentId })
           .from(pklPlacement)
@@ -1654,7 +1654,7 @@ export async function pklRoutes(instance: FastifyInstance) {
         summary: 'Nomori sertifikat PKL satu periode',
         description:
           'Izin: `pkl:manage`; modul `internship`. Memberi nomor berurutan menurut pola sekolah (`/v1/vocational/settings/pkl`, ' +
-          'bawaan `PKL/{seq}/{code}/{year}`) kepada penempatan `completed` yang belum bernomor, urut nama siswa. Nomor yang sudah ' +
+          'bawaan `PKL/{seq}/{code}/{year}`) kepada penempatan `completed` yang belum bernomor, urut nama murid. Nomor yang sudah ' +
           'terpakai dilewati. Idempoten: penempatan yang sudah bernomor tidak diubah. Tanpa penempatan selesai sama sekali: ' +
           '409 `placement_not_completed`. Periode tertaut ke rapor dan ada rapor murid final: 409 `report_final`. 404 `not_found`.',
         headers: schoolHeader,

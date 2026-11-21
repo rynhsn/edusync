@@ -134,8 +134,8 @@ export async function liveRoutes(instance: FastifyInstance) {
           'pengguna tidak punya izinnya: `attendance` dan `lessons` (modul `attendance` + `attendance:read`), `finance` ' +
           '(modul `finance` + `finance:read`), `messaging` (modul `messaging` + `message:read`), `extracurricular` ' +
           '(modul `extracurricular` + `extracurricular:read`). `date`/`time` menurut zona waktu sekolah. `closed` = libur ' +
-          'atau jeda kalender sekolah hari ini. `attendance` dihitung seperti `summary` pada `/v1/gate/daily` (siswa aktif ' +
-          'di tahun ajaran aktif, tanpa daftar siswa). `lessons.running` = jam yang sedang berlangsung menurut jadwal hari ' +
+          'atau jeda kalender sekolah hari ini. `attendance` dihitung seperti `summary` pada `/v1/gate/daily` (murid aktif ' +
+          'di tahun ajaran aktif, tanpa daftar murid). `lessons.running` = jam yang sedang berlangsung menurut jadwal hari ' +
           'ini di tahun ajaran aktif (maksimal 30; kosong pada hari libur/Minggu); `currentPeriod` nomor jam yang ' +
           'berlangsung, `nextPeriodStartsAt` jam mulai jam berikutnya (HH:MM), `unfilled` = jumlah sel jadwal hari ini ' +
           'yang sudah mulai tetapi belum ada satu pun catatan absensi jamnya. `finance` = agregat tagihan tidak batal ' +

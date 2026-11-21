@@ -199,7 +199,7 @@ export async function examRoutes(instance: FastifyInstance) {
         tags: tag,
         summary: 'Pengaturan lembar ujian sekolah',
         description:
-          'Izin: `exam:read`; modul `exams`. Kop, judul, blok keterangan, petunjuk umum, dan blok identitas siswa. ' +
+          'Izin: `exam:read`; modul `exams`. Kop, judul, blok keterangan, petunjuk umum, dan blok identitas murid. ' +
           '`custom` false = belum pernah disimpan, nilai bawaan dikembalikan.',
         headers: schoolHeader,
         response: { 200: paperSchema, ...guarded },

@@ -43,7 +43,7 @@ const gateDays = z.object({
   excused: z.number().int(),
   sick: z.number().int(),
   absent: z.number().int(),
-  notRecorded: z.number().int().describe('Hari efektif yang belum tercatat untuk siswa ini'),
+  notRecorded: z.number().int().describe('Hari efektif yang belum tercatat untuk murid ini'),
 });
 const lessonCounts = z.object({
   present: z.number().int(),
@@ -69,10 +69,10 @@ export async function attendanceReportRoutes(instance: FastifyInstance) {
         tags: tag,
         summary: 'Rekap absensi gerbang dan per jam pelajaran',
         description:
-          'Izin: `attendance:read`; modul `attendance` harus aktif. Per siswa aktif di tahun ajaran aktif (satu kelas ' +
+          'Izin: `attendance:read`; modul `attendance` harus aktif. Per murid aktif di tahun ajaran aktif (satu kelas ' +
           'bila `classId` diisi, selain itu semua kelas yang boleh dilihat pengguna): jumlah hari gerbang ' +
           '(`days`: present, late, excused, sick, absent, dan `notRecorded`), jumlah jam pelajaran (`lessons`), dan ' +
-          '`skipped` (bolos kelas) yaitu jam pelajaran berstatus alpa pada hari siswa hadir atau terlambat di gerbang. ' +
+          '`skipped` (bolos kelas) yaitu jam pelajaran berstatus alpa pada hari murid hadir atau terlambat di gerbang. ' +
           '`effectiveDays` adalah jumlah tanggal berbeda yang punya catatan gerbang untuk kelas itu (hari libur/jeda ' +
           'tanpa catatan tidak dihitung). Rentang maksimal 366 hari (400 `invalid_period`). Guru yang tidak punya ' +
           '`attendance:configure` dan bukan kepala sekolah/kurikulum hanya boleh melihat kelas yang ia ajar; kelas ' +

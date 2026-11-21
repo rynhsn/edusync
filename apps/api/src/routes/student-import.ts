@@ -194,10 +194,10 @@ export async function studentImportRoutes(instance: FastifyInstance) {
       onRequest: [requirePermission('student:read')],
       schema: {
         tags: ['People'],
-        summary: 'Ekspor siswa beserta wali',
+        summary: 'Ekspor murid beserta wali',
         description:
-          `Izin: \`student:read\`. Saringan sama dengan daftar siswa (\`q\`, \`classId\`, \`status\`) tetapi tanpa ` +
-          `paginasi; maksimal ${MAX_EXPORT_ROWS} siswa (\`total\` memuat jumlah sebenarnya). Setiap siswa membawa ` +
+          `Izin: \`student:read\`. Saringan sama dengan daftar murid (\`q\`, \`classId\`, \`status\`) tetapi tanpa ` +
+          `paginasi; maksimal ${MAX_EXPORT_ROWS} murid (\`total\` memuat jumlah sebenarnya). Setiap murid membawa ` +
           'semua walinya, wali utama lebih dulu.',
         headers: schoolHeader,
         querystring: z.object({
@@ -306,16 +306,16 @@ export async function studentImportRoutes(instance: FastifyInstance) {
       config: { rateLimit: { max: 20, timeWindow: '1 minute' } },
       schema: {
         tags: ['People'],
-        summary: 'Impor siswa (pratinjau atau simpan)',
+        summary: 'Impor murid (pratinjau atau simpan)',
         description:
           `Izin: \`student:manage\`. Maksimal ${MAX_ROWS} baris. Dengan \`dryRun: true\` hanya memeriksa dan melaporkan ` +
-          'kesalahan per baris. Tanpa `dryRun`, siswa baru disimpan hanya bila semua baris valid. Kelas (`className`) ' +
+          'kesalahan per baris. Tanpa `dryRun`, murid baru disimpan hanya bila semua baris valid. Kelas (`className`) ' +
           'dicocokkan dengan nama kelas pada tahun ajaran aktif; NIS dan NISN harus unik di file dan di sekolah. ' +
           'Data diri opsional: `nik` (16 digit), `birthPlace`, `religion` (Islam, Kristen, Katolik, Hindu, Buddha, ' +
           'Konghucu, Lainnya, atau padanan Inggris), `address`, `phone`, `email`. Dua wali per baris ' +
           '(`g1*` wali utama, `g2*`): hubungan Ayah/Ibu/Wali/Lainnya (kosong: wali 1 ayah, wali 2 ibu); nama wajib ' +
           'bila ada isian lain pada blok itu. Blok wali juga menerima `g1Nik`/`g2Nik` (16 digit), `g1Address`, ' +
-          '`g1Occupation`. NIK siswa harus unik di file dan di sekolah. Wali dipakai ulang bila NIK, atau telepon ' +
+          '`g1Occupation`. NIK murid harus unik di file dan di sekolah. Wali dipakai ulang bila NIK, atau telepon ' +
           '(setelah dinormalkan), sama dengan wali yang sudah ada di sekolah atau yang dibuat lebih awal di file ' +
           'yang sama; selain itu wali baru dibuat.',
         headers: schoolHeader,
@@ -459,19 +459,19 @@ export async function studentImportRoutes(instance: FastifyInstance) {
           if (nisn && !idPattern.test(nisn))
             fail('nisn', 'NISN hanya boleh huruf, angka, titik, garis miring, dan tanda hubung.');
           if (nis) {
-            if (takenNis.has(nis)) fail('nis', `NIS ${nis} sudah dipakai siswa lain.`);
+            if (takenNis.has(nis)) fail('nis', `NIS ${nis} sudah dipakai murid lain.`);
             else if (seenNis.has(nis)) fail('nis', `NIS ${nis} ganda dengan baris ${seenNis.get(nis)}.`);
             else seenNis.set(nis, r.row);
           }
           if (nisn) {
-            if (takenNisn.has(nisn)) fail('nisn', `NISN ${nisn} sudah dipakai siswa lain.`);
+            if (takenNisn.has(nisn)) fail('nisn', `NISN ${nisn} sudah dipakai murid lain.`);
             else if (seenNisn.has(nisn))
               fail('nisn', `NISN ${nisn} ganda dengan baris ${seenNisn.get(nisn)}.`);
             else seenNisn.set(nisn, r.row);
           }
           if (nik && !/^\d{16}$/.test(nik)) fail('nik', NIK_MESSAGE);
           else if (nik) {
-            if (takenStudentNik.has(nik)) fail('nik', 'NIK itu sudah dipakai siswa lain.');
+            if (takenStudentNik.has(nik)) fail('nik', 'NIK itu sudah dipakai murid lain.');
             else if (seenNik.has(nik)) fail('nik', `NIK ganda dengan baris ${seenNik.get(nik)}.`);
             else seenNik.set(nik, r.row);
           }

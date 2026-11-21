@@ -1,8 +1,13 @@
 'use client';
 
-import type { CardKind } from '@edusync/contracts';
+import {
+  type CardKind,
+  type CardLayout,
+  DEFAULT_EXAM_SLIP_TEMPLATE_NAME,
+  defaultExamSlipLayout,
+} from '@edusync/contracts';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Copy, Pencil, Plus, Printer, Star, Trash2, WandSparkles } from 'lucide-react';
+import { Copy, FileText, Pencil, Plus, Printer, Star, Trash2, WandSparkles } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
@@ -76,15 +81,15 @@ export function TemplatesPanel({ kind, templates, system, selectedId, onPrint }:
     onError,
   });
   const fromDefault = useMutation({
-    mutationFn: async () => {
-      if (!system) throw new Error('internal');
+    mutationFn: async (source: { name: string; layout: CardLayout } | null) => {
+      if (!source) throw new Error('internal');
       for (let n = 1; n <= 6; n++) {
-        const name = n === 1 ? system.name : `${system.name} ${n}`;
+        const name = n === 1 ? source.name : `${source.name} ${n}`;
         try {
           return unwrap(
             await api.POST('/v1/cards/templates', {
               params: header,
-              body: { kind, name, layout: system.layout },
+              body: { kind, name, layout: source.layout },
             }),
           );
         } catch (e) {
@@ -110,16 +115,32 @@ export function TemplatesPanel({ kind, templates, system, selectedId, onPrint }:
           <p className="text-muted-foreground text-sm">
             {shown.length === 0 ? t('noTemplatesHint') : t('templatesHint')}
           </p>
+          {manage && kind === 'exam' && <p className="text-muted-foreground mt-1 text-xs">{t('slipHint')}</p>}
         </div>
         {manage && (
           <div className="flex flex-wrap gap-2">
             <Button
               variant="outline"
               disabled={fromDefault.isPending || !system}
-              onClick={() => fromDefault.mutate()}
+              onClick={() => fromDefault.mutate(system)}
             >
               <WandSparkles className="size-4" /> {t('addFromDefault')}
             </Button>
+            {kind === 'exam' && (
+              <Button
+                variant="outline"
+                disabled={fromDefault.isPending}
+                title={t('slipHint')}
+                onClick={() =>
+                  fromDefault.mutate({
+                    name: DEFAULT_EXAM_SLIP_TEMPLATE_NAME,
+                    layout: defaultExamSlipLayout(),
+                  })
+                }
+              >
+                <FileText className="size-4" /> {t('addSlip')}
+              </Button>
+            )}
             <Link href={`/cards/new?kind=${kind}`} className={buttonVariants()}>
               <Plus className="size-4" /> {t('newTemplate')}
             </Link>

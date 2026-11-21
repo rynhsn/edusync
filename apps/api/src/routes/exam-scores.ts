@@ -70,9 +70,9 @@ const sheetSchema = z.object({
         .enum(['active', 'graduated'])
         .optional()
         .describe(
-          'Status siswa; `graduated` = lulusan yang hanya tampil untuk dibaca (tidak dapat diisi atau diubah)',
+          'Status murid; `graduated` = lulusan yang hanya tampil untuk dibaca (tidak dapat diisi atau diubah)',
         ),
-      entered: z.boolean().describe('Sudah ada data hasil untuk siswa ini'),
+      entered: z.boolean().describe('Sudah ada data hasil untuk murid ini'),
       absent: z.boolean(),
       answers: z.record(z.string(), answerCell).describe('Kunci = id soal ujian'),
       total: z.number().describe('Jumlah skor yang sudah terisi'),
@@ -83,7 +83,7 @@ const sheetSchema = z.object({
       essayPending: z.boolean().describe('Ada esai yang belum diberi skor'),
       startedAt: z.string().nullable().describe('CBT: waktu mulai; null untuk ujian kertas'),
       submittedAt: z.string().nullable().describe('CBT: waktu dikumpulkan; null bila belum'),
-      blurCount: z.number().int().describe('CBT: berapa kali siswa meninggalkan tab ujian'),
+      blurCount: z.number().int().describe('CBT: berapa kali murid meninggalkan tab ujian'),
     }),
   ),
 });
@@ -217,9 +217,9 @@ export async function examScoreRoutes(instance: FastifyInstance) {
         tags: tag,
         summary: 'Lembar nilai ujian',
         description:
-          'Izin: `exam:read`; modul `exams`. Siswa kelas peserta (menurut pendaftaran tahun ajaran semester ' +
+          'Izin: `exam:read`; modul `exams`. Murid kelas peserta (menurut pendaftaran tahun ajaran semester ' +
           'ujian) dengan jawaban dan skor yang sudah dimasukkan, jumlah skor, dan persentase. Lulusan yang punya ' +
-          'pendaftaran pada tahun ajaran semester itu ikut tampil (tahun lampau tetap utuh); siswa pindah/keluar tidak. ' +
+          'pendaftaran pada tahun ajaran semester itu ikut tampil (tahun lampau tetap utuh); murid pindah/keluar tidak. ' +
           '404 `not_found` (juga bagi guru yang tidak mengampu mapelnya).',
         headers: schoolHeader,
         params: idParams,
@@ -238,12 +238,12 @@ export async function examScoreRoutes(instance: FastifyInstance) {
       onRequest: writeGate,
       schema: {
         tags: tag,
-        summary: 'Simpan hasil ujian siswa',
+        summary: 'Simpan hasil ujian murid',
         description:
-          'Izin: `exam:author`; modul `exams`; guru hanya untuk mapel yang ia ampu (403). Per siswa: `absent` ' +
+          'Izin: `exam:author`; modul `exams`; guru hanya untuk mapel yang ia ampu (403). Per murid: `absent` ' +
           '(tidak hadir menghapus jawabannya) dan `answers`. Pilihan ganda: `answer` = huruf opsi atau kosong; skor ' +
           'dihitung otomatis (benar = poin soal, selain itu 0) dan `score` kiriman diabaikan. Esai: `score` 0 sampai poin ' +
-          'soal (kosong = belum dinilai). Soal yang tidak disebut tidak berubah. Siswa di luar kelas peserta (lulusan tidak bisa diisi; hanya siswa aktif), soal ' +
+          'soal (kosong = belum dinilai). Soal yang tidak disebut tidak berubah. Murid di luar kelas peserta (lulusan tidak bisa diisi; hanya murid aktif), soal ' +
           'di luar ujian, huruf di luar opsi, atau skor di luar rentang: 400 `invalid_reference`/`validation`. Ditolak ' +
           '409 `report_final` bila hasil ujian sudah dikirim ke buku nilai kelas yang rapornya final.',
         headers: schoolHeader,
@@ -271,7 +271,7 @@ export async function examScoreRoutes(instance: FastifyInstance) {
         const allowed = new Set((await roster(tx, ex)).map((p) => p.studentId));
 
         for (const rec of request.body.records) {
-          if (!allowed.has(rec.studentId)) throw invalidRef('Ada siswa yang bukan peserta ujian ini.');
+          if (!allowed.has(rec.studentId)) throw invalidRef('Ada murid yang bukan peserta ujian ini.');
           for (const a of rec.answers) {
             const q = qById.get(a.questionId);
             if (!q) throw invalidRef('Ada soal yang bukan bagian dari ujian ini.');
@@ -347,11 +347,11 @@ export async function examScoreRoutes(instance: FastifyInstance) {
         description:
           'Izin: `exam:author`; modul `exams` dan `grades`; guru hanya untuk mapel yang ia ampu (403). Membuat atau ' +
           'memperbarui satu penilaian per kelas peserta pada komponen `componentId` (skala 100 = jumlah skor / total ' +
-          'poin x 100, dua desimal) dan mengisi skor siswa yang sudah punya data; siswa tidak hadir diberi skor kosong. ' +
+          'poin x 100, dua desimal) dan mengisi skor murid yang sudah punya data; murid tidak hadir diberi skor kosong. ' +
           'Bila rombel menandai mapel ujian ini hanya diikuti murid yang memilih, hanya murid yang mengambil mapel itu pada ' +
           'semester ujian yang diberi skor; yang lain dilewati dan jumlahnya ada di `skippedNotTaking` (hanya bila ada). ' +
           'Dipanggil ulang menimpa penilaian yang sama (tidak ganda). Ujian tanpa soal: 400 `no_questions`; ' +
-          'komponen tidak ada: 400 `invalid_reference`. Bila ada siswa hadir dengan esai yang belum dinilai, ditolak 409 ' +
+          'komponen tidak ada: 400 `invalid_reference`. Bila ada murid hadir dengan esai yang belum dinilai, ditolak 409 ' +
           '`essay_pending` kecuali `allowPending` = true (esai itu dihitung 0). Ditolak 409 `report_final` bila rapor ' +
           'salah satu kelas peserta pada semester ujian sudah final. Ditolak 409 `component_not_in_semester` bila konfigurasi nilai ' +
           'semester ujian sudah dibekukan dan komponennya tidak ada di salinan beku. Kategori komponen menentukan kategori penilaian: ' +
@@ -407,7 +407,7 @@ export async function examScoreRoutes(instance: FastifyInstance) {
         if (data.maxTotal <= 0) throw new HttpError(400, 'no_questions', 'Ujian belum memiliki soal.');
         const pending = data.students.filter((s) => s.entered && !s.absent && s.essayPending).length;
         if (pending > 0 && !request.body.allowPending) {
-          throw new HttpError(409, 'essay_pending', `${pending} siswa masih punya esai yang belum dinilai.`);
+          throw new HttpError(409, 'essay_pending', `${pending} murid masih punya esai yang belum dinilai.`);
         }
         const [me] = await tx
           .select({ id: teacher.id })

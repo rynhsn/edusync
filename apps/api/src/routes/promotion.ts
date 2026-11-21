@@ -258,9 +258,9 @@ const applyBody = z.object({
 });
 
 const applyResponse = z.object({
-  placed: z.number().int().describe('Siswa naik kelas yang ditempatkan di kelas tahun tujuan'),
-  retained: z.number().int().describe('Siswa tinggal kelas yang ditempatkan di kelas sebaya tahun tujuan'),
-  graduated: z.number().int().describe('Siswa yang statusnya menjadi lulus'),
+  placed: z.number().int().describe('Murid naik kelas yang ditempatkan di kelas tahun tujuan'),
+  retained: z.number().int().describe('Murid tinggal kelas yang ditempatkan di kelas sebaya tahun tujuan'),
+  graduated: z.number().int().describe('Murid yang statusnya menjadi lulus'),
   unplaced: z.array(
     z.object({
       studentId: z.uuid(),
@@ -277,7 +277,7 @@ const applyResponse = z.object({
   alreadyEnrolled: z
     .array(z.object({ studentId: z.uuid(), classId: z.uuid() }))
     .describe('Sudah punya enrollment di tahun tujuan: dilewati, keputusannya tetap menunggu'),
-  skippedNoDecision: z.number().int().describe('Siswa aktif tahun sumber yang belum punya keputusan'),
+  skippedNoDecision: z.number().int().describe('Murid aktif tahun sumber yang belum punya keputusan'),
   choicesCopied: z
     .number()
     .int()
@@ -295,7 +295,7 @@ const applyResponse = z.object({
     .int()
     .optional()
     .describe(
-      'Jumlah siswa lulus yang kelas asalnya belum punya rapor final pada semester terakhir tahun sumber. Lulusan tetap tampil di rapor kelas tahun terakhirnya dan dapat difinalkan sesudah ditetapkan lulus; peringatan ini hanya mengingatkan bahwa rapornya belum final',
+      'Jumlah murid lulus yang kelas asalnya belum punya rapor final pada semester terakhir tahun sumber. Lulusan tetap tampil di rapor kelas tahun terakhirnya dan dapat difinalkan sesudah ditetapkan lulus; peringatan ini hanya mengingatkan bahwa rapornya belum final',
     ),
   warningItems: z
     .array(z.object({ code: z.string(), params: z.record(z.string(), z.union([z.string(), z.number()])) }))
@@ -855,7 +855,7 @@ async function runApply(
     if (!stu || stu.deletedAt) {
       out.unplaced.push({
         studentId: d.studentId,
-        reason: 'Siswa tidak ditemukan atau sudah dihapus.',
+        reason: 'Murid tidak ditemukan atau sudah dihapus.',
         reasonCode: 'student_missing',
       });
       continue;
@@ -863,7 +863,7 @@ async function runApply(
     if (stu.status !== 'active') {
       out.unplaced.push({
         studentId: d.studentId,
-        reason: `Status siswa "${stu.status}", bukan aktif, jadi keputusan tidak diterapkan.`,
+        reason: `Status murid "${stu.status}", bukan aktif, jadi keputusan tidak diterapkan.`,
         reasonCode: 'student_not_active',
         reasonParams: { status: stu.status },
       });
@@ -875,7 +875,7 @@ async function runApply(
       if (!from) {
         out.unplaced.push({
           studentId: d.studentId,
-          reason: 'Kelas asal siswa sudah tidak ada.',
+          reason: 'Kelas asal murid sudah tidak ada.',
           reasonCode: 'source_class_missing',
         });
         continue;
@@ -911,7 +911,7 @@ async function runApply(
     if (!from) {
       out.unplaced.push({
         studentId: d.studentId,
-        reason: 'Kelas asal siswa sudah tidak ada.',
+        reason: 'Kelas asal murid sudah tidak ada.',
         reasonCode: 'source_class_missing',
       });
       continue;
@@ -1142,9 +1142,9 @@ export async function promotionRoutes(instance: FastifyInstance) {
       onRequest: [requirePermission('promotion:manage')],
       schema: {
         tags: ['Academic'],
-        summary: 'Daftar siswa dan keputusan kenaikan kelas satu tahun ajaran',
+        summary: 'Daftar murid dan keputusan kenaikan kelas satu tahun ajaran',
         description:
-          'Izin: `promotion:manage`. Kelas tahun ajaran itu beserta siswa aktif yang ter-enroll, dengan keputusan tersimpan ' +
+          'Izin: `promotion:manage`. Kelas tahun ajaran itu beserta murid aktif yang ter-enroll, dengan keputusan tersimpan ' +
           '(`decision`, null bila belum), saran bawaan (`suggestedDecision`: `promote`; null di tingkat akhir karena kelulusan ' +
           'ditetapkan sekolah setelah ujian satuan pendidikan dan wajib dipilih eksplisit), kelas tujuan, catatan (`note`, ' +
           '`reason`, `followUp`, `meetingDate`), dan penanda `applied`. Tingkat akhir kelas = `final_level_code` jurusannya bila ' +
@@ -1246,20 +1246,20 @@ export async function promotionRoutes(instance: FastifyInstance) {
         tags: ['Academic'],
         summary: 'Simpan keputusan kenaikan kelas',
         description:
-          'Izin: `promotion:manage`. Upsert keputusan per siswa (`promote`, `retain`, `graduate`) untuk tahun ajaran yang ditutup; ' +
+          'Izin: `promotion:manage`. Upsert keputusan per murid (`promote`, `retain`, `graduate`) untuk tahun ajaran yang ditutup; ' +
           '`graduate` berarti "ditetapkan lulus": kelulusan ditetapkan sekolah setelah ujian satuan pendidikan, tidak disarankan ' +
           'otomatis. Catatan opsional per baris: `note`, `reason` (alasan), `followUp` (tindak lanjut), `meetingDate` (tanggal rapat ' +
           'dewan pendidik, YYYY-MM-DD); yang DIHILANGKAN dipertahankan dari keputusan tersimpan, `null` eksplisit mengosongkan. ' +
           'Semua atau tidak sama sekali. 400 `level_unknown`: `promote` tanpa `toClassId` untuk kelas yang tingkatnya tidak ada di daftar tingkat sekolah. ' +
           '400 `not_final_level`: lulus hanya untuk kelas tingkat akhir (jurusan dengan `final_level_code` memakai tingkat itu) dan naik tidak bisa dari ' +
-          'tingkat terakhir. 400 `student_not_enrolled`: siswa tidak ter-enroll di tahun itu. 400 `invalid_target_class`: ' +
+          'tingkat terakhir. 400 `student_not_enrolled`: murid tidak ter-enroll di tahun itu. 400 `invalid_target_class`: ' +
           '`toClassId` harus kelas pada tahun ajaran yang dimulai setelah tahun sumber (diabaikan untuk `graduate`). ' +
           '`meetingId` (opsional) menautkan keputusan ke berita acara musyawarah tahun itu (dihilangkan = dipertahankan, null = dilepas; tanggal rapat murid diisi dari tanggal berita acara); ' +
           '400 `invalid_reference` bila berita acara tidak ada pada tahun itu. 409 `meeting_final`: keputusan itu tertaut ke berita acara final atau ' +
           'hendak ditautkan ke berita acara final. ' +
           'Bila tahun itu punya kebijakan kelulusan: 409 `graduation_not_determined` untuk `graduate` yang belum ditetapkan lulus di menu Kelulusan ' +
           '(atau murid berhasil ditunda), dan 409 `graduation_final` bila keputusan berbeda dari hasil penetapan final (lulus = `graduate`, tidak lulus = `retain`). ' +
-          '409 `promotion_applied`: keputusan siswa itu sudah diterapkan dan tidak bisa diubah. Penyimpanan dan penerapan untuk tahun ' +
+          '409 `promotion_applied`: keputusan murid itu sudah diterapkan dan tidak bisa diubah. Penyimpanan dan penerapan untuk tahun ' +
           'sumber yang sama berjalan bergantian (kunci per tahun sumber).',
         headers: schoolHeader,
         params: idParams,
@@ -1284,7 +1284,7 @@ export async function promotionRoutes(instance: FastifyInstance) {
           const finalOf = await loadFinalLevelResolver(tx);
           const ids = items.map((i) => i.studentId);
           if (new Set(ids).size !== ids.length) {
-            throw bad('duplicate_student', 'Satu siswa hanya boleh muncul sekali dalam satu permintaan.');
+            throw bad('duplicate_student', 'Satu murid hanya boleh muncul sekali dalam satu permintaan.');
           }
           const enrolled = new Map(
             (
@@ -1359,14 +1359,14 @@ export async function promotionRoutes(instance: FastifyInstance) {
             if (!enr) {
               throw bad(
                 'student_not_enrolled',
-                `Siswa ${item.studentId} tidak ter-enroll di tahun ajaran ini atau sudah dihapus.`,
+                `Murid ${item.studentId} tidak ter-enroll di tahun ajaran ini atau sudah dihapus.`,
               );
             }
             if (existing.get(item.studentId)?.appliedAt) {
               throw new HttpError(
                 409,
                 'promotion_applied',
-                `Keputusan untuk siswa ${item.studentId} sudah diterapkan ke tahun ajaran berikutnya dan tidak bisa diubah.`,
+                `Keputusan untuk murid ${item.studentId} sudah diterapkan ke tahun ajaran berikutnya dan tidak bisa diubah.`,
               );
             }
             // Keputusan yang tertaut ke berita acara final terkunci (juga bila hanya catatannya yang diubah).
@@ -1393,14 +1393,14 @@ export async function promotionRoutes(instance: FastifyInstance) {
                 throw new HttpError(
                   409,
                   GRADUATION_FINAL_CODE,
-                  `Siswa ${item.studentId} sudah ditetapkan di menu Kelulusan, jadi keputusannya harus "${expected === 'graduate' ? 'lulus' : 'tinggal kelas'}". Buka kembali penetapannya di sana bila perlu mengubahnya.`,
+                  `Murid ${item.studentId} sudah ditetapkan di menu Kelulusan, jadi keputusannya harus "${expected === 'graduate' ? 'lulus' : 'tinggal kelas'}". Buka kembali penetapannya di sana bila perlu mengubahnya.`,
                 );
               }
               if (!expected && item.decision === 'graduate') {
                 throw new HttpError(
                   409,
                   'graduation_not_determined',
-                  `Siswa ${item.studentId} belum ditetapkan lulus di menu Kelulusan. Tetapkan kelulusannya di sana; keputusan lulus tidak bisa dipilih langsung di sini.`,
+                  `Murid ${item.studentId} belum ditetapkan lulus di menu Kelulusan. Tetapkan kelulusannya di sana; keputusan lulus tidak bisa dipilih langsung di sini.`,
                 );
               }
             }
@@ -1504,7 +1504,7 @@ export async function promotionRoutes(instance: FastifyInstance) {
         summary: 'Salin tahun ajaran ke tahun berikutnya',
         description:
           'Izin: `promotion:manage`. Menyalin ke `targetYearId`: kelas (tingkat non-akhir menjadi tingkat berikutnya, mis. 7A menjadi 8A; ' +
-          'tingkat pertama juga disalin sebagai tingkat yang sama untuk siswa baru dan yang tinggal kelas; tingkat akhir tidak disalin, ' +
+          'tingkat pertama juga disalin sebagai tingkat yang sama untuk murid baru dan yang tinggal kelas; tingkat akhir tidak disalin, ' +
           'kecuali kelas tingkat akhir yang memuat murid berkeputusan tinggal kelas: disalin dengan nama dan tingkat yang sama agar mereka punya kelas tujuan, ' +
           'dapat dimatikan dengan `copyFinalLevelForRetained` false, peringatan `final_level_copied_for_retained`) ' +
           'beserta wali kelas, penugasan guru mapel ke kelas hasil salinan, kalender akademik (hanya bila `copyCalendar` true; bawaan false; tanggal digeser selisih tahun mulai), ' +
@@ -1553,18 +1553,18 @@ export async function promotionRoutes(instance: FastifyInstance) {
         tags: ['Academic'],
         summary: 'Terapkan keputusan kenaikan kelas ke tahun berikutnya',
         description:
-          'Izin: `promotion:manage`. Untuk tiap keputusan yang belum diterapkan: `promote` menempatkan siswa di kelas tujuan (eksplisit, ' +
+          'Izin: `promotion:manage`. Untuk tiap keputusan yang belum diterapkan: `promote` menempatkan murid di kelas tujuan (eksplisit, ' +
           'atau kelas tingkat berikutnya pada tahun tujuan dengan "bagian" nama yang sama, atau bila tidak ada, satu-satunya kelas sejurusan ' +
           'pada tingkat itu; selain itu `unplaced` `no_target_class`, tidak pernah menebak kelas pertama), `retain` di kelas sebaya ' +
-          'tahun tujuan dengan aturan yang sama, `graduate` mengubah status siswa menjadi lulus (tingkat akhir kelas asal divalidasi ulang: ' +
-          'bukan tingkat akhir lagi = `unplaced` `not_final_level`). Enrollment lama tidak dihapus; siswa yang sudah ter-enroll ' +
+          'tahun tujuan dengan aturan yang sama, `graduate` mengubah status murid menjadi lulus (tingkat akhir kelas asal divalidasi ulang: ' +
+          'bukan tingkat akhir lagi = `unplaced` `not_final_level`). Enrollment lama tidak dihapus; murid yang sudah ter-enroll ' +
           'di tahun tujuan (termasuk yang terdahului proses lain) dilewati dan dilaporkan di `alreadyEnrolled`, keputusannya tidak ditandai diterapkan. ' +
-          'Siswa tanpa kelas tujuan masuk `unplaced` beserta alasannya, ' +
+          'Murid tanpa kelas tujuan masuk `unplaced` beserta alasannya, ' +
           'dengan `reasonCode` stabil (dan `reasonParams`), tanpa menggagalkan yang lain. `retain` tidak menghapus enrollment lama; ' +
           'riwayat rombel tahun sumber tetap utuh. `graduate` hanya diterapkan bila keputusan eksplisit tersimpan. Tahun ajaran aktif tidak diubah. `dryRun` menghitung tanpa menulis. ' +
-          '`graduateReportNotFinal` dan `warningItems` (`graduate_report_not_final`) memberi tahu jumlah siswa lulus yang kelas asalnya belum punya rapor ' +
+          '`graduateReportNotFinal` dan `warningItems` (`graduate_report_not_final`) memberi tahu jumlah murid lulus yang kelas asalnya belum punya rapor ' +
           'final pada semester terakhir tahun sumber (lulusan tetap tampil di rapor kelas tahun terakhirnya dan dapat difinalkan sesudah lulus). Penerapan untuk tahun sumber yang sama ' +
-          'berjalan bergantian (kunci per tahun sumber), jadi dua penerapan ke tahun tujuan berbeda tidak menempatkan siswa ganda. ' +
+          'berjalan bergantian (kunci per tahun sumber), jadi dua penerapan ke tahun tujuan berbeda tidak menempatkan murid ganda. ' +
           'Pilihan mapel setahun murid yang ditempatkan (`promote` dan `retain`) dibawa ke tahun tujuan bila kelas tujuannya juga menandai ' +
           'mapel itu pilihan (`copySubjectChoices`, bawaan true): `choicesCopied` dan `choicesDropped` (mapel yang tak lagi berpenanda di kelas tujuan), ' +
           'keduanya sparse. Pilihan per semester tidak dibawa, pilihan yang sudah ada di tahun tujuan tidak ditimpa, dan penempatan murid ' +

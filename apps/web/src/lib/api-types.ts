@@ -833,7 +833,7 @@ export interface paths {
         get?: never;
         /**
          * Jadikan tahun ajaran aktif
-         * @description Izin: `academic_year:manage`. Hanya satu tahun ajaran yang aktif; tahun aktif sebelumnya dinonaktifkan. Penempatan siswa dan daftar kelas aktif mengikuti tahun ini.
+         * @description Izin: `academic_year:manage`. Hanya satu tahun ajaran yang aktif; tahun aktif sebelumnya dinonaktifkan. Penempatan murid dan daftar kelas aktif mengikuti tahun ini.
          */
         put: {
             parameters: {
@@ -2495,7 +2495,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Katalog lengkap: modul, tingkat siswa, dan paket
+         * Katalog lengkap: modul, tingkat murid, dan paket
          * @description Staf platform. Termasuk item nonaktif. Item nonaktif tidak tampil di pendaftaran baru, tetapi sekolah yang sudah berlangganan tetap ditagih dengan harganya.
          */
         get: {
@@ -2524,7 +2524,7 @@ export interface paths {
                                 active: boolean;
                                 /** @description Kunci modul syarat (hanya modul) */
                                 requires: string[];
-                                /** @description Batas siswa aktif (hanya tingkat); null = tanpa batas */
+                                /** @description Batas murid aktif (hanya tingkat); null = tanpa batas */
                                 maxStudents: number | null;
                             }[];
                             plans: {
@@ -2587,7 +2587,7 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Tambah modul atau tingkat siswa
+         * Tambah modul atau tingkat murid
          * @description Staf platform (admin). Kunci modul baru baru berguna bila fiturnya ada di kode; di katalog ia hanya menjadi pilihan yang bisa dibeli.
          */
         post: {
@@ -2605,7 +2605,7 @@ export interface paths {
                         sort: number;
                         /** @description Modul syarat; memilih modul ini otomatis menambah syaratnya. Tidak diisi = tidak diubah */
                         requires?: string[];
-                        /** @description Batas siswa aktif untuk tingkat; null = tanpa batas. Tidak diisi = tidak diubah */
+                        /** @description Batas murid aktif untuk tingkat; null = tanpa batas. Tidak diisi = tidak diubah */
                         maxStudents?: number | null;
                         /** @enum {string} */
                         kind: "module" | "tier";
@@ -2630,7 +2630,7 @@ export interface paths {
                             active: boolean;
                             /** @description Kunci modul syarat (hanya modul) */
                             requires: string[];
-                            /** @description Batas siswa aktif (hanya tingkat); null = tanpa batas */
+                            /** @description Batas murid aktif (hanya tingkat); null = tanpa batas */
                             maxStudents: number | null;
                         };
                     };
@@ -2729,7 +2729,7 @@ export interface paths {
                         sort: number;
                         /** @description Modul syarat; memilih modul ini otomatis menambah syaratnya. Tidak diisi = tidak diubah */
                         requires?: string[];
-                        /** @description Batas siswa aktif untuk tingkat; null = tanpa batas. Tidak diisi = tidak diubah */
+                        /** @description Batas murid aktif untuk tingkat; null = tanpa batas. Tidak diisi = tidak diubah */
                         maxStudents?: number | null;
                         active: boolean;
                     };
@@ -2752,7 +2752,7 @@ export interface paths {
                             active: boolean;
                             /** @description Kunci modul syarat (hanya modul) */
                             requires: string[];
-                            /** @description Batas siswa aktif (hanya tingkat); null = tanpa batas */
+                            /** @description Batas murid aktif (hanya tingkat); null = tanpa batas */
                             maxStudents: number | null;
                         };
                     };
@@ -9241,7 +9241,7 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Tingkatkan paket, tambah modul, atau ubah tingkat siswa unit
+         * Tingkatkan paket, tambah modul, atau ubah tingkat murid unit
          * @description Pemilik yayasan. Membuat invoice "upgrade" bila ada biaya sekarang; setelah pembayaran terkonfirmasi (webhook/dev) hak modul dan tingkat unit diperbarui sekali saja. Penurunan dijadwalkan ke periode berikutnya dan menggantikan jadwal sebelumnya. Galat: invalid_selection, no_change, subscription_inactive, payment_unavailable.
          */
         post: {
@@ -11798,7 +11798,7 @@ export interface paths {
         post?: never;
         /**
          * Hapus kelas
-         * @description Izin: `class:manage`. Ditolak 409 `in_use` bila masih ada siswa, penugasan guru, atau keputusan kenaikan kelas yang merujuk kelas itu.
+         * @description Izin: `class:manage`. Ditolak 409 `in_use` bila masih ada murid, penugasan guru, atau keputusan kenaikan kelas yang merujuk kelas itu.
          */
         delete: {
             parameters: {
@@ -12190,8 +12190,8 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Daftar siswa dan keputusan kenaikan kelas satu tahun ajaran
-         * @description Izin: `promotion:manage`. Kelas tahun ajaran itu beserta siswa aktif yang ter-enroll, dengan keputusan tersimpan (`decision`, null bila belum), saran bawaan (`suggestedDecision`: `promote`; null di tingkat akhir karena kelulusan ditetapkan sekolah setelah ujian satuan pendidikan dan wajib dipilih eksplisit), kelas tujuan, catatan (`note`, `reason`, `followUp`, `meetingDate`), dan penanda `applied`. Tingkat akhir kelas = `final_level_code` jurusannya bila diisi, jika tidak tingkat dengan `sort` terbesar; tingkat berikutnya diturunkan dari daftar tingkat sekolah (urutan `sort`). Kelas bertingkat yang tidak ada di daftar tingkat sekolah ditandai `levelUnknown` true dan tidak mendapat saran `promote`. Bila tahun itu punya kebijakan kelulusan, `graduationPolicy` true dan murid yang sudah ditetapkan membawa `graduationResult`.
+         * Daftar murid dan keputusan kenaikan kelas satu tahun ajaran
+         * @description Izin: `promotion:manage`. Kelas tahun ajaran itu beserta murid aktif yang ter-enroll, dengan keputusan tersimpan (`decision`, null bila belum), saran bawaan (`suggestedDecision`: `promote`; null di tingkat akhir karena kelulusan ditetapkan sekolah setelah ujian satuan pendidikan dan wajib dipilih eksplisit), kelas tujuan, catatan (`note`, `reason`, `followUp`, `meetingDate`), dan penanda `applied`. Tingkat akhir kelas = `final_level_code` jurusannya bila diisi, jika tidak tingkat dengan `sort` terbesar; tingkat berikutnya diturunkan dari daftar tingkat sekolah (urutan `sort`). Kelas bertingkat yang tidak ada di daftar tingkat sekolah ditandai `levelUnknown` true dan tidak mendapat saran `promote`. Bila tahun itu punya kebijakan kelulusan, `graduationPolicy` true dan murid yang sudah ditetapkan membawa `graduationResult`.
          */
         get: {
             parameters: {
@@ -12330,7 +12330,7 @@ export interface paths {
         };
         /**
          * Simpan keputusan kenaikan kelas
-         * @description Izin: `promotion:manage`. Upsert keputusan per siswa (`promote`, `retain`, `graduate`) untuk tahun ajaran yang ditutup; `graduate` berarti "ditetapkan lulus": kelulusan ditetapkan sekolah setelah ujian satuan pendidikan, tidak disarankan otomatis. Catatan opsional per baris: `note`, `reason` (alasan), `followUp` (tindak lanjut), `meetingDate` (tanggal rapat dewan pendidik, YYYY-MM-DD); yang DIHILANGKAN dipertahankan dari keputusan tersimpan, `null` eksplisit mengosongkan. Semua atau tidak sama sekali. 400 `level_unknown`: `promote` tanpa `toClassId` untuk kelas yang tingkatnya tidak ada di daftar tingkat sekolah. 400 `not_final_level`: lulus hanya untuk kelas tingkat akhir (jurusan dengan `final_level_code` memakai tingkat itu) dan naik tidak bisa dari tingkat terakhir. 400 `student_not_enrolled`: siswa tidak ter-enroll di tahun itu. 400 `invalid_target_class`: `toClassId` harus kelas pada tahun ajaran yang dimulai setelah tahun sumber (diabaikan untuk `graduate`). `meetingId` (opsional) menautkan keputusan ke berita acara musyawarah tahun itu (dihilangkan = dipertahankan, null = dilepas; tanggal rapat murid diisi dari tanggal berita acara); 400 `invalid_reference` bila berita acara tidak ada pada tahun itu. 409 `meeting_final`: keputusan itu tertaut ke berita acara final atau hendak ditautkan ke berita acara final. Bila tahun itu punya kebijakan kelulusan: 409 `graduation_not_determined` untuk `graduate` yang belum ditetapkan lulus di menu Kelulusan (atau murid berhasil ditunda), dan 409 `graduation_final` bila keputusan berbeda dari hasil penetapan final (lulus = `graduate`, tidak lulus = `retain`). 409 `promotion_applied`: keputusan siswa itu sudah diterapkan dan tidak bisa diubah. Penyimpanan dan penerapan untuk tahun sumber yang sama berjalan bergantian (kunci per tahun sumber).
+         * @description Izin: `promotion:manage`. Upsert keputusan per murid (`promote`, `retain`, `graduate`) untuk tahun ajaran yang ditutup; `graduate` berarti "ditetapkan lulus": kelulusan ditetapkan sekolah setelah ujian satuan pendidikan, tidak disarankan otomatis. Catatan opsional per baris: `note`, `reason` (alasan), `followUp` (tindak lanjut), `meetingDate` (tanggal rapat dewan pendidik, YYYY-MM-DD); yang DIHILANGKAN dipertahankan dari keputusan tersimpan, `null` eksplisit mengosongkan. Semua atau tidak sama sekali. 400 `level_unknown`: `promote` tanpa `toClassId` untuk kelas yang tingkatnya tidak ada di daftar tingkat sekolah. 400 `not_final_level`: lulus hanya untuk kelas tingkat akhir (jurusan dengan `final_level_code` memakai tingkat itu) dan naik tidak bisa dari tingkat terakhir. 400 `student_not_enrolled`: murid tidak ter-enroll di tahun itu. 400 `invalid_target_class`: `toClassId` harus kelas pada tahun ajaran yang dimulai setelah tahun sumber (diabaikan untuk `graduate`). `meetingId` (opsional) menautkan keputusan ke berita acara musyawarah tahun itu (dihilangkan = dipertahankan, null = dilepas; tanggal rapat murid diisi dari tanggal berita acara); 400 `invalid_reference` bila berita acara tidak ada pada tahun itu. 409 `meeting_final`: keputusan itu tertaut ke berita acara final atau hendak ditautkan ke berita acara final. Bila tahun itu punya kebijakan kelulusan: 409 `graduation_not_determined` untuk `graduate` yang belum ditetapkan lulus di menu Kelulusan (atau murid berhasil ditunda), dan 409 `graduation_final` bila keputusan berbeda dari hasil penetapan final (lulus = `graduate`, tidak lulus = `retain`). 409 `promotion_applied`: keputusan murid itu sudah diterapkan dan tidak bisa diubah. Penyimpanan dan penerapan untuk tahun sumber yang sama berjalan bergantian (kunci per tahun sumber).
          */
         put: {
             parameters: {
@@ -12470,7 +12470,7 @@ export interface paths {
         put?: never;
         /**
          * Salin tahun ajaran ke tahun berikutnya
-         * @description Izin: `promotion:manage`. Menyalin ke `targetYearId`: kelas (tingkat non-akhir menjadi tingkat berikutnya, mis. 7A menjadi 8A; tingkat pertama juga disalin sebagai tingkat yang sama untuk siswa baru dan yang tinggal kelas; tingkat akhir tidak disalin, kecuali kelas tingkat akhir yang memuat murid berkeputusan tinggal kelas: disalin dengan nama dan tingkat yang sama agar mereka punya kelas tujuan, dapat dimatikan dengan `copyFinalLevelForRetained` false, peringatan `final_level_copied_for_retained`) beserta wali kelas, penugasan guru mapel ke kelas hasil salinan, kalender akademik (hanya bila `copyCalendar` true; bawaan false; tanggal digeser selisih tahun mulai), struktur kurikulum (alokasi JP serta versi kurikulum per tingkat yang sama; `copyCurriculum`, bawaan true), dan ATP berstatus terbit (`copyTeachingPlans`, bawaan true; disalin sebagai draf versi 1 beserta item, hanya versi terbit terbaru tiap ATP, semester dikosongkan, `flowsCreated`). Selain `promotion:manage`, tiap bagian butuh izin spesifik pemanggil: kelas, wali kelas, dan penugasan guru butuh `class:manage`; kalender butuh `academic_year:manage`; kurikulum (alokasi dan versi) butuh `curriculum:manage`; ATP butuh `teaching_plan:write`. Bagian yang diminta (flag true, termasuk bawaan true) tetapi tidak diizinkan DILEWATI, bukan 403: hitungannya 0 dan `warningItems` memuat `part_skipped_no_permission` dengan params `part` (`classes`, `calendar`, `curriculum`, `teachingPlans`) dan `permission` (izin yang kurang); `dryRun` berperilaku sama. Pemanggil dengan semua izin (admin dan Kurikulum bawaan) tidak terpengaruh. Idempoten: kelas dicocokkan menurut nama, penugasan menurut (kelas, mapel), acara menurut (jenis, cakupan, judul, tanggal mulai), alokasi menurut (tingkat, jurusan, mapel), versi menurut tingkat, ATP menurut (mapel, nama, tingkat); yang sudah ada dilewati. Data tahun sumber tidak diubah. `dryRun` menghitung tanpa menulis. Penanda mapel pilihan rombel (partisipasi) ikut disalin ke kelas hasil salinan (`copySubjectChoices`, bawaan true; kelas tujuan yang sudah punya penanda tidak diubah; `participationCopied`, sparse); izinnya mengikuti bagian kelas. 400 `invalid_target`: tahun tujuan sama dengan sumber atau tidak dimulai setelahnya. 400 `levels_not_configured`: daftar tingkat sekolah kosong. Respons memuat `warnings` (teks) dan `warningItems` (kode stabil + parameter, sejajar dengan `warnings`: class_level_unknown, class_name_unmatched, class_name_conflict, final_level_not_copied, final_level_copied_for_retained, class_level_mismatch, inactive_homeroom_skipped, homeroom_multiple, inactive_teacher_skipped, event_class_skipped, event_out_of_year, flow_inactive_objectives, part_skipped_no_permission) bagi hal yang perlu diperiksa. Tingkat akhir kelas mengikuti `final_level_code` jurusannya.
+         * @description Izin: `promotion:manage`. Menyalin ke `targetYearId`: kelas (tingkat non-akhir menjadi tingkat berikutnya, mis. 7A menjadi 8A; tingkat pertama juga disalin sebagai tingkat yang sama untuk murid baru dan yang tinggal kelas; tingkat akhir tidak disalin, kecuali kelas tingkat akhir yang memuat murid berkeputusan tinggal kelas: disalin dengan nama dan tingkat yang sama agar mereka punya kelas tujuan, dapat dimatikan dengan `copyFinalLevelForRetained` false, peringatan `final_level_copied_for_retained`) beserta wali kelas, penugasan guru mapel ke kelas hasil salinan, kalender akademik (hanya bila `copyCalendar` true; bawaan false; tanggal digeser selisih tahun mulai), struktur kurikulum (alokasi JP serta versi kurikulum per tingkat yang sama; `copyCurriculum`, bawaan true), dan ATP berstatus terbit (`copyTeachingPlans`, bawaan true; disalin sebagai draf versi 1 beserta item, hanya versi terbit terbaru tiap ATP, semester dikosongkan, `flowsCreated`). Selain `promotion:manage`, tiap bagian butuh izin spesifik pemanggil: kelas, wali kelas, dan penugasan guru butuh `class:manage`; kalender butuh `academic_year:manage`; kurikulum (alokasi dan versi) butuh `curriculum:manage`; ATP butuh `teaching_plan:write`. Bagian yang diminta (flag true, termasuk bawaan true) tetapi tidak diizinkan DILEWATI, bukan 403: hitungannya 0 dan `warningItems` memuat `part_skipped_no_permission` dengan params `part` (`classes`, `calendar`, `curriculum`, `teachingPlans`) dan `permission` (izin yang kurang); `dryRun` berperilaku sama. Pemanggil dengan semua izin (admin dan Kurikulum bawaan) tidak terpengaruh. Idempoten: kelas dicocokkan menurut nama, penugasan menurut (kelas, mapel), acara menurut (jenis, cakupan, judul, tanggal mulai), alokasi menurut (tingkat, jurusan, mapel), versi menurut tingkat, ATP menurut (mapel, nama, tingkat); yang sudah ada dilewati. Data tahun sumber tidak diubah. `dryRun` menghitung tanpa menulis. Penanda mapel pilihan rombel (partisipasi) ikut disalin ke kelas hasil salinan (`copySubjectChoices`, bawaan true; kelas tujuan yang sudah punya penanda tidak diubah; `participationCopied`, sparse); izinnya mengikuti bagian kelas. 400 `invalid_target`: tahun tujuan sama dengan sumber atau tidak dimulai setelahnya. 400 `levels_not_configured`: daftar tingkat sekolah kosong. Respons memuat `warnings` (teks) dan `warningItems` (kode stabil + parameter, sejajar dengan `warnings`: class_level_unknown, class_name_unmatched, class_name_conflict, final_level_not_copied, final_level_copied_for_retained, class_level_mismatch, inactive_homeroom_skipped, homeroom_multiple, inactive_teacher_skipped, event_class_skipped, event_out_of_year, flow_inactive_objectives, part_skipped_no_permission) bagi hal yang perlu diperiksa. Tingkat akhir kelas mengikuti `final_level_code` jurusannya.
          */
         post: {
             parameters: {
@@ -12628,7 +12628,7 @@ export interface paths {
         put?: never;
         /**
          * Terapkan keputusan kenaikan kelas ke tahun berikutnya
-         * @description Izin: `promotion:manage`. Untuk tiap keputusan yang belum diterapkan: `promote` menempatkan siswa di kelas tujuan (eksplisit, atau kelas tingkat berikutnya pada tahun tujuan dengan "bagian" nama yang sama, atau bila tidak ada, satu-satunya kelas sejurusan pada tingkat itu; selain itu `unplaced` `no_target_class`, tidak pernah menebak kelas pertama), `retain` di kelas sebaya tahun tujuan dengan aturan yang sama, `graduate` mengubah status siswa menjadi lulus (tingkat akhir kelas asal divalidasi ulang: bukan tingkat akhir lagi = `unplaced` `not_final_level`). Enrollment lama tidak dihapus; siswa yang sudah ter-enroll di tahun tujuan (termasuk yang terdahului proses lain) dilewati dan dilaporkan di `alreadyEnrolled`, keputusannya tidak ditandai diterapkan. Siswa tanpa kelas tujuan masuk `unplaced` beserta alasannya, dengan `reasonCode` stabil (dan `reasonParams`), tanpa menggagalkan yang lain. `retain` tidak menghapus enrollment lama; riwayat rombel tahun sumber tetap utuh. `graduate` hanya diterapkan bila keputusan eksplisit tersimpan. Tahun ajaran aktif tidak diubah. `dryRun` menghitung tanpa menulis. `graduateReportNotFinal` dan `warningItems` (`graduate_report_not_final`) memberi tahu jumlah siswa lulus yang kelas asalnya belum punya rapor final pada semester terakhir tahun sumber (lulusan tetap tampil di rapor kelas tahun terakhirnya dan dapat difinalkan sesudah lulus). Penerapan untuk tahun sumber yang sama berjalan bergantian (kunci per tahun sumber), jadi dua penerapan ke tahun tujuan berbeda tidak menempatkan siswa ganda. Pilihan mapel setahun murid yang ditempatkan (`promote` dan `retain`) dibawa ke tahun tujuan bila kelas tujuannya juga menandai mapel itu pilihan (`copySubjectChoices`, bawaan true): `choicesCopied` dan `choicesDropped` (mapel yang tak lagi berpenanda di kelas tujuan), keduanya sparse. Pilihan per semester tidak dibawa, pilihan yang sudah ada di tahun tujuan tidak ditimpa, dan penempatan murid tidak memperhitungkan pilihan. 400 `invalid_target`: tahun tujuan sama dengan sumber atau tidak dimulai setelahnya.
+         * @description Izin: `promotion:manage`. Untuk tiap keputusan yang belum diterapkan: `promote` menempatkan murid di kelas tujuan (eksplisit, atau kelas tingkat berikutnya pada tahun tujuan dengan "bagian" nama yang sama, atau bila tidak ada, satu-satunya kelas sejurusan pada tingkat itu; selain itu `unplaced` `no_target_class`, tidak pernah menebak kelas pertama), `retain` di kelas sebaya tahun tujuan dengan aturan yang sama, `graduate` mengubah status murid menjadi lulus (tingkat akhir kelas asal divalidasi ulang: bukan tingkat akhir lagi = `unplaced` `not_final_level`). Enrollment lama tidak dihapus; murid yang sudah ter-enroll di tahun tujuan (termasuk yang terdahului proses lain) dilewati dan dilaporkan di `alreadyEnrolled`, keputusannya tidak ditandai diterapkan. Murid tanpa kelas tujuan masuk `unplaced` beserta alasannya, dengan `reasonCode` stabil (dan `reasonParams`), tanpa menggagalkan yang lain. `retain` tidak menghapus enrollment lama; riwayat rombel tahun sumber tetap utuh. `graduate` hanya diterapkan bila keputusan eksplisit tersimpan. Tahun ajaran aktif tidak diubah. `dryRun` menghitung tanpa menulis. `graduateReportNotFinal` dan `warningItems` (`graduate_report_not_final`) memberi tahu jumlah murid lulus yang kelas asalnya belum punya rapor final pada semester terakhir tahun sumber (lulusan tetap tampil di rapor kelas tahun terakhirnya dan dapat difinalkan sesudah lulus). Penerapan untuk tahun sumber yang sama berjalan bergantian (kunci per tahun sumber), jadi dua penerapan ke tahun tujuan berbeda tidak menempatkan murid ganda. Pilihan mapel setahun murid yang ditempatkan (`promote` dan `retain`) dibawa ke tahun tujuan bila kelas tujuannya juga menandai mapel itu pilihan (`copySubjectChoices`, bawaan true): `choicesCopied` dan `choicesDropped` (mapel yang tak lagi berpenanda di kelas tujuan), keduanya sparse. Pilihan per semester tidak dibawa, pilihan yang sudah ada di tahun tujuan tidak ditimpa, dan penempatan murid tidak memperhitungkan pilihan. 400 `invalid_target`: tahun tujuan sama dengan sumber atau tidak dimulai setelahnya.
          */
         post: {
             parameters: {
@@ -12662,11 +12662,11 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @description Siswa naik kelas yang ditempatkan di kelas tahun tujuan */
+                            /** @description Murid naik kelas yang ditempatkan di kelas tahun tujuan */
                             placed: number;
-                            /** @description Siswa tinggal kelas yang ditempatkan di kelas sebaya tahun tujuan */
+                            /** @description Murid tinggal kelas yang ditempatkan di kelas sebaya tahun tujuan */
                             retained: number;
-                            /** @description Siswa yang statusnya menjadi lulus */
+                            /** @description Murid yang statusnya menjadi lulus */
                             graduated: number;
                             unplaced: {
                                 /** Format: uuid */
@@ -12685,13 +12685,13 @@ export interface paths {
                                 /** Format: uuid */
                                 classId: string;
                             }[];
-                            /** @description Siswa aktif tahun sumber yang belum punya keputusan */
+                            /** @description Murid aktif tahun sumber yang belum punya keputusan */
                             skippedNoDecision: number;
                             /** @description Pilihan mapel setahun yang dibawa ke tahun tujuan; absen bila tidak ada pilihan murid */
                             choicesCopied?: number;
                             /** @description Pilihan mapel yang tidak dibawa karena kelas tujuan tidak lagi menandai mapel itu pilihan; absen bila 0 */
                             choicesDropped?: number;
-                            /** @description Jumlah siswa lulus yang kelas asalnya belum punya rapor final pada semester terakhir tahun sumber. Lulusan tetap tampil di rapor kelas tahun terakhirnya dan dapat difinalkan sesudah ditetapkan lulus; peringatan ini hanya mengingatkan bahwa rapornya belum final */
+                            /** @description Jumlah murid lulus yang kelas asalnya belum punya rapor final pada semester terakhir tahun sumber. Lulusan tetap tampil di rapor kelas tahun terakhirnya dan dapat difinalkan sesudah ditetapkan lulus; peringatan ini hanya mengingatkan bahwa rapornya belum final */
                             graduateReportNotFinal?: number;
                             /** @description Peringatan terstruktur (kode stabil + parameter): graduate_report_not_final */
                             warningItems?: {
@@ -19308,8 +19308,8 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Daftar siswa
-         * @description Izin: `student:read`. `q` mencari pada nama, NIS, atau NISN. `classId` menyaring menurut kelas pada tahun ajaran aktif. `missingNik=true` hanya menampilkan siswa tanpa NIK. Siswa yang dihapus tidak ditampilkan. NIK utuh hanya untuk pemegang `student:manage`; yang lain menerima `nikMasked`.
+         * Daftar murid
+         * @description Izin: `student:read`. `q` mencari pada nama, NIS, atau NISN. `classId` menyaring menurut kelas pada tahun ajaran aktif. `missingNik=true` hanya menampilkan murid tanpa NIK. Murid yang dihapus tidak ditampilkan. NIK utuh hanya untuk pemegang `student:manage`; yang lain menerima `nikMasked`.
          */
         get: {
             parameters: {
@@ -19317,7 +19317,7 @@ export interface paths {
                     q?: string;
                     classId?: string;
                     status?: "active" | "graduated" | "transferred" | "dropped";
-                    /** @description true: hanya siswa yang NIK-nya belum diisi */
+                    /** @description true: hanya murid yang NIK-nya belum diisi */
                     missingNik?: "true" | "false";
                     limit?: number;
                     offset?: number;
@@ -19368,7 +19368,7 @@ export interface paths {
                                 className: string | null;
                             }[];
                             total: number;
-                            /** @description Jumlah siswa (dengan saringan lain yang sama) yang NIK-nya belum diisi */
+                            /** @description Jumlah murid (dengan saringan lain yang sama) yang NIK-nya belum diisi */
                             missingNikTotal: number;
                         };
                     };
@@ -19405,8 +19405,8 @@ export interface paths {
         };
         put?: never;
         /**
-         * Tambah siswa
-         * @description Izin: `student:manage`. NIS, NISN, dan NIK (bila diisi) harus unik di sekolah; NIK bentrok menghasilkan 409 `nik_taken`. Data diri lain (tempat lahir, NIK 16 digit, agama, alamat, telepon/WA, email) opsional; telepon dinormalkan ke digit berawalan 62. `classId` opsional: siswa langsung ditempatkan di kelas itu pada tahun ajaran kelasnya.
+         * Tambah murid
+         * @description Izin: `student:manage`. NIS, NISN, dan NIK (bila diisi) harus unik di sekolah; NIK bentrok menghasilkan 409 `nik_taken`. Data diri lain (tempat lahir, NIK 16 digit, agama, alamat, telepon/WA, email) opsional; telepon dinormalkan ke digit berawalan 62. `classId` opsional: murid langsung ditempatkan di kelas itu pada tahun ajaran kelasnya.
          */
         post: {
             parameters: {
@@ -19567,7 +19567,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Detail siswa
+         * Detail murid
          * @description Izin: `student:read`.
          */
         get: {
@@ -19666,8 +19666,8 @@ export interface paths {
             };
         };
         /**
-         * Ubah data siswa
-         * @description Izin: `student:manage`. Status mengikuti siklus hidup siswa (aktif, lulus, pindah, keluar). Perpindahan kelas lewat `PUT /v1/students/{id}/class`.
+         * Ubah data murid
+         * @description Izin: `student:manage`. Status mengikuti siklus hidup murid (aktif, lulus, pindah, keluar). Perpindahan kelas lewat `PUT /v1/students/{id}/class`.
          */
         put: {
             parameters: {
@@ -19813,8 +19813,8 @@ export interface paths {
         };
         post?: never;
         /**
-         * Hapus siswa
-         * @description Izin: `student:manage`. Siswa disembunyikan (soft delete), riwayat enrollment tetap. Untuk siswa yang lulus atau pindah, ubah statusnya, jangan dihapus.
+         * Hapus murid
+         * @description Izin: `student:manage`. Murid disembunyikan (soft delete), riwayat enrollment tetap. Untuk murid yang lulus atau pindah, ubah statusnya, jangan dihapus.
          */
         delete: {
             parameters: {
@@ -19900,8 +19900,8 @@ export interface paths {
         };
         get?: never;
         /**
-         * Tempatkan atau pindahkan siswa ke kelas
-         * @description Izin: `student:manage`. Siswa duduk di satu kelas per tahun ajaran; menempatkan ulang pada tahun ajaran yang sama memindahkannya. `classId: null` mencabut dari kelas pada tahun ajaran aktif. Perpindahan nyata tercatat di riwayat rombel (`effectiveOn` dan `reason` opsional; lihat `GET /v1/students/{id}/academic-history`). Ditolak 409 `report_final` bila rapor siswa atau kelas (lama atau baru) sudah final pada semester tahun itu yang memuat hari ini atau `effectiveOn`: buka kembali rapornya lebih dulu.
+         * Tempatkan atau pindahkan murid ke kelas
+         * @description Izin: `student:manage`. Murid duduk di satu kelas per tahun ajaran; menempatkan ulang pada tahun ajaran yang sama memindahkannya. `classId: null` mencabut dari kelas pada tahun ajaran aktif. Perpindahan nyata tercatat di riwayat rombel (`effectiveOn` dan `reason` opsional; lihat `GET /v1/students/{id}/academic-history`). Ditolak 409 `report_final` bila rapor murid atau kelas (lama atau baru) sudah final pada semester tahun itu yang memuat hari ini atau `effectiveOn`: buka kembali rapornya lebih dulu.
          */
         put: {
             parameters: {
@@ -20058,7 +20058,7 @@ export interface paths {
         put?: never;
         /**
          * Catat mutasi keluar (pindah atau putus sekolah)
-         * @description Izin: `student:manage`. Dalam satu transaksi: mencatat mutasi, mengubah status siswa menjadi `transferred` (`kind: transfer`) atau `dropped` (`kind: dropped`), dan membekukan dokumen rapor draf semester berjalan sebagai keterangan nilai saat pindah (`departureDocument`, hanya bila modul `grades` aktif dan rapornya belum final). Enrollment tidak dihapus: rapor final siswa tetap tampil di daftar rapor kelas semester yang berakhir sebelum tanggal efektif. Siswa harus aktif (409 `student_not_active`); siswa berstatus pindah/keluar tanpa catatan mutasi boleh dilengkapi (tanpa dokumen keberangkatan dan tanpa larangan). Pindah sekolah pada semester genap tingkat akhir ditolak 409 `transfer_final_level_even_semester`; pemegang `school:manage` dapat menimpanya dengan `exceptionReason` (tanpa izin itu 403 `exception_requires_school_manage`); putus sekolah tidak terkena larangan.
+         * @description Izin: `student:manage`. Dalam satu transaksi: mencatat mutasi, mengubah status murid menjadi `transferred` (`kind: transfer`) atau `dropped` (`kind: dropped`), dan membekukan dokumen rapor draf semester berjalan sebagai keterangan nilai saat pindah (`departureDocument`, hanya bila modul `grades` aktif dan rapornya belum final). Enrollment tidak dihapus: rapor final murid tetap tampil di daftar rapor kelas semester yang berakhir sebelum tanggal efektif. Murid harus aktif (409 `student_not_active`); murid berstatus pindah/keluar tanpa catatan mutasi boleh dilengkapi (tanpa dokumen keberangkatan dan tanpa larangan). Pindah sekolah pada semester genap tingkat akhir ditolak 409 `transfer_final_level_even_semester`; pemegang `school:manage` dapat menimpanya dengan `exceptionReason` (tanpa izin itu 403 `exception_requires_school_manage`); putus sekolah tidak terkena larangan.
          */
         post: {
             parameters: {
@@ -20235,8 +20235,8 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Catat mutasi masuk (siswa pindahan)
-         * @description Izin: `student:manage`. Membuat siswa baru (status aktif) beserta penempatan di `classId` (pada tahun ajaran kelas itu) dan catatan mutasi masuk dengan sekolah asal. Nilai sekolah asal tidak diimpor. Aturan NIS/NISN/NIK sama dengan `POST /v1/students` (409 `nik_taken`/`conflict`). Penempatan di kelas tingkat akhir pada semester genap ditolak 409 `transfer_final_level_even_semester`; pemegang `school:manage` dapat menimpanya dengan `exceptionReason` (tanpa izin itu 403 `exception_requires_school_manage`). Respons memuat mutasi dan siswa.
+         * Catat mutasi masuk (murid pindahan)
+         * @description Izin: `student:manage`. Membuat murid baru (status aktif) beserta penempatan di `classId` (pada tahun ajaran kelas itu) dan catatan mutasi masuk dengan sekolah asal. Nilai sekolah asal tidak diimpor. Aturan NIS/NISN/NIK sama dengan `POST /v1/students` (409 `nik_taken`/`conflict`). Penempatan di kelas tingkat akhir pada semester genap ditolak 409 `transfer_final_level_even_semester`; pemegang `school:manage` dapat menimpanya dengan `exceptionReason` (tanpa izin itu 403 `exception_requires_school_manage`). Respons memuat mutasi dan murid.
          */
         post: {
             parameters: {
@@ -20449,7 +20449,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Daftar mutasi siswa
+         * Daftar mutasi murid
          * @description Izin: `student:read`. Terbaru dulu (tanggal efektif). Filter opsional `academicYearId`, `direction` (`in`/`out`), `studentId`. `departureDocument` hanya ada di detail (`GET /v1/student-transfers/{id}`).
          */
         get: {
@@ -20941,7 +20941,7 @@ export interface paths {
         post?: never;
         /**
          * Batalkan mutasi keluar
-         * @description Izin: `student:manage`. Menghapus catatan mutasi keluar dan mengembalikan status siswa menjadi aktif. Hanya mutasi keluar terbaru milik siswa yang statusnya masih sesuai: 409 `student_status_changed` bila status siswa sudah diubah, 409 `transfer_superseded` bila ada mutasi yang lebih baru. Mutasi masuk tidak dapat dibatalkan (409 `transfer_not_cancellable`); ubah status siswa bila perlu.
+         * @description Izin: `student:manage`. Menghapus catatan mutasi keluar dan mengembalikan status murid menjadi aktif. Hanya mutasi keluar terbaru milik murid yang statusnya masih sesuai: 409 `student_status_changed` bila status murid sudah diubah, 409 `transfer_superseded` bila ada mutasi yang lebih baru. Mutasi masuk tidak dapat dibatalkan (409 `transfer_not_cancellable`); ubah status murid bila perlu.
          */
         delete: {
             parameters: {
@@ -21040,8 +21040,8 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Mutasi satu siswa
-         * @description Izin: `student:read`. Terbaru dulu. 404 `not_found` bila siswa tidak ada.
+         * Mutasi satu murid
+         * @description Izin: `student:read`. Terbaru dulu. 404 `not_found` bila murid tidak ada.
          */
         get: {
             parameters: {
@@ -21159,8 +21159,8 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Riwayat akademik siswa (rombel, keputusan, rapor, mutasi)
-         * @description Izin: `student:read`. Per tahun ajaran (terlama dulu) yang menyentuh siswa ini: rombel kini (`class`), perpindahan rombel (`classChanges`, dari `enrollment_change`), keputusan kenaikan/kelulusan (`decision`), status rapor per semester (`reports`), dan mutasi (`transfers`). Hanya tahun yang punya salah satunya.
+         * Riwayat akademik murid (rombel, keputusan, rapor, mutasi)
+         * @description Izin: `student:read`. Per tahun ajaran (terlama dulu) yang menyentuh murid ini: rombel kini (`class`), perpindahan rombel (`classChanges`, dari `enrollment_change`), keputusan kenaikan/kelulusan (`decision`), status rapor per semester (`reports`), dan mutasi (`transfers`). Hanya tahun yang punya salah satunya.
          */
         get: {
             parameters: {
@@ -23657,7 +23657,7 @@ export interface paths {
         };
         /**
          * Rekap absensi gerbang dan per jam pelajaran
-         * @description Izin: `attendance:read`; modul `attendance` harus aktif. Per siswa aktif di tahun ajaran aktif (satu kelas bila `classId` diisi, selain itu semua kelas yang boleh dilihat pengguna): jumlah hari gerbang (`days`: present, late, excused, sick, absent, dan `notRecorded`), jumlah jam pelajaran (`lessons`), dan `skipped` (bolos kelas) yaitu jam pelajaran berstatus alpa pada hari siswa hadir atau terlambat di gerbang. `effectiveDays` adalah jumlah tanggal berbeda yang punya catatan gerbang untuk kelas itu (hari libur/jeda tanpa catatan tidak dihitung). Rentang maksimal 366 hari (400 `invalid_period`). Guru yang tidak punya `attendance:configure` dan bukan kepala sekolah/kurikulum hanya boleh melihat kelas yang ia ajar; kelas lain 403 `forbidden`. Kelas tidak ada atau milik sekolah lain: 404 `not_found`.
+         * @description Izin: `attendance:read`; modul `attendance` harus aktif. Per murid aktif di tahun ajaran aktif (satu kelas bila `classId` diisi, selain itu semua kelas yang boleh dilihat pengguna): jumlah hari gerbang (`days`: present, late, excused, sick, absent, dan `notRecorded`), jumlah jam pelajaran (`lessons`), dan `skipped` (bolos kelas) yaitu jam pelajaran berstatus alpa pada hari murid hadir atau terlambat di gerbang. `effectiveDays` adalah jumlah tanggal berbeda yang punya catatan gerbang untuk kelas itu (hari libur/jeda tanpa catatan tidak dihitung). Rentang maksimal 366 hari (400 `invalid_period`). Guru yang tidak punya `attendance:configure` dan bukan kepala sekolah/kurikulum hanya boleh melihat kelas yang ia ajar; kelas lain 403 `forbidden`. Kelas tidak ada atau milik sekolah lain: 404 `not_found`.
          */
         get: {
             parameters: {
@@ -23696,7 +23696,7 @@ export interface paths {
                                     excused: number;
                                     sick: number;
                                     absent: number;
-                                    /** @description Hari efektif yang belum tercatat untuk siswa ini */
+                                    /** @description Hari efektif yang belum tercatat untuk murid ini */
                                     notRecorded: number;
                                 };
                                 lessons: {
@@ -23722,7 +23722,7 @@ export interface paths {
                                     excused: number;
                                     sick: number;
                                     absent: number;
-                                    /** @description Hari efektif yang belum tercatat untuk siswa ini */
+                                    /** @description Hari efektif yang belum tercatat untuk murid ini */
                                     notRecorded: number;
                                 };
                                 lessons: {
@@ -24560,7 +24560,7 @@ export interface paths {
         };
         /**
          * Daftar kartu RFID
-         * @description Izin: `attendance:configure`. Bisa disaring per siswa.
+         * @description Izin: `attendance:configure`. Bisa disaring per murid.
          */
         get: {
             parameters: {
@@ -24627,8 +24627,8 @@ export interface paths {
         };
         put?: never;
         /**
-         * Daftarkan kartu siswa
-         * @description Izin: `attendance:configure`. Mendaftarkan kartu RFID; `code` adalah UID kartu dari pembaca (disimpan huruf besar). Kode yang sama tidak boleh dipakai dua siswa (409 `conflict`). Untuk banyak kartu sekaligus gunakan `/v1/attendance/cards/bulk`.
+         * Daftarkan kartu murid
+         * @description Izin: `attendance:configure`. Mendaftarkan kartu RFID; `code` adalah UID kartu dari pembaca (disimpan huruf besar). Kode yang sama tidak boleh dipakai dua murid (409 `conflict`). Untuk banyak kartu sekaligus gunakan `/v1/attendance/cards/bulk`.
          */
         post: {
             parameters: {
@@ -24737,8 +24737,8 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Daftarkan kartu RFID siswa secara massal
-         * @description Izin: `attendance:configure`. Maksimal 500 baris `{nis, code}`; siswa dicari lewat NIS di sekolah ini dan harus aktif. Hasilnya sebagian: tiap baris diproses sendiri, baris yang gagal tidak membatalkan baris lain. `created` adalah jumlah kartu yang terdaftar; `failed` memuat `row` (indeks 1-based pada `items`), `nis`, `code` (sudah huruf besar), dan `reason`: `student_not_found` (NIS tidak ada atau siswa tidak aktif), `code_taken` (kode sudah dipakai kartu lain atau muncul lebih dulu dalam batch yang sama), `student_has_card` (siswa sudah punya kartu RFID aktif), `invalid_code` (kode kurang dari 4 karakter atau mengandung spasi). Satu entri audit ringkas dicatat. Kode disimpan huruf besar.
+         * Daftarkan kartu RFID murid secara massal
+         * @description Izin: `attendance:configure`. Maksimal 500 baris `{nis, code}`; murid dicari lewat NIS di sekolah ini dan harus aktif. Hasilnya sebagian: tiap baris diproses sendiri, baris yang gagal tidak membatalkan baris lain. `created` adalah jumlah kartu yang terdaftar; `failed` memuat `row` (indeks 1-based pada `items`), `nis`, `code` (sudah huruf besar), dan `reason`: `student_not_found` (NIS tidak ada atau murid tidak aktif), `code_taken` (kode sudah dipakai kartu lain atau muncul lebih dulu dalam batch yang sama), `student_has_card` (murid sudah punya kartu RFID aktif), `invalid_code` (kode kurang dari 4 karakter atau mengandung spasi). Satu entri audit ringkas dicatat. Kode disimpan huruf besar.
          */
         post: {
             parameters: {
@@ -25136,7 +25136,7 @@ export interface paths {
         };
         /**
          * Absensi gerbang harian
-         * @description Izin: `attendance:read`. Semua siswa aktif di tahun ajaran aktif (bisa disaring per kelas) dengan status, jam masuk, dan jam pulang; `status` null berarti belum ada catatan. `summary` menghitung per status.
+         * @description Izin: `attendance:read`. Semua murid aktif di tahun ajaran aktif (bisa disaring per kelas) dengan status, jam masuk, dan jam pulang; `status` null berarti belum ada catatan. `summary` menghitung per status.
          */
         get: {
             parameters: {
@@ -25482,7 +25482,7 @@ export interface paths {
         };
         /**
          * Templat bawaan sistem (tidak disimpan)
-         * @description Izin: `student:read`. Tata letak kartu siswa (CR80 86x54 mm) dan kartu peserta ujian (100x60 mm) bawaan. Tidak menyimpan apa pun: UI menampilkannya sebagai pilihan "tambah dari bawaan" lalu menyimpannya lewat `POST /v1/cards/templates`. Sekolah tanpa templat tersimpan memakai bawaan ini saat mencetak.
+         * @description Izin: `student:read`. Tata letak kartu murid (CR80 86x54 mm) dan kartu peserta ujian (100x60 mm) bawaan. Tidak menyimpan apa pun: UI menampilkannya sebagai pilihan "tambah dari bawaan" lalu menyimpannya lewat `POST /v1/cards/templates`. Sekolah tanpa templat tersimpan memakai bawaan ini saat mencetak.
          */
         get: {
             parameters: {
@@ -25539,7 +25539,7 @@ export interface paths {
                                         h: number;
                                         rotation?: number;
                                         /** @enum {string} */
-                                        field: "name" | "nis" | "nisn" | "className" | "academicYear" | "birthPlaceDate" | "gender" | "rfidCode" | "qrCode" | "schoolName" | "address" | "examTitle" | "typeName" | "participantNo" | "room" | "date" | "time" | "subjectList";
+                                        field: "name" | "nis" | "nisn" | "className" | "academicYear" | "birthPlaceDate" | "gender" | "rfidCode" | "qrCode" | "schoolName" | "address" | "examTitle" | "typeName" | "participantNo" | "room" | "date" | "time" | "subjectList" | "principalName" | "cityDate";
                                         prefix?: string;
                                         maxWidth?: number;
                                         /** @default 9 */
@@ -25651,6 +25651,38 @@ export interface paths {
                                         color: string;
                                         /** @default 0.3 */
                                         thickness: number;
+                                    } | {
+                                        /** @enum {string} */
+                                        type: "schedule";
+                                        id?: string;
+                                        x: number;
+                                        y: number;
+                                        w: number;
+                                        h: number;
+                                        rotation?: number;
+                                        /** @default 8 */
+                                        fontSize: number;
+                                        /** @default #111111 */
+                                        color: string;
+                                        /** @default #f1f5f9 */
+                                        headerFill: string;
+                                        /** @default #111111 */
+                                        borderColor: string;
+                                        /** @default 0.2 */
+                                        borderWidth: number;
+                                        /**
+                                         * @default [
+                                         *       "dayDate",
+                                         *       "time",
+                                         *       "subject"
+                                         *     ]
+                                         */
+                                        columns: ("no" | "dayDate" | "day" | "date" | "time" | "subject")[];
+                                        headers?: string[];
+                                        /** @default true */
+                                        mergeDays: boolean;
+                                        /** @default true */
+                                        showHeader: boolean;
                                     })[];
                                 };
                             };
@@ -25690,7 +25722,7 @@ export interface paths {
                                         h: number;
                                         rotation?: number;
                                         /** @enum {string} */
-                                        field: "name" | "nis" | "nisn" | "className" | "academicYear" | "birthPlaceDate" | "gender" | "rfidCode" | "qrCode" | "schoolName" | "address" | "examTitle" | "typeName" | "participantNo" | "room" | "date" | "time" | "subjectList";
+                                        field: "name" | "nis" | "nisn" | "className" | "academicYear" | "birthPlaceDate" | "gender" | "rfidCode" | "qrCode" | "schoolName" | "address" | "examTitle" | "typeName" | "participantNo" | "room" | "date" | "time" | "subjectList" | "principalName" | "cityDate";
                                         prefix?: string;
                                         maxWidth?: number;
                                         /** @default 9 */
@@ -25802,6 +25834,38 @@ export interface paths {
                                         color: string;
                                         /** @default 0.3 */
                                         thickness: number;
+                                    } | {
+                                        /** @enum {string} */
+                                        type: "schedule";
+                                        id?: string;
+                                        x: number;
+                                        y: number;
+                                        w: number;
+                                        h: number;
+                                        rotation?: number;
+                                        /** @default 8 */
+                                        fontSize: number;
+                                        /** @default #111111 */
+                                        color: string;
+                                        /** @default #f1f5f9 */
+                                        headerFill: string;
+                                        /** @default #111111 */
+                                        borderColor: string;
+                                        /** @default 0.2 */
+                                        borderWidth: number;
+                                        /**
+                                         * @default [
+                                         *       "dayDate",
+                                         *       "time",
+                                         *       "subject"
+                                         *     ]
+                                         */
+                                        columns: ("no" | "dayDate" | "day" | "date" | "time" | "subject")[];
+                                        headers?: string[];
+                                        /** @default true */
+                                        mergeDays: boolean;
+                                        /** @default true */
+                                        showHeader: boolean;
                                     })[];
                                 };
                             };
@@ -25917,7 +25981,7 @@ export interface paths {
                                     h: number;
                                     rotation?: number;
                                     /** @enum {string} */
-                                    field: "name" | "nis" | "nisn" | "className" | "academicYear" | "birthPlaceDate" | "gender" | "rfidCode" | "qrCode" | "schoolName" | "address" | "examTitle" | "typeName" | "participantNo" | "room" | "date" | "time" | "subjectList";
+                                    field: "name" | "nis" | "nisn" | "className" | "academicYear" | "birthPlaceDate" | "gender" | "rfidCode" | "qrCode" | "schoolName" | "address" | "examTitle" | "typeName" | "participantNo" | "room" | "date" | "time" | "subjectList" | "principalName" | "cityDate";
                                     prefix?: string;
                                     maxWidth?: number;
                                     /** @default 9 */
@@ -26029,6 +26093,38 @@ export interface paths {
                                     color: string;
                                     /** @default 0.3 */
                                     thickness: number;
+                                } | {
+                                    /** @enum {string} */
+                                    type: "schedule";
+                                    id?: string;
+                                    x: number;
+                                    y: number;
+                                    w: number;
+                                    h: number;
+                                    rotation?: number;
+                                    /** @default 8 */
+                                    fontSize: number;
+                                    /** @default #111111 */
+                                    color: string;
+                                    /** @default #f1f5f9 */
+                                    headerFill: string;
+                                    /** @default #111111 */
+                                    borderColor: string;
+                                    /** @default 0.2 */
+                                    borderWidth: number;
+                                    /**
+                                     * @default [
+                                     *       "dayDate",
+                                     *       "time",
+                                     *       "subject"
+                                     *     ]
+                                     */
+                                    columns: ("no" | "dayDate" | "day" | "date" | "time" | "subject")[];
+                                    headers?: string[];
+                                    /** @default true */
+                                    mergeDays: boolean;
+                                    /** @default true */
+                                    showHeader: boolean;
                                 })[];
                             };
                             /** Format: uuid */
@@ -26124,7 +26220,7 @@ export interface paths {
                                 h: number;
                                 rotation?: number;
                                 /** @enum {string} */
-                                field: "name" | "nis" | "nisn" | "className" | "academicYear" | "birthPlaceDate" | "gender" | "rfidCode" | "qrCode" | "schoolName" | "address" | "examTitle" | "typeName" | "participantNo" | "room" | "date" | "time" | "subjectList";
+                                field: "name" | "nis" | "nisn" | "className" | "academicYear" | "birthPlaceDate" | "gender" | "rfidCode" | "qrCode" | "schoolName" | "address" | "examTitle" | "typeName" | "participantNo" | "room" | "date" | "time" | "subjectList" | "principalName" | "cityDate";
                                 prefix?: string;
                                 maxWidth?: number;
                                 /** @default 9 */
@@ -26236,6 +26332,38 @@ export interface paths {
                                 color?: string;
                                 /** @default 0.3 */
                                 thickness?: number;
+                            } | {
+                                /** @enum {string} */
+                                type: "schedule";
+                                id?: string;
+                                x: number;
+                                y: number;
+                                w: number;
+                                h: number;
+                                rotation?: number;
+                                /** @default 8 */
+                                fontSize?: number;
+                                /** @default #111111 */
+                                color?: string;
+                                /** @default #f1f5f9 */
+                                headerFill?: string;
+                                /** @default #111111 */
+                                borderColor?: string;
+                                /** @default 0.2 */
+                                borderWidth?: number;
+                                /**
+                                 * @default [
+                                 *       "dayDate",
+                                 *       "time",
+                                 *       "subject"
+                                 *     ]
+                                 */
+                                columns?: ("no" | "dayDate" | "day" | "date" | "time" | "subject")[];
+                                headers?: string[];
+                                /** @default true */
+                                mergeDays?: boolean;
+                                /** @default true */
+                                showHeader?: boolean;
                             })[];
                         };
                         /**
@@ -26297,7 +26425,7 @@ export interface paths {
                                     h: number;
                                     rotation?: number;
                                     /** @enum {string} */
-                                    field: "name" | "nis" | "nisn" | "className" | "academicYear" | "birthPlaceDate" | "gender" | "rfidCode" | "qrCode" | "schoolName" | "address" | "examTitle" | "typeName" | "participantNo" | "room" | "date" | "time" | "subjectList";
+                                    field: "name" | "nis" | "nisn" | "className" | "academicYear" | "birthPlaceDate" | "gender" | "rfidCode" | "qrCode" | "schoolName" | "address" | "examTitle" | "typeName" | "participantNo" | "room" | "date" | "time" | "subjectList" | "principalName" | "cityDate";
                                     prefix?: string;
                                     maxWidth?: number;
                                     /** @default 9 */
@@ -26409,6 +26537,38 @@ export interface paths {
                                     color: string;
                                     /** @default 0.3 */
                                     thickness: number;
+                                } | {
+                                    /** @enum {string} */
+                                    type: "schedule";
+                                    id?: string;
+                                    x: number;
+                                    y: number;
+                                    w: number;
+                                    h: number;
+                                    rotation?: number;
+                                    /** @default 8 */
+                                    fontSize: number;
+                                    /** @default #111111 */
+                                    color: string;
+                                    /** @default #f1f5f9 */
+                                    headerFill: string;
+                                    /** @default #111111 */
+                                    borderColor: string;
+                                    /** @default 0.2 */
+                                    borderWidth: number;
+                                    /**
+                                     * @default [
+                                     *       "dayDate",
+                                     *       "time",
+                                     *       "subject"
+                                     *     ]
+                                     */
+                                    columns: ("no" | "dayDate" | "day" | "date" | "time" | "subject")[];
+                                    headers?: string[];
+                                    /** @default true */
+                                    mergeDays: boolean;
+                                    /** @default true */
+                                    showHeader: boolean;
                                 })[];
                             };
                             /** Format: uuid */
@@ -26556,7 +26716,7 @@ export interface paths {
                                     h: number;
                                     rotation?: number;
                                     /** @enum {string} */
-                                    field: "name" | "nis" | "nisn" | "className" | "academicYear" | "birthPlaceDate" | "gender" | "rfidCode" | "qrCode" | "schoolName" | "address" | "examTitle" | "typeName" | "participantNo" | "room" | "date" | "time" | "subjectList";
+                                    field: "name" | "nis" | "nisn" | "className" | "academicYear" | "birthPlaceDate" | "gender" | "rfidCode" | "qrCode" | "schoolName" | "address" | "examTitle" | "typeName" | "participantNo" | "room" | "date" | "time" | "subjectList" | "principalName" | "cityDate";
                                     prefix?: string;
                                     maxWidth?: number;
                                     /** @default 9 */
@@ -26668,6 +26828,38 @@ export interface paths {
                                     color: string;
                                     /** @default 0.3 */
                                     thickness: number;
+                                } | {
+                                    /** @enum {string} */
+                                    type: "schedule";
+                                    id?: string;
+                                    x: number;
+                                    y: number;
+                                    w: number;
+                                    h: number;
+                                    rotation?: number;
+                                    /** @default 8 */
+                                    fontSize: number;
+                                    /** @default #111111 */
+                                    color: string;
+                                    /** @default #f1f5f9 */
+                                    headerFill: string;
+                                    /** @default #111111 */
+                                    borderColor: string;
+                                    /** @default 0.2 */
+                                    borderWidth: number;
+                                    /**
+                                     * @default [
+                                     *       "dayDate",
+                                     *       "time",
+                                     *       "subject"
+                                     *     ]
+                                     */
+                                    columns: ("no" | "dayDate" | "day" | "date" | "time" | "subject")[];
+                                    headers?: string[];
+                                    /** @default true */
+                                    mergeDays: boolean;
+                                    /** @default true */
+                                    showHeader: boolean;
                                 })[];
                             };
                             /** Format: uuid */
@@ -26778,7 +26970,7 @@ export interface paths {
                                 h: number;
                                 rotation?: number;
                                 /** @enum {string} */
-                                field: "name" | "nis" | "nisn" | "className" | "academicYear" | "birthPlaceDate" | "gender" | "rfidCode" | "qrCode" | "schoolName" | "address" | "examTitle" | "typeName" | "participantNo" | "room" | "date" | "time" | "subjectList";
+                                field: "name" | "nis" | "nisn" | "className" | "academicYear" | "birthPlaceDate" | "gender" | "rfidCode" | "qrCode" | "schoolName" | "address" | "examTitle" | "typeName" | "participantNo" | "room" | "date" | "time" | "subjectList" | "principalName" | "cityDate";
                                 prefix?: string;
                                 maxWidth?: number;
                                 /** @default 9 */
@@ -26890,6 +27082,38 @@ export interface paths {
                                 color?: string;
                                 /** @default 0.3 */
                                 thickness?: number;
+                            } | {
+                                /** @enum {string} */
+                                type: "schedule";
+                                id?: string;
+                                x: number;
+                                y: number;
+                                w: number;
+                                h: number;
+                                rotation?: number;
+                                /** @default 8 */
+                                fontSize?: number;
+                                /** @default #111111 */
+                                color?: string;
+                                /** @default #f1f5f9 */
+                                headerFill?: string;
+                                /** @default #111111 */
+                                borderColor?: string;
+                                /** @default 0.2 */
+                                borderWidth?: number;
+                                /**
+                                 * @default [
+                                 *       "dayDate",
+                                 *       "time",
+                                 *       "subject"
+                                 *     ]
+                                 */
+                                columns?: ("no" | "dayDate" | "day" | "date" | "time" | "subject")[];
+                                headers?: string[];
+                                /** @default true */
+                                mergeDays?: boolean;
+                                /** @default true */
+                                showHeader?: boolean;
                             })[];
                         };
                         /**
@@ -26949,7 +27173,7 @@ export interface paths {
                                     h: number;
                                     rotation?: number;
                                     /** @enum {string} */
-                                    field: "name" | "nis" | "nisn" | "className" | "academicYear" | "birthPlaceDate" | "gender" | "rfidCode" | "qrCode" | "schoolName" | "address" | "examTitle" | "typeName" | "participantNo" | "room" | "date" | "time" | "subjectList";
+                                    field: "name" | "nis" | "nisn" | "className" | "academicYear" | "birthPlaceDate" | "gender" | "rfidCode" | "qrCode" | "schoolName" | "address" | "examTitle" | "typeName" | "participantNo" | "room" | "date" | "time" | "subjectList" | "principalName" | "cityDate";
                                     prefix?: string;
                                     maxWidth?: number;
                                     /** @default 9 */
@@ -27061,6 +27285,38 @@ export interface paths {
                                     color: string;
                                     /** @default 0.3 */
                                     thickness: number;
+                                } | {
+                                    /** @enum {string} */
+                                    type: "schedule";
+                                    id?: string;
+                                    x: number;
+                                    y: number;
+                                    w: number;
+                                    h: number;
+                                    rotation?: number;
+                                    /** @default 8 */
+                                    fontSize: number;
+                                    /** @default #111111 */
+                                    color: string;
+                                    /** @default #f1f5f9 */
+                                    headerFill: string;
+                                    /** @default #111111 */
+                                    borderColor: string;
+                                    /** @default 0.2 */
+                                    borderWidth: number;
+                                    /**
+                                     * @default [
+                                     *       "dayDate",
+                                     *       "time",
+                                     *       "subject"
+                                     *     ]
+                                     */
+                                    columns: ("no" | "dayDate" | "day" | "date" | "time" | "subject")[];
+                                    headers?: string[];
+                                    /** @default true */
+                                    mergeDays: boolean;
+                                    /** @default true */
+                                    showHeader: boolean;
                                 })[];
                             };
                             /** Format: uuid */
@@ -27298,7 +27554,7 @@ export interface paths {
                                     h: number;
                                     rotation?: number;
                                     /** @enum {string} */
-                                    field: "name" | "nis" | "nisn" | "className" | "academicYear" | "birthPlaceDate" | "gender" | "rfidCode" | "qrCode" | "schoolName" | "address" | "examTitle" | "typeName" | "participantNo" | "room" | "date" | "time" | "subjectList";
+                                    field: "name" | "nis" | "nisn" | "className" | "academicYear" | "birthPlaceDate" | "gender" | "rfidCode" | "qrCode" | "schoolName" | "address" | "examTitle" | "typeName" | "participantNo" | "room" | "date" | "time" | "subjectList" | "principalName" | "cityDate";
                                     prefix?: string;
                                     maxWidth?: number;
                                     /** @default 9 */
@@ -27410,6 +27666,38 @@ export interface paths {
                                     color: string;
                                     /** @default 0.3 */
                                     thickness: number;
+                                } | {
+                                    /** @enum {string} */
+                                    type: "schedule";
+                                    id?: string;
+                                    x: number;
+                                    y: number;
+                                    w: number;
+                                    h: number;
+                                    rotation?: number;
+                                    /** @default 8 */
+                                    fontSize: number;
+                                    /** @default #111111 */
+                                    color: string;
+                                    /** @default #f1f5f9 */
+                                    headerFill: string;
+                                    /** @default #111111 */
+                                    borderColor: string;
+                                    /** @default 0.2 */
+                                    borderWidth: number;
+                                    /**
+                                     * @default [
+                                     *       "dayDate",
+                                     *       "time",
+                                     *       "subject"
+                                     *     ]
+                                     */
+                                    columns: ("no" | "dayDate" | "day" | "date" | "time" | "subject")[];
+                                    headers?: string[];
+                                    /** @default true */
+                                    mergeDays: boolean;
+                                    /** @default true */
+                                    showHeader: boolean;
                                 })[];
                             };
                             /** Format: uuid */
@@ -27558,7 +27846,7 @@ export interface paths {
                                     h: number;
                                     rotation?: number;
                                     /** @enum {string} */
-                                    field: "name" | "nis" | "nisn" | "className" | "academicYear" | "birthPlaceDate" | "gender" | "rfidCode" | "qrCode" | "schoolName" | "address" | "examTitle" | "typeName" | "participantNo" | "room" | "date" | "time" | "subjectList";
+                                    field: "name" | "nis" | "nisn" | "className" | "academicYear" | "birthPlaceDate" | "gender" | "rfidCode" | "qrCode" | "schoolName" | "address" | "examTitle" | "typeName" | "participantNo" | "room" | "date" | "time" | "subjectList" | "principalName" | "cityDate";
                                     prefix?: string;
                                     maxWidth?: number;
                                     /** @default 9 */
@@ -27670,6 +27958,38 @@ export interface paths {
                                     color: string;
                                     /** @default 0.3 */
                                     thickness: number;
+                                } | {
+                                    /** @enum {string} */
+                                    type: "schedule";
+                                    id?: string;
+                                    x: number;
+                                    y: number;
+                                    w: number;
+                                    h: number;
+                                    rotation?: number;
+                                    /** @default 8 */
+                                    fontSize: number;
+                                    /** @default #111111 */
+                                    color: string;
+                                    /** @default #f1f5f9 */
+                                    headerFill: string;
+                                    /** @default #111111 */
+                                    borderColor: string;
+                                    /** @default 0.2 */
+                                    borderWidth: number;
+                                    /**
+                                     * @default [
+                                     *       "dayDate",
+                                     *       "time",
+                                     *       "subject"
+                                     *     ]
+                                     */
+                                    columns: ("no" | "dayDate" | "day" | "date" | "time" | "subject")[];
+                                    headers?: string[];
+                                    /** @default true */
+                                    mergeDays: boolean;
+                                    /** @default true */
+                                    showHeader: boolean;
                                 })[];
                             };
                             /** Format: uuid */
@@ -27837,8 +28157,8 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Foto siswa
-         * @description Izin: `student:read`. Isi gambar (JPEG atau PNG), hanya untuk anggota sekolah yang berhak (bukan publik; klien menyertakan `x-school-id` dan cookie). 404 `not_found` bila siswa atau fotonya tidak ada.
+         * Foto murid
+         * @description Izin: `student:read`. Isi gambar (JPEG atau PNG), hanya untuk anggota sekolah yang berhak (bukan publik; klien menyertakan `x-school-id` dan cookie). 404 `not_found` bila murid atau fotonya tidak ada.
          */
         get: {
             parameters: {
@@ -27909,7 +28229,7 @@ export interface paths {
         };
         put?: never;
         /**
-         * Unggah foto siswa
+         * Unggah foto murid
          * @description Izin: `student:manage`. JPEG atau PNG sampai 500 KB, base64 di `data` (tanpa awalan `data:`); isi berkas diperiksa terhadap `mime` (400 `validation`). Foto lama diganti. Foto tidak publik: diambil lewat `GET /v1/students/:id/photo`.
          */
         post: {
@@ -28004,8 +28324,8 @@ export interface paths {
             };
         };
         /**
-         * Hapus foto siswa
-         * @description Izin: `student:manage`. Tidak error bila foto memang belum ada; 404 bila siswa tidak ada.
+         * Hapus foto murid
+         * @description Izin: `student:manage`. Tidak error bila foto memang belum ada; 404 bila murid tidak ada.
          */
         delete: {
             parameters: {
@@ -28090,8 +28410,8 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Data cetak kartu siswa
-         * @description Izin: `student:read`. Wajib `classId` (siswa aktif kelas itu) dan/atau `studentIds` (uuid dipisah koma, maks. 300). Tanpa `classId`, kelas diambil dari tahun ajaran aktif. Setiap baris memuat nilai kolom terikat (nama, NIS, kelas, kode RFID aktif pertama, tahun ajaran, nama sekolah) dan jalur foto. Dibatasi 300 baris (`truncated: true` bila lebih). `qrCode` = isi QR identitas siswa (`ES1.<kode acak>`, satu per siswa, dipakai semua fitur); kode yang belum ada dibuat otomatis secara idempoten (satu-satunya efek tulis endpoint ini, dicatat di audit `student.identity_code.create`). PDF dirender di klien.
+         * Data cetak kartu murid
+         * @description Izin: `student:read`. Wajib `classId` (murid aktif kelas itu) dan/atau `studentIds` (uuid dipisah koma, maks. 300). Tanpa `classId`, kelas diambil dari tahun ajaran aktif. Setiap baris memuat nilai kolom terikat (nama, NIS, kelas, kode RFID aktif pertama, tahun ajaran, nama sekolah) dan jalur foto. Dibatasi 300 baris (`truncated: true` bila lebih). `qrCode` = isi QR identitas murid (`ES1.<kode acak>`, satu per murid, dipakai semua fitur); kode yang belum ada dibuat otomatis secara idempoten (satu-satunya efek tulis endpoint ini, dicatat di audit `student.identity_code.create`). PDF dirender di klien.
          */
         get: {
             parameters: {
@@ -28131,7 +28451,7 @@ export interface paths {
                                 address: string;
                                 /** @description Kode kartu RFID aktif pertama; kosong bila belum ada */
                                 rfidCode: string;
-                                /** @description Isi QR identitas siswa yang dicetak (`ES1.<kode acak>`); dibuat otomatis bila belum ada */
+                                /** @description Isi QR identitas murid yang dicetak (`ES1.<kode acak>`); dibuat otomatis bila belum ada */
                                 qrCode: string;
                                 /** @description Jalur foto (butuh login & x-school-id), null bila belum ada */
                                 photoUrl: string | null;
@@ -28216,7 +28536,7 @@ export interface paths {
         };
         /**
          * Data cetak kartu peserta ujian
-         * @description Izin: `exam:read`; modul `exams`. Dua cara: `examId` (semua kelas ujian itu; jenis dan semester ikut ujian) atau `semesterId` + `classId` (opsional `examTypeId` untuk membatasi jenis ujian). **Nomor peserta** = `<singkatan jenis ujian>-<yy>-<urutan 3 digit>`, mis. `ASTS-26-007`: `yy` dua digit tahun mulai tahun ajaran kelas, urutan = posisi siswa aktif di kelasnya diurut nama lalu id. Tanpa jenis ujian singkatannya `UJN`. Stabil selama susunan kelas tidak berubah. **Jadwal** = ujian pada semester itu (dan jenis yang sama bila ada) yang mencakup kelas siswa, urut tanggal lalu jam (semua status, termasuk draf). `date`/`time` ringkasan untuk kartu; `room` belum punya sumber data sehingga kosong. Dibatasi 300 baris (`truncated`). Hanya baca.
+         * @description Izin: `exam:read`; modul `exams`. Dua cara: `examId` (semua kelas ujian itu; jenis dan semester ikut ujian) atau `semesterId` + `classId` (opsional `examTypeId` untuk membatasi jenis ujian). **Nomor peserta** = `<singkatan jenis ujian>-<yy>-<urutan 3 digit>`, mis. `ASTS-26-007`: `yy` dua digit tahun mulai tahun ajaran kelas, urutan = posisi murid aktif di kelasnya diurut nama lalu id. Tanpa jenis ujian singkatannya `UJN`. Stabil selama susunan kelas tidak berubah. **Jadwal** = ujian pada semester itu (dan jenis yang sama bila ada) yang mencakup kelas murid, urut tanggal lalu jam (semua status, termasuk draf). `date`/`time` ringkasan untuk kartu; `room` = nama ruang dari penempatan ruang ujian (`/v1/exam/room-assignments`) pada semester dan jenis ujian itu; kosong bila belum ditempatkan atau tanpa jenis ujian. Dibatasi 300 baris (`truncated`). Hanya baca.
          */
         get: {
             parameters: {
@@ -28255,8 +28575,14 @@ export interface paths {
                                 participantNo: string;
                                 examTitle: string;
                                 typeName: string;
-                                /** @description Belum ada data ruang di sistem; selalu kosong */
+                                /** @description Nama ruang ujian murid pada semester dan jenis ujian itu; kosong bila belum diatur */
                                 room: string;
+                                /** @description Alamat sekolah (dari identitas sekolah, atau pengaturan rapor bila identitas kosong) */
+                                address: string;
+                                /** @description Nama kepala sekolah dari pengaturan rapor; kosong bila belum diisi */
+                                principalName: string;
+                                /** @description "Kota, tanggal cetak" untuk blok tanda tangan, mis. "Pandeglang, 3 Juni 2025" */
+                                cityDate: string;
                                 date: string;
                                 time: string;
                                 subjectList: string[];
@@ -28350,7 +28676,7 @@ export interface paths {
         put?: never;
         /**
          * Catat datang atau pulang secara manual (massal)
-         * @description Izin: `attendance:manage`; modul `attendance`. Cadangan bila kiosk RFID tidak bisa dipakai. Aturan akses: pengguna dengan `attendance:configure` boleh untuk semua kelas; guru yang bertugas piket hari ini boleh untuk semua kelas; guru lain hanya untuk kelas yang ia walikan (wali kelas, tahun ajaran aktif); selain itu 403 `forbidden_class`. Maksimal 200 siswa per permintaan. `date` bawaan hari ini (zona waktu sekolah); tanggal lampau wajib memberi jam. Jam (`at` di tingkat permintaan atau per entri; entri menang) bawaannya sekarang, tidak boleh di masa depan dan harus pada `date`. Perilaku meniru tap: menulis `tap_event` bersumber `manual` dengan `recordedBy` pencatat, memperbarui absensi harian, dan memberi tahu wali (arrival/departure). Datang: status dihitung dari kebijakan `lateAfter` (terlambat bila jam lebih dari batas) kecuali entri memberi `status` `present`/`late`. Aman diulang: catatan datang/pulang yang sudah ada tidak ditimpa (`already_in`, `already_out`) kecuali `overwrite: true`; siswa berstatus izin/sakit/alpa dilewati (`skipped_status`) kecuali `overwrite`. Pulang tanpa catatan datang tetap dicatat dengan peringatan `no_check_in`. Pulang sebelum jam datang (atau datang setelah jam pulang) menghasilkan `invalid_time`. Tanggal libur/jeda sekolah: 409 `school_closed` kecuali `force: true`. Hasil per entri: `in`, `out`, `already_in`, `already_out`, `skipped_status`, `not_found` (siswa tidak ada atau tidak aktif), `invalid_time`; `summary` merangkum. Satu entri audit ringkas dicatat.
+         * @description Izin: `attendance:manage`; modul `attendance`. Cadangan bila kiosk RFID tidak bisa dipakai. Aturan akses: pengguna dengan `attendance:configure` boleh untuk semua kelas; guru yang bertugas piket hari ini boleh untuk semua kelas; guru lain hanya untuk kelas yang ia walikan (wali kelas, tahun ajaran aktif); selain itu 403 `forbidden_class`. Maksimal 200 murid per permintaan. `date` bawaan hari ini (zona waktu sekolah); tanggal lampau wajib memberi jam. Jam (`at` di tingkat permintaan atau per entri; entri menang) bawaannya sekarang, tidak boleh di masa depan dan harus pada `date`. Perilaku meniru tap: menulis `tap_event` bersumber `manual` dengan `recordedBy` pencatat, memperbarui absensi harian, dan memberi tahu wali (arrival/departure). Datang: status dihitung dari kebijakan `lateAfter` (terlambat bila jam lebih dari batas) kecuali entri memberi `status` `present`/`late`. Aman diulang: catatan datang/pulang yang sudah ada tidak ditimpa (`already_in`, `already_out`) kecuali `overwrite: true`; murid berstatus izin/sakit/alpa dilewati (`skipped_status`) kecuali `overwrite`. Pulang tanpa catatan datang tetap dicatat dengan peringatan `no_check_in`. Pulang sebelum jam datang (atau datang setelah jam pulang) menghasilkan `invalid_time`. Tanggal libur/jeda sekolah: 409 `school_closed` kecuali `force: true`. Hasil per entri: `in`, `out`, `already_in`, `already_out`, `skipped_status`, `not_found` (murid tidak ada atau tidak aktif), `invalid_time`; `summary` merangkum. Satu entri audit ringkas dicatat.
          */
         post: {
             parameters: {
@@ -28499,7 +28825,7 @@ export interface paths {
         put?: never;
         /**
          * Tandai seluruh kelas datang atau pulang
-         * @description Izin: `attendance:manage`; modul `attendance`. Aturan akses: pengguna dengan `attendance:configure` boleh untuk semua kelas; guru yang bertugas piket hari ini boleh untuk semua kelas; guru lain hanya untuk kelas yang ia walikan (wali kelas, tahun ajaran aktif); selain itu 403 `forbidden_class`. Jalan pintas atas `/v1/gate/manual` untuk satu kelas: `direction` `in` mencatat semua siswa kelas yang belum punya catatan datang dan tidak berstatus izin/sakit/alpa; `out` mencatat semua yang sudah datang tetapi belum pulang. Siswa yang tidak memenuhi syarat tidak disentuh. Jam `at` (HH:MM atau ISO) dan `date` sama seperti `/v1/gate/manual`. Respons sama dengan `/v1/gate/manual` (hanya siswa yang diproses), ditambah `candidates` (jumlah siswa yang dipilih). Kelas tidak ada: 404; libur: 409 `school_closed` kecuali `force`.
+         * @description Izin: `attendance:manage`; modul `attendance`. Aturan akses: pengguna dengan `attendance:configure` boleh untuk semua kelas; guru yang bertugas piket hari ini boleh untuk semua kelas; guru lain hanya untuk kelas yang ia walikan (wali kelas, tahun ajaran aktif); selain itu 403 `forbidden_class`. Jalan pintas atas `/v1/gate/manual` untuk satu kelas: `direction` `in` mencatat semua murid kelas yang belum punya catatan datang dan tidak berstatus izin/sakit/alpa; `out` mencatat semua yang sudah datang tetapi belum pulang. Murid yang tidak memenuhi syarat tidak disentuh. Jam `at` (HH:MM atau ISO) dan `date` sama seperti `/v1/gate/manual`. Respons sama dengan `/v1/gate/manual` (hanya murid yang diproses), ditambah `candidates` (jumlah murid yang dipilih). Kelas tidak ada: 404; libur: 409 `school_closed` kecuali `force`.
          */
         post: {
             parameters: {
@@ -28653,7 +28979,7 @@ export interface paths {
         };
         /**
          * Kelas yang boleh saya catat hari ini
-         * @description Izin: `attendance:manage`; modul `attendance`. Aturan akses: pengguna dengan `attendance:configure` boleh untuk semua kelas; guru yang bertugas piket hari ini boleh untuk semua kelas; guru lain hanya untuk kelas yang ia walikan (wali kelas, tahun ajaran aktif); selain itu 403 `forbidden_class`. `scope`: `all` (pengurus), `duty` (piket hari ini: semua kelas), atau `homeroom` (hanya kelas yang diwalikan; bisa kosong). Per kelas (tahun ajaran aktif): `total` siswa aktif, `checkedIn` (sudah ada jam datang), `checkedOut` (sudah ada jam pulang), `away` (izin/sakit/alpa), `notYet` (belum datang dan bukan izin/sakit/alpa), dan `homeroom` (apakah pengguna wali kelasnya). `closed` terisi bila hari ini libur.
+         * @description Izin: `attendance:manage`; modul `attendance`. Aturan akses: pengguna dengan `attendance:configure` boleh untuk semua kelas; guru yang bertugas piket hari ini boleh untuk semua kelas; guru lain hanya untuk kelas yang ia walikan (wali kelas, tahun ajaran aktif); selain itu 403 `forbidden_class`. `scope`: `all` (pengurus), `duty` (piket hari ini: semua kelas), atau `homeroom` (hanya kelas yang diwalikan; bisa kosong). Per kelas (tahun ajaran aktif): `total` murid aktif, `checkedIn` (sudah ada jam datang), `checkedOut` (sudah ada jam pulang), `away` (izin/sakit/alpa), `notYet` (belum datang dan bukan izin/sakit/alpa), dan `homeroom` (apakah pengguna wali kelasnya). `closed` terisi bila hari ini libur.
          */
         get: {
             parameters: {
@@ -28744,8 +29070,8 @@ export interface paths {
         };
         get?: never;
         /**
-         * Koreksi absensi gerbang satu siswa pada satu tanggal
-         * @description Izin: `attendance:manage`; modul `attendance`. Aturan akses: pengguna dengan `attendance:configure` boleh untuk semua kelas; guru yang bertugas piket hari ini boleh untuk semua kelas; guru lain hanya untuk kelas yang ia walikan (wali kelas, tahun ajaran aktif); selain itu 403 `forbidden_class`. Mengoreksi atau membatalkan catatan datang/pulang. Setiap bidang opsional: tidak dikirim = tidak diubah, `null` = dikosongkan, nilai = jam `HH:MM` atau ISO pada `date`. `checkOutAt` tidak boleh sebelum `checkInAt`. `status` bila tidak dikirim: dihitung dari kebijakan saat jam datang diubah, selain itu tetap. Bila kedua jam dikosongkan tanpa `status` dan status lama `present`/`late`, catatan dihapus (kembali ke "belum ada catatan"; `removed: true`). Jam yang baru diset ikut dicatat sebagai `tap_event` `manual`. Tidak ada pemberitahuan ke wali. Siswa tidak ada/tidak aktif: 404. Ditolak 409 `report_final` bila tanggalnya berada di semester yang rapor siswanya sudah final. Satu entri audit dicatat.
+         * Koreksi absensi gerbang satu murid pada satu tanggal
+         * @description Izin: `attendance:manage`; modul `attendance`. Aturan akses: pengguna dengan `attendance:configure` boleh untuk semua kelas; guru yang bertugas piket hari ini boleh untuk semua kelas; guru lain hanya untuk kelas yang ia walikan (wali kelas, tahun ajaran aktif); selain itu 403 `forbidden_class`. Mengoreksi atau membatalkan catatan datang/pulang. Setiap bidang opsional: tidak dikirim = tidak diubah, `null` = dikosongkan, nilai = jam `HH:MM` atau ISO pada `date`. `checkOutAt` tidak boleh sebelum `checkInAt`. `status` bila tidak dikirim: dihitung dari kebijakan saat jam datang diubah, selain itu tetap. Bila kedua jam dikosongkan tanpa `status` dan status lama `present`/`late`, catatan dihapus (kembali ke "belum ada catatan"; `removed: true`). Jam yang baru diset ikut dicatat sebagai `tap_event` `manual`. Tidak ada pemberitahuan ke wali. Murid tidak ada/tidak aktif: 404. Ditolak 409 `report_final` bila tanggalnya berada di semester yang rapor muridnya sudah final. Satu entri audit dicatat.
          */
         put: {
             parameters: {
@@ -28885,8 +29211,8 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Catat datang atau pulang dengan memindai QR kartu siswa
-         * @description Izin: `attendance:manage`; modul `attendance`. Cadangan bila kiosk RFID tidak bisa dipakai: guru memindai QR di kartu siswa dengan kamera. `payload` adalah teks hasil pindai (`ES1.<20 karakter>`); selain format itu 400 `invalid_qr`, kode yang tidak terdaftar atau sudah diganti 404 `unknown_qr`. Aturan akses sama dengan `/v1/gate/manual`: pengguna dengan `attendance:configure` boleh untuk semua kelas; guru yang bertugas piket hari ini boleh untuk semua kelas; guru lain hanya untuk kelas yang ia walikan; selain itu 403 `forbidden_class`. Inti pencatatan SAMA dengan `/v1/gate/manual` (status terlambat dari kebijakan `lateAfter`, penjaga hari libur, pemberitahuan wali, aturan status izin/sakit/alpa) tetapi `tap_event` bersumber `qr` dengan `recordedBy` pencatat. `direction` dipilih eksplisit oleh guru (`in` datang, `out` pulang). `at` (ISO 8601 dengan zona) adalah jam pindai asli untuk kiriman ulang dari antrean offline: tidak boleh di masa depan dan maksimal 48 jam ke belakang (400 `invalid_time`); tanpa `at` dipakai jam server. `clientId` (kunci idempoten per pindaian, maks. 64 karakter): kiriman ulang dengan `clientId` yang sama mengembalikan hasil sebelumnya dengan `replayed: true` tanpa mencatat dua kali. Catatan datang/pulang yang sudah ada tidak ditimpa (`already_in`, `already_out`) kecuali `overwrite: true`; siswa berstatus izin/sakit/alpa dilewati (`skipped_status`) kecuali `overwrite`. Pulang tanpa catatan datang tetap dicatat dengan `warning` `no_check_in`. Hari libur/jeda sekolah: 409 `school_closed` kecuali `force: true`. Siswa tidak aktif: 409 `student_inactive`. Dibatasi 240 permintaan per menit per sesi (429). Satu entri audit dicatat per pindaian.
+         * Catat datang atau pulang dengan memindai QR kartu murid
+         * @description Izin: `attendance:manage`; modul `attendance`. Cadangan bila kiosk RFID tidak bisa dipakai: guru memindai QR di kartu murid dengan kamera. `payload` adalah teks hasil pindai (`ES1.<20 karakter>`); selain format itu 400 `invalid_qr`, kode yang tidak terdaftar atau sudah diganti 404 `unknown_qr`. Aturan akses sama dengan `/v1/gate/manual`: pengguna dengan `attendance:configure` boleh untuk semua kelas; guru yang bertugas piket hari ini boleh untuk semua kelas; guru lain hanya untuk kelas yang ia walikan; selain itu 403 `forbidden_class`. Inti pencatatan SAMA dengan `/v1/gate/manual` (status terlambat dari kebijakan `lateAfter`, penjaga hari libur, pemberitahuan wali, aturan status izin/sakit/alpa) tetapi `tap_event` bersumber `qr` dengan `recordedBy` pencatat. `direction` dipilih eksplisit oleh guru (`in` datang, `out` pulang). `at` (ISO 8601 dengan zona) adalah jam pindai asli untuk kiriman ulang dari antrean offline: tidak boleh di masa depan dan maksimal 48 jam ke belakang (400 `invalid_time`); tanpa `at` dipakai jam server. `clientId` (kunci idempoten per pindaian, maks. 64 karakter): kiriman ulang dengan `clientId` yang sama mengembalikan hasil sebelumnya dengan `replayed: true` tanpa mencatat dua kali. Catatan datang/pulang yang sudah ada tidak ditimpa (`already_in`, `already_out`) kecuali `overwrite: true`; murid berstatus izin/sakit/alpa dilewati (`skipped_status`) kecuali `overwrite`. Pulang tanpa catatan datang tetap dicatat dengan `warning` `no_check_in`. Hari libur/jeda sekolah: 409 `school_closed` kecuali `force: true`. Murid tidak aktif: 409 `student_inactive`. Dibatasi 240 permintaan per menit per sesi (429). Satu entri audit dicatat per pindaian.
          */
         post: {
             parameters: {
@@ -29044,8 +29370,8 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * QR identitas siswa
-         * @description Izin: `student:manage`. Mengembalikan isi QR identitas (`ES1.<kode>`) siswa; dibuat bila belum ada (idempoten). Kode ini hanya mengidentifikasi siswa dan tidak memberi akses apa pun dengan sendirinya: pemindai (mis. absensi) wajib login dan punya izin fiturnya. Siswa tidak ada: 404.
+         * QR identitas murid
+         * @description Izin: `student:manage`. Mengembalikan isi QR identitas (`ES1.<kode>`) murid; dibuat bila belum ada (idempoten). Kode ini hanya mengidentifikasi murid dan tidak memberi akses apa pun dengan sendirinya: pemindai (mis. absensi) wajib login dan punya izin fiturnya. Murid tidak ada: 404.
          */
         get: {
             parameters: {
@@ -29070,7 +29396,7 @@ export interface paths {
                         "application/json": {
                             /** Format: uuid */
                             studentId: string;
-                            /** @description Isi QR identitas siswa (`ES1.<kode>`) */
+                            /** @description Isi QR identitas murid (`ES1.<kode>`) */
                             qr: string;
                         };
                     };
@@ -29137,8 +29463,8 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Buat ulang QR identitas siswa
-         * @description Izin: `student:manage`. Untuk kartu yang hilang atau QR yang bocor: isi kode diganti di tempat sehingga QR lama langsung tidak berlaku untuk SEMUA fitur (pindaiannya 404 `unknown_qr`). Mengembalikan `qr` baru (`ES1.<kode>`) untuk dicetak ulang. QR dibuat otomatis saat pertama dibutuhkan (`GET /v1/cards/students`), jadi endpoint ini hanya untuk mengganti. Siswa tidak ada: 404. Satu entri audit dicatat (tanpa kode).
+         * Buat ulang QR identitas murid
+         * @description Izin: `student:manage`. Untuk kartu yang hilang atau QR yang bocor: isi kode diganti di tempat sehingga QR lama langsung tidak berlaku untuk SEMUA fitur (pindaiannya 404 `unknown_qr`). Mengembalikan `qr` baru (`ES1.<kode>`) untuk dicetak ulang. QR dibuat otomatis saat pertama dibutuhkan (`GET /v1/cards/students`), jadi endpoint ini hanya untuk mengganti. Murid tidak ada: 404. Satu entri audit dicatat (tanpa kode).
          */
         post: {
             parameters: {
@@ -29163,7 +29489,7 @@ export interface paths {
                         "application/json": {
                             /** Format: uuid */
                             studentId: string;
-                            /** @description Isi QR identitas siswa (`ES1.<kode>`) */
+                            /** @description Isi QR identitas murid (`ES1.<kode>`) */
                             qr: string;
                         };
                     };
@@ -29227,7 +29553,7 @@ export interface paths {
         };
         /**
          * Jam pelajaran pada satu tanggal
-         * @description Izin: `attendance:read`; modul `attendance`. Sel jadwal pada hari itu di tahun ajaran aktif, dengan jumlah siswa yang sudah diabsen. Guru biasa melihat jam miliknya; pengurus dan guru piket (hari ini) melihat semua sehingga bisa menggantikan. `mine` menandai jam milik pengguna. Untuk mapel yang berpenanda pilihan di rombelnya, `total` hanya menghitung murid yang mengambil mapel itu. `lane` (jalur paralel, hanya bila > 0) dan `combinedKey` (pertemuan gabungan) hanya muncul pada sel yang memakainya.
+         * @description Izin: `attendance:read`; modul `attendance`. Sel jadwal pada hari itu di tahun ajaran aktif, dengan jumlah murid yang sudah diabsen. Guru biasa melihat jam miliknya; pengurus dan guru piket (hari ini) melihat semua sehingga bisa menggantikan. `mine` menandai jam milik pengguna. Untuk mapel yang berpenanda pilihan di rombelnya, `total` hanya menghitung murid yang mengambil mapel itu. `lane` (jalur paralel, hanya bila > 0) dan `combinedKey` (pertemuan gabungan) hanya muncul pada sel yang memakainya.
          */
         get: {
             parameters: {
@@ -29325,7 +29651,7 @@ export interface paths {
         };
         /**
          * Lembar absensi satu jam pelajaran
-         * @description Izin: `attendance:read`; modul `attendance`. Siswa kelas itu dengan status jam ini dan status gerbang (`gate`, null bila belum tap), sehingga yang hadir di gerbang tetapi tidak di kelas terlihat. Mapel yang berpenanda pilihan di rombelnya hanya memuat murid yang mengambilnya, dan menyimpan untuk non-pengambil ditolak 400 `invalid_reference`. `canRecord` menyatakan apakah pengguna boleh mengisi; `substitute` bila pengisiannya menggantikan guru jadwal.
+         * @description Izin: `attendance:read`; modul `attendance`. Murid kelas itu dengan status jam ini dan status gerbang (`gate`, null bila belum tap), sehingga yang hadir di gerbang tetapi tidak di kelas terlihat. Mapel yang berpenanda pilihan di rombelnya hanya memuat murid yang mengambilnya, dan menyimpan untuk non-pengambil ditolak 400 `invalid_reference`. `canRecord` menyatakan apakah pengguna boleh mengisi; `substitute` bila pengisiannya menggantikan guru jadwal.
          */
         get: {
             parameters: {
@@ -29983,7 +30309,7 @@ export interface paths {
         put?: never;
         /**
          * Buat templat bawaan
-         * @description Izin: `letter:manage`; modul `administration`. Membuat tiga templat bawaan (surat keterangan siswa aktif, surat panggilan orang tua, sertifikat sederhana) hanya bila sekolah belum punya templat (409 `not_empty`).
+         * @description Izin: `letter:manage`; modul `administration`. Membuat tiga templat bawaan (surat keterangan murid aktif, surat panggilan orang tua, sertifikat sederhana) hanya bila sekolah belum punya templat (409 `not_empty`).
          */
         post: {
             parameters: {
@@ -31000,7 +31326,7 @@ export interface paths {
         put?: never;
         /**
          * Catat atau buat surat
-         * @description Izin: `letter:manage`; modul `administration`. Surat keluar (`direction: outgoing`) mendapat nomor otomatis berurutan per tahun surat, format `012/KODE/X/2026`, dari penghitung atomik. Surat masuk (`incoming`) mendapat nomor agenda otomatis `AG/012/2026`; `number` (nomor surat pengirim) dicatat pada awal isi. `templateId` harus templat aktif dan `studentId` siswa sekolah ini (400 `invalid_reference`).
+         * @description Izin: `letter:manage`; modul `administration`. Surat keluar (`direction: outgoing`) mendapat nomor otomatis berurutan per tahun surat, format `012/KODE/X/2026`, dari penghitung atomik. Surat masuk (`incoming`) mendapat nomor agenda otomatis `AG/012/2026`; `number` (nomor surat pengirim) dicatat pada awal isi. `templateId` harus templat aktif dan `studentId` murid sekolah ini (400 `invalid_reference`).
          */
         post: {
             parameters: {
@@ -31652,7 +31978,7 @@ export interface paths {
         put?: never;
         /**
          * Isi surat dari templat
-         * @description Izin: `letter:manage`; modul `administration`. Mengisi templat surat (atau isi surat bila tanpa templat) dengan data siswa (`studentId` atau siswa pada surat), sekolah, nomor, tanggal, dan penandatangan (`signerId`, bawaan kredensial pengguna). Tidak menyimpan apa pun; simpan lewat ubah surat. Surat masuk tidak dapat dirender (409 `not_outgoing`).
+         * @description Izin: `letter:manage`; modul `administration`. Mengisi templat surat (atau isi surat bila tanpa templat) dengan data murid (`studentId` atau murid pada surat), sekolah, nomor, tanggal, dan penandatangan (`signerId`, bawaan kredensial pengguna). Tidak menyimpan apa pun; simpan lewat ubah surat. Surat masuk tidak dapat dirender (409 `not_outgoing`).
          */
         post: {
             parameters: {
@@ -32946,7 +33272,7 @@ export interface paths {
         };
         /**
          * Anggota ekstrakurikuler
-         * @description Izin: `extracurricular:read`; modul `extracurricular`. Anggota pada tahun ajaran `academicYearId` (bawaan: tahun ajaran aktif; 409 `no_active_year` bila tidak ada). `className` adalah kelas siswa pada tahun itu. Lulusan yang punya keanggotaan pada tahun itu ikut tampil; siswa pindah/keluar tidak.
+         * @description Izin: `extracurricular:read`; modul `extracurricular`. Anggota pada tahun ajaran `academicYearId` (bawaan: tahun ajaran aktif; 409 `no_active_year` bila tidak ada). `className` adalah kelas murid pada tahun itu. Lulusan yang punya keanggotaan pada tahun itu ikut tampil; murid pindah/keluar tidak.
          */
         get: {
             parameters: {
@@ -32977,7 +33303,7 @@ export interface paths {
                             nis: string | null;
                             className: string | null;
                             /**
-                             * @description Status siswa; `graduated` = lulusan yang hanya tampil untuk dibaca (tidak dapat diisi atau diubah)
+                             * @description Status murid; `graduated` = lulusan yang hanya tampil untuk dibaca (tidak dapat diisi atau diubah)
                              * @enum {string}
                              */
                             studentStatus?: "active" | "graduated";
@@ -33060,7 +33386,7 @@ export interface paths {
         put?: never;
         /**
          * Tambah anggota ekstrakurikuler
-         * @description Izin: `extracurricular:read` ditambah pengelola (`extracurricular:manage`) atau guru pembina ekskul ini; selain itu 403 `forbidden`. Hanya siswa aktif sekolah ini (400 `invalid_reference` bila ada yang bukan). Siswa yang sudah menjadi anggota dilewati (`skipped`). Maksimal 200 siswa per permintaan.
+         * @description Izin: `extracurricular:read` ditambah pengelola (`extracurricular:manage`) atau guru pembina ekskul ini; selain itu 403 `forbidden`. Hanya murid aktif sekolah ini (400 `invalid_reference` bila ada yang bukan). Murid yang sudah menjadi anggota dilewati (`skipped`). Maksimal 200 murid per permintaan.
          */
         post: {
             parameters: {
@@ -33699,7 +34025,7 @@ export interface paths {
         };
         /**
          * Simpan absensi pertemuan ekstrakurikuler
-         * @description Izin: `extracurricular:read` ditambah pengelola (`extracurricular:manage`) atau guru pembina ekskul ini; selain itu 403 `forbidden`. Semua siswa harus anggota ekskul pada tahun ajaran pertemuan itu (400 `invalid_reference`). Maksimal 200 baris.
+         * @description Izin: `extracurricular:read` ditambah pengelola (`extracurricular:manage`) atau guru pembina ekskul ini; selain itu 403 `forbidden`. Semua murid harus anggota ekskul pada tahun ajaran pertemuan itu (400 `invalid_reference`). Maksimal 200 baris.
          */
         put: {
             parameters: {
@@ -33842,7 +34168,7 @@ export interface paths {
                             studentId: string;
                             name: string;
                             /**
-                             * @description Status siswa; `graduated` = lulusan yang hanya tampil untuk dibaca (tidak dapat diisi atau diubah)
+                             * @description Status murid; `graduated` = lulusan yang hanya tampil untuk dibaca (tidak dapat diisi atau diubah)
                              * @enum {string}
                              */
                             studentStatus?: "active" | "graduated";
@@ -33912,7 +34238,7 @@ export interface paths {
         };
         /**
          * Simpan penilaian ekstrakurikuler
-         * @description Izin: `extracurricular:read` ditambah pengelola (`extracurricular:manage`) atau guru pembina ekskul ini; selain itu 403 `forbidden`. Siswa harus anggota pada tahun ajaran semester itu dan semester harus milik sekolah ini (400 `invalid_reference`). Predikat A-D; dipakai nanti oleh rapor. Ditolak 409 `report_final` bila rapor salah satu siswa pada semester itu sudah final.
+         * @description Izin: `extracurricular:read` ditambah pengelola (`extracurricular:manage`) atau guru pembina ekskul ini; selain itu 403 `forbidden`. Murid harus anggota pada tahun ajaran semester itu dan semester harus milik sekolah ini (400 `invalid_reference`). Predikat A-D; dipakai nanti oleh rapor. Ditolak 409 `report_final` bila rapor salah satu murid pada semester itu sudah final.
          */
         put: {
             parameters: {
@@ -34847,7 +35173,7 @@ export interface paths {
                             matchesLive: boolean;
                             /** @description Jumlah kelas yang rapornya final pada semester ini */
                             finalClassCount: number;
-                            /** @description Jumlah rapor final (siswa) pada semester ini */
+                            /** @description Jumlah rapor final (murid) pada semester ini */
                             finalReportCount: number;
                             /** @description Pengaturan efektif semester (salinan beku, atau konfigurasi hidup bila belum beku) */
                             settings: {
@@ -35000,7 +35326,7 @@ export interface paths {
                             matchesLive: boolean;
                             /** @description Jumlah kelas yang rapornya final pada semester ini */
                             finalClassCount: number;
-                            /** @description Jumlah rapor final (siswa) pada semester ini */
+                            /** @description Jumlah rapor final (murid) pada semester ini */
                             finalReportCount: number;
                             /** @description Pengaturan efektif semester (salinan beku, atau konfigurasi hidup bila belum beku) */
                             settings: {
@@ -35749,7 +36075,7 @@ export interface paths {
         };
         /**
          * Daftar penilaian
-         * @description Izin: `grade:read`; modul `grades`. Filter `semesterId`, `classId`, `subjectId` (opsional), terbaru lebih dulu. Pemegang `grade:configure`, kepala sekolah, dan kurikulum melihat semuanya; pengguna lain hanya penilaian untuk pasangan (kelas, mapel) yang ia ampu (daftar kosong bila tidak mengampu). `filled`/`total` menghitung siswa aktif dan lulusan kelas.
+         * @description Izin: `grade:read`; modul `grades`. Filter `semesterId`, `classId`, `subjectId` (opsional), terbaru lebih dulu. Pemegang `grade:configure`, kepala sekolah, dan kurikulum melihat semuanya; pengguna lain hanya penilaian untuk pasangan (kelas, mapel) yang ia ampu (daftar kosong bila tidak mengampu). `filled`/`total` menghitung murid aktif dan lulusan kelas.
          */
         get: {
             parameters: {
@@ -35821,9 +36147,9 @@ export interface paths {
                             title: string;
                             date: string;
                             maxScore: number;
-                            /** @description Jumlah siswa aktif atau lulusan kelas yang sudah punya skor */
+                            /** @description Jumlah murid aktif atau lulusan kelas yang sudah punya skor */
                             filled: number;
-                            /** @description Jumlah siswa aktif dan lulusan yang terdaftar di kelas (tahun ajaran kelas itu) */
+                            /** @description Jumlah murid aktif dan lulusan yang terdaftar di kelas (tahun ajaran kelas itu) */
                             total: number;
                             /** @description Pengguna ini boleh mengubah penilaian dan skornya */
                             canInput: boolean;
@@ -35966,9 +36292,9 @@ export interface paths {
                             title: string;
                             date: string;
                             maxScore: number;
-                            /** @description Jumlah siswa aktif atau lulusan kelas yang sudah punya skor */
+                            /** @description Jumlah murid aktif atau lulusan kelas yang sudah punya skor */
                             filled: number;
-                            /** @description Jumlah siswa aktif dan lulusan yang terdaftar di kelas (tahun ajaran kelas itu) */
+                            /** @description Jumlah murid aktif dan lulusan yang terdaftar di kelas (tahun ajaran kelas itu) */
                             total: number;
                             /** @description Pengguna ini boleh mengubah penilaian dan skornya */
                             canInput: boolean;
@@ -36148,9 +36474,9 @@ export interface paths {
                             title: string;
                             date: string;
                             maxScore: number;
-                            /** @description Jumlah siswa aktif atau lulusan kelas yang sudah punya skor */
+                            /** @description Jumlah murid aktif atau lulusan kelas yang sudah punya skor */
                             filled: number;
-                            /** @description Jumlah siswa aktif dan lulusan yang terdaftar di kelas (tahun ajaran kelas itu) */
+                            /** @description Jumlah murid aktif dan lulusan yang terdaftar di kelas (tahun ajaran kelas itu) */
                             total: number;
                             /** @description Pengguna ini boleh mengubah penilaian dan skornya */
                             canInput: boolean;
@@ -36332,7 +36658,7 @@ export interface paths {
         };
         /**
          * Skor satu penilaian
-         * @description Izin: `grade:read`; modul `grades`. Roster siswa aktif dan lulusan kelas penilaian (urut nama) dengan skor (`value` null bila belum diisi). Bila rombel menandai mapel ini hanya diikuti murid yang memilih, roster hanya murid yang mengambil mapel itu pada semester penilaian (skor murid lain tidak dihapus tetapi tidak tampil). Pengguna selain pemegang configure/kepala sekolah/kurikulum hanya boleh untuk kelas+mapel yang ia ampu (403). `canInput` menandai hak mengisi.
+         * @description Izin: `grade:read`; modul `grades`. Roster murid aktif dan lulusan kelas penilaian (urut nama) dengan skor (`value` null bila belum diisi). Bila rombel menandai mapel ini hanya diikuti murid yang memilih, roster hanya murid yang mengambil mapel itu pada semester penilaian (skor murid lain tidak dihapus tetapi tidak tampil). Pengguna selain pemegang configure/kepala sekolah/kurikulum hanya boleh untuk kelas+mapel yang ia ampu (403). `canInput` menandai hak mengisi.
          */
         get: {
             parameters: {
@@ -36403,9 +36729,9 @@ export interface paths {
                                 title: string;
                                 date: string;
                                 maxScore: number;
-                                /** @description Jumlah siswa aktif atau lulusan kelas yang sudah punya skor */
+                                /** @description Jumlah murid aktif atau lulusan kelas yang sudah punya skor */
                                 filled: number;
-                                /** @description Jumlah siswa aktif dan lulusan yang terdaftar di kelas (tahun ajaran kelas itu) */
+                                /** @description Jumlah murid aktif dan lulusan yang terdaftar di kelas (tahun ajaran kelas itu) */
                                 total: number;
                                 /** @description Pengguna ini boleh mengubah penilaian dan skornya */
                                 canInput: boolean;
@@ -36468,7 +36794,7 @@ export interface paths {
         };
         /**
          * Simpan skor
-         * @description Izin: `grade:input`, dan pemegang `grade:configure` atau guru pengampu kelas+mapel (selain itu 403). `value` 0..skor maksimum penilaian (400 `invalid_score`) atau null untuk mengosongkan; siswa harus anggota aktif kelas (400 `invalid_reference`) dan, bila rombel menandai mapel ini hanya diikuti murid yang memilih, harus mengambil mapel itu pada semester penilaian (400 `student_not_taking_subject`; tanpa penanda tidak pernah terjadi). Mengirim ulang siswa yang sama menimpa skor sebelumnya.
+         * @description Izin: `grade:input`, dan pemegang `grade:configure` atau guru pengampu kelas+mapel (selain itu 403). `value` 0..skor maksimum penilaian (400 `invalid_score`) atau null untuk mengosongkan; murid harus anggota aktif kelas (400 `invalid_reference`) dan, bila rombel menandai mapel ini hanya diikuti murid yang memilih, harus mengambil mapel itu pada semester penilaian (400 `student_not_taking_subject`; tanpa penanda tidak pernah terjadi). Mengirim ulang murid yang sama menimpa skor sebelumnya.
          */
         put: {
             parameters: {
@@ -36595,7 +36921,7 @@ export interface paths {
         };
         /**
          * Rekap nilai kelas dan mapel
-         * @description Izin: `grade:read`; modul `grades`. Per siswa aktif dan lulusan: rata-rata persen tiap komponen, nilai akhir (rata-rata tertimbang; bobot dinormalisasi atas komponen yang punya skor), predikat, dan `belowKkm`. Komponen formatif (atau yang dikeluarkan dari nilai akhir) tetap tampil di `components`/`perComponent` (ditandai `category`/`includeInFinal`) dan ringkasannya di `formative` per siswa, tetapi TIDAK memengaruhi nilai akhir, predikat, `belowKkm`, atau `stats`. `belowKkm` dan `belowKkmCount` memakai KKM efektif mapel (`kkm`, dari KKTP bila ada, selain itu `settings.kkm`). `stats` merangkum siswa yang sudah punya nilai akhir. Semester/kelas/mapel harus milik sekolah ini (400 `invalid_reference`); pengguna selain pemegang configure/kepala sekolah/kurikulum hanya untuk kelas+mapel yang ia ampu (403). Siswa yang rapornya FINAL pada kelas ini memakai angka snapshot rapor (`final`, `predicate`, `belowKkm`; `kkm` mapel dari snapshot) dan diberi `source: report`; `source` di tingkat atas muncul bila ada yang demikian. Siswa tanpa rapor final dihitung dari konfigurasi efektif semester (salinan beku bila ada). Tanpa rapor final, respons tidak membawa `source`. Nilai akhir memakai nilai EFEKTIF remedial menurut kebijakan sekolah (`remedialPolicy`, ada hanya bila bukan `record_only`); `remedial` per siswa (`attempts`, `effectiveSource`) ada hanya bila siswa punya percobaan remedial. Skor asli tidak pernah ditimpa; angka rapor final tetap dari snapshot. Bila rombel menandai mapel ini hanya diikuti murid yang memilih, `students` dan `stats` hanya memuat murid yang mengambilnya pada semester itu.
+         * @description Izin: `grade:read`; modul `grades`. Per murid aktif dan lulusan: rata-rata persen tiap komponen, nilai akhir (rata-rata tertimbang; bobot dinormalisasi atas komponen yang punya skor), predikat, dan `belowKkm`. Komponen formatif (atau yang dikeluarkan dari nilai akhir) tetap tampil di `components`/`perComponent` (ditandai `category`/`includeInFinal`) dan ringkasannya di `formative` per murid, tetapi TIDAK memengaruhi nilai akhir, predikat, `belowKkm`, atau `stats`. `belowKkm` dan `belowKkmCount` memakai KKM efektif mapel (`kkm`, dari KKTP bila ada, selain itu `settings.kkm`). `stats` merangkum murid yang sudah punya nilai akhir. Semester/kelas/mapel harus milik sekolah ini (400 `invalid_reference`); pengguna selain pemegang configure/kepala sekolah/kurikulum hanya untuk kelas+mapel yang ia ampu (403). Murid yang rapornya FINAL pada kelas ini memakai angka snapshot rapor (`final`, `predicate`, `belowKkm`; `kkm` mapel dari snapshot) dan diberi `source: report`; `source` di tingkat atas muncul bila ada yang demikian. Murid tanpa rapor final dihitung dari konfigurasi efektif semester (salinan beku bila ada). Tanpa rapor final, respons tidak membawa `source`. Nilai akhir memakai nilai EFEKTIF remedial menurut kebijakan sekolah (`remedialPolicy`, ada hanya bila bukan `record_only`); `remedial` per murid (`attempts`, `effectiveSource`) ada hanya bila murid punya percobaan remedial. Skor asli tidak pernah ditimpa; angka rapor final tetap dari snapshot. Bila rombel menandai mapel ini hanya diikuti murid yang memilih, `students` dan `stats` hanya memuat murid yang mengambilnya pada semester itu.
          */
         get: {
             parameters: {
@@ -36673,16 +36999,16 @@ export interface paths {
                                     componentId: string;
                                     average: number | null;
                                 }[];
-                                /** @description Umpan balik formatif, TERPISAH dari nilai akhir (tidak memengaruhi `final`, `predicate`, `belowKkm`, atau peringkat). Ada hanya bila siswa punya skor di komponen formatif. */
+                                /** @description Umpan balik formatif, TERPISAH dari nilai akhir (tidak memengaruhi `final`, `predicate`, `belowKkm`, atau peringkat). Ada hanya bila murid punya skor di komponen formatif. */
                                 formative?: {
-                                    /** @description Rata-rata persen semua skor formatif siswa pada mapel ini */
+                                    /** @description Rata-rata persen semua skor formatif murid pada mapel ini */
                                     average: number;
                                     /** @description Jumlah skor formatif yang terisi */
                                     count: number;
                                 };
                                 /** @description Penanda remedial; ada hanya bila ada percobaan. Skor asli tidak pernah ditimpa; nilai akhir memakai nilai efektif menurut kebijakan sekolah. */
                                 remedial?: {
-                                    /** @description Jumlah percobaan remedial siswa pada mapel ini (semua penilaian) */
+                                    /** @description Jumlah percobaan remedial murid pada mapel ini (semua penilaian) */
                                     attempts: number;
                                     /**
                                      * @description `remedial` = ada nilai efektif yang berbeda dari skor asli menurut kebijakan remedial sekolah; `original` = skor asli dipakai (mis. kebijakan hanya mencatat)
@@ -36705,7 +37031,7 @@ export interface paths {
                                 min: number | null;
                                 max: number | null;
                                 belowKkmCount: number;
-                                /** @description Jumlah siswa yang sudah punya nilai akhir */
+                                /** @description Jumlah murid yang sudah punya nilai akhir */
                                 filled: number;
                             };
                         };
@@ -36772,7 +37098,7 @@ export interface paths {
         };
         /**
          * Rekap nilai satu kelas (leger)
-         * @description Izin: `grade:read`; modul `grades`. Matriks mapel x siswa berisi nilai akhir dan predikat, bahan rapor dan leger. Mapel yang ditampilkan: yang diampu di kelas itu atau yang sudah punya penilaian pada semester itu. Hanya pemegang `grade:configure`, kepala sekolah, kurikulum, atau guru yang mengajar di kelas itu (selain itu 403). Semester/kelas harus milik sekolah ini (400 `invalid_reference`). Siswa yang rapornya FINAL pada kelas ini memakai `final` dan `predicate` dari snapshot rapor dan diberi `source: report` (mapel yang tidak ada di snapshot siswa itu dihitung dari konfigurasi efektif); `source` di tingkat atas muncul bila ada yang demikian. Umpan balik formatif per sel ada di `formative` (hanya bila ada), terpisah dari `final` dan `predicate`. Sel mapel yang tidak diambil murid itu (hanya bila rombel menandai mapelnya berdasarkan pilihan) membawa `notTaken: true` dengan `final` dan `predicate` null; kunci itu absen untuk sekolah tanpa mapel pilihan.
+         * @description Izin: `grade:read`; modul `grades`. Matriks mapel x murid berisi nilai akhir dan predikat, bahan rapor dan leger. Mapel yang ditampilkan: yang diampu di kelas itu atau yang sudah punya penilaian pada semester itu. Hanya pemegang `grade:configure`, kepala sekolah, kurikulum, atau guru yang mengajar di kelas itu (selain itu 403). Semester/kelas harus milik sekolah ini (400 `invalid_reference`). Murid yang rapornya FINAL pada kelas ini memakai `final` dan `predicate` dari snapshot rapor dan diberi `source: report` (mapel yang tidak ada di snapshot murid itu dihitung dari konfigurasi efektif); `source` di tingkat atas muncul bila ada yang demikian. Umpan balik formatif per sel ada di `formative` (hanya bila ada), terpisah dari `final` dan `predicate`. Sel mapel yang tidak diambil murid itu (hanya bila rombel menandai mapelnya berdasarkan pilihan) membawa `notTaken: true` dengan `final` dan `predicate` null; kunci itu absen untuk sekolah tanpa mapel pilihan.
          */
         get: {
             parameters: {
@@ -36822,9 +37148,9 @@ export interface paths {
                                     final: number | null;
                                     /** @enum {string|null} */
                                     predicate: "A" | "B" | "C" | "D" | null;
-                                    /** @description Umpan balik formatif, TERPISAH dari nilai akhir (tidak memengaruhi `final`, `predicate`, `belowKkm`, atau peringkat). Ada hanya bila siswa punya skor di komponen formatif. */
+                                    /** @description Umpan balik formatif, TERPISAH dari nilai akhir (tidak memengaruhi `final`, `predicate`, `belowKkm`, atau peringkat). Ada hanya bila murid punya skor di komponen formatif. */
                                     formative?: {
-                                        /** @description Rata-rata persen semua skor formatif siswa pada mapel ini */
+                                        /** @description Rata-rata persen semua skor formatif murid pada mapel ini */
                                         average: number;
                                         /** @description Jumlah skor formatif yang terisi */
                                         count: number;
@@ -36977,9 +37303,9 @@ export interface paths {
                             title: string;
                             date: string;
                             maxScore: number;
-                            /** @description Jumlah siswa aktif atau lulusan kelas yang sudah punya skor */
+                            /** @description Jumlah murid aktif atau lulusan kelas yang sudah punya skor */
                             filled: number;
-                            /** @description Jumlah siswa aktif dan lulusan yang terdaftar di kelas (tahun ajaran kelas itu) */
+                            /** @description Jumlah murid aktif dan lulusan yang terdaftar di kelas (tahun ajaran kelas itu) */
                             total: number;
                             /** @description Pengguna ini boleh mengubah penilaian dan skornya */
                             canInput: boolean;
@@ -37073,8 +37399,8 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Matriks ketercapaian tujuan pembelajaran (TP) per siswa
-         * @description Izin: `grade:read`; modul `grades`. Matriks siswa x TP untuk satu kelas, mapel, dan semester. Pengguna selain pemegang configure/kepala sekolah/kurikulum hanya untuk kelas+mapel yang ia ampu (403). Ketercapaian DIHITUNG saat dibaca: skor penilaian SUMATIF (komponen yang ikut nilai akhir, bukan asesmen awal) yang dikaitkan ke TP, diagregasi menurut `aggregation` (`mean`, `latest`, `max`; salinan beku semester bila ada), lalu dibandingkan dengan ambang bertingkat: kriteria per TP (KKTP ber-`objectiveId`; jenjang tingkat+program, tingkat, program, TP saja) -> KKM mapel -> KKM sekolah (`scope` per sel). Keputusan guru (`PUT` yang sama) menang (`source` `override`). Penilaian formatif tidak dihitung; ringkasannya ada di `formative` per sel sebagai kemajuan. `objectives` memuat TP yang dikaitkan ke penilaian atau yang punya keputusan guru, urut `sortOrder`; `includeAll=true` menambahkan semua TP aktif mapel itu. TP yang sudah diganti versi baru (`active` false) tetap tampil selama masih dikaitkan. `locked` per siswa = rapor semester itu sudah final (keputusan guru ditolak 409 `report_final`). Angka ini belum memengaruhi rapor. Semester/kelas/mapel harus milik sekolah ini (400 `invalid_reference`).
+         * Matriks ketercapaian tujuan pembelajaran (TP) per murid
+         * @description Izin: `grade:read`; modul `grades`. Matriks murid x TP untuk satu kelas, mapel, dan semester. Pengguna selain pemegang configure/kepala sekolah/kurikulum hanya untuk kelas+mapel yang ia ampu (403). Ketercapaian DIHITUNG saat dibaca: skor penilaian SUMATIF (komponen yang ikut nilai akhir, bukan asesmen awal) yang dikaitkan ke TP, diagregasi menurut `aggregation` (`mean`, `latest`, `max`; salinan beku semester bila ada), lalu dibandingkan dengan ambang bertingkat: kriteria per TP (KKTP ber-`objectiveId`; jenjang tingkat+program, tingkat, program, TP saja) -> KKM mapel -> KKM sekolah (`scope` per sel). Keputusan guru (`PUT` yang sama) menang (`source` `override`). Penilaian formatif tidak dihitung; ringkasannya ada di `formative` per sel sebagai kemajuan. `objectives` memuat TP yang dikaitkan ke penilaian atau yang punya keputusan guru, urut `sortOrder`; `includeAll=true` menambahkan semua TP aktif mapel itu. TP yang sudah diganti versi baru (`active` false) tetap tampil selama masih dikaitkan. `locked` per murid = rapor semester itu sudah final (keputusan guru ditolak 409 `report_final`). Angka ini belum memengaruhi rapor. Semester/kelas/mapel harus milik sekolah ini (400 `invalid_reference`).
          */
         get: {
             parameters: {
@@ -37121,9 +37447,9 @@ export interface paths {
                                 /** @description Jumlah penilaian formatif terkait */
                                 formativeCount: number;
                                 summary: {
-                                    /** @description Jumlah siswa yang sudah berstatus */
+                                    /** @description Jumlah murid yang sudah berstatus */
                                     assessed: number;
-                                    /** @description Jumlah siswa yang tercapai */
+                                    /** @description Jumlah murid yang tercapai */
                                     achieved: number;
                                 };
                             }[];
@@ -37155,7 +37481,7 @@ export interface paths {
                                     scope: "objective_level_program" | "objective_level" | "objective_program" | "objective" | "subject_kkm" | "school_kkm" | null;
                                     /** @description Ambang terkecil yang dianggap tercapai */
                                     threshold: number | null;
-                                    /** @description Jumlah penilaian sumatif terkait yang sudah punya skor siswa ini */
+                                    /** @description Jumlah penilaian sumatif terkait yang sudah punya skor murid ini */
                                     scoredCount: number;
                                     /** @description Alasan/catatan guru pada keputusan */
                                     note: string | null;
@@ -37215,7 +37541,7 @@ export interface paths {
         };
         /**
          * Simpan keputusan guru atas ketercapaian TP
-         * @description Izin: `grade:input`, dan pemegang `grade:configure` atau guru pengampu kelas+mapel (selain itu 403); modul `grades`. Keputusan guru (override) per (siswa, TP) pada semester itu, batch 1..500. Setiap record MENGGANTIKAN keputusan sebelumnya untuk (siswa, TP) itu: `achieved` (true/false) menimpa status hitung, `levelLabel` (maks 60 karakter) dan `note` alasan (maks 500) opsional; yang dihilangkan atau null dikosongkan; ketiganya kosong menghapus keputusan. Hanya menyimpan keputusan, bukan hasil hitung. Siswa harus anggota aktif kelas dan TP milik mapel itu (400 `invalid_reference`, `objective_subject_mismatch`); TP tidak harus aktif atau sudah dikaitkan ke penilaian. Ditolak 409 `report_final` bila rapor salah satu siswa itu pada semester tersebut sudah final (buka kembali rapornya lebih dulu). Siswa dan TP yang sama dikirim dua kali: yang terakhir berlaku. Diaudit (`objective_achievement.save`).
+         * @description Izin: `grade:input`, dan pemegang `grade:configure` atau guru pengampu kelas+mapel (selain itu 403); modul `grades`. Keputusan guru (override) per (murid, TP) pada semester itu, batch 1..500. Setiap record MENGGANTIKAN keputusan sebelumnya untuk (murid, TP) itu: `achieved` (true/false) menimpa status hitung, `levelLabel` (maks 60 karakter) dan `note` alasan (maks 500) opsional; yang dihilangkan atau null dikosongkan; ketiganya kosong menghapus keputusan. Hanya menyimpan keputusan, bukan hasil hitung. Murid harus anggota aktif kelas dan TP milik mapel itu (400 `invalid_reference`, `objective_subject_mismatch`); TP tidak harus aktif atau sudah dikaitkan ke penilaian. Ditolak 409 `report_final` bila rapor salah satu murid itu pada semester tersebut sudah final (buka kembali rapornya lebih dulu). Murid dan TP yang sama dikirim dua kali: yang terakhir berlaku. Diaudit (`objective_achievement.save`).
          */
         put: {
             parameters: {
@@ -38055,7 +38381,7 @@ export interface paths {
         };
         /**
          * Percobaan remedial satu penilaian
-         * @description Izin: `grade:read`; modul `grades`. Roster siswa aktif dan lulusan kelas penilaian dengan skor asli, percobaan remedial (urut `attemptNo`), dan nilai efektif menurut kebijakan remedial semester (`policy`). `needsRemedial` = skor asli di bawah KKM efektif mapel (`kkm`, persen). Bila rombel menandai mapel ini hanya diikuti murid yang memilih, roster hanya murid yang mengambilnya pada semester penilaian. Pengguna selain pemegang configure/kepala sekolah/kurikulum hanya untuk kelas+mapel yang ia ampu (403). 404 `not_found` bila penilaian tidak ada.
+         * @description Izin: `grade:read`; modul `grades`. Roster murid aktif dan lulusan kelas penilaian dengan skor asli, percobaan remedial (urut `attemptNo`), dan nilai efektif menurut kebijakan remedial semester (`policy`). `needsRemedial` = skor asli di bawah KKM efektif mapel (`kkm`, persen). Bila rombel menandai mapel ini hanya diikuti murid yang memilih, roster hanya murid yang mengambilnya pada semester penilaian. Pengguna selain pemegang configure/kepala sekolah/kurikulum hanya untuk kelas+mapel yang ia ampu (403). 404 `not_found` bila penilaian tidak ada.
          */
         get: {
             parameters: {
@@ -38176,7 +38502,7 @@ export interface paths {
         put?: never;
         /**
          * Catat percobaan remedial
-         * @description Izin: `grade:input`, dan pemegang `grade:configure` atau guru pengampu kelas+mapel penilaian itu (selain itu 403); modul `grades`. Menambah percobaan baru (nomor berikutnya per siswa) untuk 1..200 catatan; siswa yang sama dikirim dua kali menghasilkan dua percobaan berurutan. `value` 0..skor maksimum penilaian (400 `score_out_of_range`) atau null (percobaan tanpa nilai: tercatat tetapi tidak dipakai nilai efektif). `takenOn` bawaan hari ini. `supportId` opsional menautkan ke pendampingan remedial pada kelas, mapel, dan semester yang sama (400 `invalid_reference`). Siswa harus anggota aktif kelas (400 `invalid_reference`) dan, bila rombel menandai mapel ini hanya diikuti murid yang memilih, mengambil mapel itu (400 `student_not_taking_subject`). Maksimal 20 percobaan per siswa dan penilaian (400 `too_many_attempts`). Skor asli TIDAK berubah. Pengaruhnya pada nilai akhir dan ketercapaian TP mengikuti kebijakan remedial sekolah (`record_only` hanya mencatat). Ditolak 409 `report_final` bila rapor salah satu siswa itu pada semester tersebut sudah final. Diaudit (`remedial_attempt.save`). Respons sama dengan GET.
+         * @description Izin: `grade:input`, dan pemegang `grade:configure` atau guru pengampu kelas+mapel penilaian itu (selain itu 403); modul `grades`. Menambah percobaan baru (nomor berikutnya per murid) untuk 1..200 catatan; murid yang sama dikirim dua kali menghasilkan dua percobaan berurutan. `value` 0..skor maksimum penilaian (400 `score_out_of_range`) atau null (percobaan tanpa nilai: tercatat tetapi tidak dipakai nilai efektif). `takenOn` bawaan hari ini. `supportId` opsional menautkan ke pendampingan remedial pada kelas, mapel, dan semester yang sama (400 `invalid_reference`). Murid harus anggota aktif kelas (400 `invalid_reference`) dan, bila rombel menandai mapel ini hanya diikuti murid yang memilih, mengambil mapel itu (400 `student_not_taking_subject`). Maksimal 20 percobaan per murid dan penilaian (400 `too_many_attempts`). Skor asli TIDAK berubah. Pengaruhnya pada nilai akhir dan ketercapaian TP mengikuti kebijakan remedial sekolah (`record_only` hanya mencatat). Ditolak 409 `report_final` bila rapor salah satu murid itu pada semester tersebut sudah final. Diaudit (`remedial_attempt.save`). Respons sama dengan GET.
          */
         post: {
             parameters: {
@@ -38355,7 +38681,7 @@ export interface paths {
         post?: never;
         /**
          * Hapus percobaan remedial
-         * @description Izin: `grade:input`, dan pemegang `grade:configure` atau guru pengampu kelas+mapel penilaian percobaan itu (selain itu 403); modul `grades`. Menghapus satu percobaan; nomor percobaan lain tidak berubah. Skor asli tidak tersentuh. Ditolak 409 `report_final` bila rapor siswa itu pada semester tersebut sudah final. 404 `not_found` bila tidak ada. Diaudit (`remedial_attempt.delete`).
+         * @description Izin: `grade:input`, dan pemegang `grade:configure` atau guru pengampu kelas+mapel penilaian percobaan itu (selain itu 403); modul `grades`. Menghapus satu percobaan; nomor percobaan lain tidak berubah. Skor asli tidak tersentuh. Ditolak 409 `report_final` bila rapor murid itu pada semester tersebut sudah final. 404 `not_found` bila tidak ada. Diaudit (`remedial_attempt.delete`).
          */
         delete: {
             parameters: {
@@ -38801,7 +39127,7 @@ export interface paths {
         };
         /**
          * Daftar rapor satu kelas
-         * @description Izin: `report_card:read`; modul `grades`. Siswa aktif dan lulusan kelas pada tahun ajaran kelas itu (urut nama) dengan status rapor, ada tidaknya catatan wali kelas, rata-rata nilai akhir mapel, dan kelengkapan nilai (`subjectsGraded` dari `subjectsTotal`; mapel = yang punya penilaian di kelas itu pada semester itu). `cocurricularMissing: true` (sparse, lencana info; tidak memengaruhi finalisasi) bila rapor masih draf, rombel ikut program kokurikuler aktif yang tampil di rapor, dan siswa belum punya penilaiannya. Rapor final memakai snapshot. Hanya pemegang `report_card:manage`, kepala sekolah, kurikulum, atau wali kelas itu (selain itu 403). Semester/kelas harus milik sekolah ini dan satu tahun ajaran (400 `invalid_reference`).
+         * @description Izin: `report_card:read`; modul `grades`. Murid aktif dan lulusan kelas pada tahun ajaran kelas itu (urut nama) dengan status rapor, ada tidaknya catatan wali kelas, rata-rata nilai akhir mapel, dan kelengkapan nilai (`subjectsGraded` dari `subjectsTotal`; mapel = yang punya penilaian di kelas itu pada semester itu). `cocurricularMissing: true` (sparse, lencana info; tidak memengaruhi finalisasi) bila rapor masih draf, rombel ikut program kokurikuler aktif yang tampil di rapor, dan murid belum punya penilaiannya. Rapor final memakai snapshot. Hanya pemegang `report_card:manage`, kepala sekolah, kurikulum, atau wali kelas itu (selain itu 403). Semester/kelas harus milik sekolah ini dan satu tahun ajaran (400 `invalid_reference`).
          */
         get: {
             parameters: {
@@ -38904,7 +39230,7 @@ export interface paths {
         };
         /**
          * Legger satu kelas
-         * @description Izin: `report_card:read`; modul `grades`. Matriks siswa x mapel untuk satu kelas pada satu semester: nilai akhir, predikat, rata-rata, peringkat (hanya bila ada: pengaturan rapor menampilkan peringkat atau tertera di snapshot), ketidakhadiran (sakit, izin, alpa, terlambat), status rapor, dan sumber angka. Daftar siswa sama dengan daftar rapor (aktif, lulusan, dan siswa yang keluar sesudah semester berakhir). Rapor final dibaca dari snapshot (`source: snapshot`); draf dihitung dari nilai terkini dengan rumus yang sama dengan rapor dan rekap (`source: live`). Kolom mapel = mapel yang dinilai di kelas itu pada semester itu, ditambah mapel yang hanya ada di snapshot. Sel mapel yang tidak diambil siswa itu (mapel pilihan) membawa `notTaken: true`; kunci itu absen bila tidak berlaku. `belowKkm: true` hanya bila nilai di bawah KKM. `reportMode: descriptive` (hanya bila tingkat kelas bermode rapor deskriptif) menandai bahwa angka ini khusus staf dan tidak untuk dibagikan ke wali. Hanya pemegang `report_card:manage`, kepala sekolah, kurikulum, atau wali kelas itu (selain itu 403). Semester/kelas harus milik sekolah ini dan satu tahun ajaran (400 `invalid_reference`). Unduhan Excel dan cetak dibuat di klien dari respons ini.
+         * @description Izin: `report_card:read`; modul `grades`. Matriks murid x mapel untuk satu kelas pada satu semester: nilai akhir, predikat, rata-rata, peringkat (hanya bila ada: pengaturan rapor menampilkan peringkat atau tertera di snapshot), ketidakhadiran (sakit, izin, alpa, terlambat), status rapor, dan sumber angka. Daftar murid sama dengan daftar rapor (aktif, lulusan, dan murid yang keluar sesudah semester berakhir). Rapor final dibaca dari snapshot (`source: snapshot`); draf dihitung dari nilai terkini dengan rumus yang sama dengan rapor dan rekap (`source: live`). Kolom mapel = mapel yang dinilai di kelas itu pada semester itu, ditambah mapel yang hanya ada di snapshot. Sel mapel yang tidak diambil murid itu (mapel pilihan) membawa `notTaken: true`; kunci itu absen bila tidak berlaku. `belowKkm: true` hanya bila nilai di bawah KKM. `reportMode: descriptive` (hanya bila tingkat kelas bermode rapor deskriptif) menandai bahwa angka ini khusus staf dan tidak untuk dibagikan ke wali. Hanya pemegang `report_card:manage`, kepala sekolah, kurikulum, atau wali kelas itu (selain itu 403). Semester/kelas harus milik sekolah ini dan satu tahun ajaran (400 `invalid_reference`). Unduhan Excel dan cetak dibuat di klien dari respons ini.
          */
         get: {
             parameters: {
@@ -39046,8 +39372,8 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Dokumen rapor satu siswa
-         * @description Izin: `report_card:read`; modul `grades`. Rapor final dikembalikan dari snapshot saat finalisasi; rapor draft dihitung langsung dari nilai terkini memakai rumus yang sama dengan rekap penilaian. Mapel = yang punya penilaian di kelas siswa pada semester itu; deskripsi capaian diisi otomatis dari pengaturan rapor menurut predikat. `attendance` menghitung hari yang tercatat pada rentang semester. `rank` hanya ada bila pengaturan menampilkan peringkat (rata-rata sama berbagi peringkat). Hanya pemegang `report_card:manage`, kepala sekolah, kurikulum, atau wali kelas siswa itu (selain itu 403). 404 `not_found` bila siswa tidak ada atau tidak terdaftar di kelas pada tahun ajaran semester itu. Bagian v2 hanya ada bila dipakai (sparse): `schemaVersion` (hanya bila 2; draf membawa versi yang akan ditulis bila difinalkan), `reportMode` (`descriptive` bila tingkat kelas bermode deskriptif Fase A; angka tetap ada untuk staf), `cocurricularNote`, `cocurricular` (penilaian kokurikuler terstruktur per program: butir, tingkat rubrik, catatan; hanya bila siswa punya penilaian pada program yang tampil di rapor; label dibekukan di snapshot; server tidak pernah mengisi `cocurricularNote` otomatis), `schoolNsm` (NSM madrasah untuk kop, hanya bila terisi; dibekukan di snapshot), `expertise` (bidang/program/konsentrasi keahlian untuk kop SMK, hanya bila sakelar `reportGrouped` menyala dan jurusan rombel ditautkan ke konsentrasi), `subjects[].group` (kelompok mapel beku {key,label,section}, hanya bila sakelar `reportGrouped` menyala dan mapel punya kelompok; mapel diurut per kelompok), `developmentNote` (hanya mode deskriptif), `subjects[].descriptionSource` (`manual` bila ada deskripsi manual, `objectives` bila dari TP berstatus siswa itu; absen = dari predikat), `subjects[].objectives` (ringkasan TP, hanya bila ada TP berstatus) dan `guardianResponses` (tanggapan wali, bukan isi snapshot; terlihat staf yang berhak). Rapor final v1 dikembalikan persis seperti dulu.
+         * Dokumen rapor satu murid
+         * @description Izin: `report_card:read`; modul `grades`. Rapor final dikembalikan dari snapshot saat finalisasi; rapor draft dihitung langsung dari nilai terkini memakai rumus yang sama dengan rekap penilaian. Mapel = yang punya penilaian di kelas murid pada semester itu; deskripsi capaian diisi otomatis dari pengaturan rapor menurut predikat. `attendance` menghitung hari yang tercatat pada rentang semester. `rank` hanya ada bila pengaturan menampilkan peringkat (rata-rata sama berbagi peringkat). Hanya pemegang `report_card:manage`, kepala sekolah, kurikulum, atau wali kelas murid itu (selain itu 403). 404 `not_found` bila murid tidak ada atau tidak terdaftar di kelas pada tahun ajaran semester itu. Bagian v2 hanya ada bila dipakai (sparse): `schemaVersion` (hanya bila 2; draf membawa versi yang akan ditulis bila difinalkan), `reportMode` (`descriptive` bila tingkat kelas bermode deskriptif Fase A; angka tetap ada untuk staf), `cocurricularNote`, `cocurricular` (penilaian kokurikuler terstruktur per program: butir, tingkat rubrik, catatan; hanya bila murid punya penilaian pada program yang tampil di rapor; label dibekukan di snapshot; server tidak pernah mengisi `cocurricularNote` otomatis), `schoolNsm` (NSM madrasah untuk kop, hanya bila terisi; dibekukan di snapshot), `expertise` (bidang/program/konsentrasi keahlian untuk kop SMK, hanya bila sakelar `reportGrouped` menyala dan jurusan rombel ditautkan ke konsentrasi), `subjects[].group` (kelompok mapel beku {key,label,section}, hanya bila sakelar `reportGrouped` menyala dan mapel punya kelompok; mapel diurut per kelompok), `developmentNote` (hanya mode deskriptif), `subjects[].descriptionSource` (`manual` bila ada deskripsi manual, `objectives` bila dari TP berstatus murid itu; absen = dari predikat), `subjects[].objectives` (ringkasan TP, hanya bila ada TP berstatus) dan `guardianResponses` (tanggapan wali, bukan isi snapshot; terlihat staf yang berhak). Rapor final v1 dikembalikan persis seperti dulu.
          */
         get: {
             parameters: {
@@ -39323,7 +39649,7 @@ export interface paths {
         get?: never;
         /**
          * Simpan catatan wali kelas
-         * @description Izin: `report_card:read`, dan pemegang `report_card:manage` atau wali kelas siswa itu (selain itu 403). `note` maksimal 500 karakter; null atau teks kosong menghapus catatan. Ditolak 409 `report_final` bila rapor sudah final (buka kembali dulu). 404 `not_found` bila siswa tidak terdaftar di kelas pada tahun ajaran semester itu.
+         * @description Izin: `report_card:read`, dan pemegang `report_card:manage` atau wali kelas murid itu (selain itu 403). `note` maksimal 500 karakter; null atau teks kosong menghapus catatan. Ditolak 409 `report_final` bila rapor sudah final (buka kembali dulu). 404 `not_found` bila murid tidak terdaftar di kelas pada tahun ajaran semester itu.
          */
         put: {
             parameters: {
@@ -39449,7 +39775,7 @@ export interface paths {
         get?: never;
         /**
          * Simpan deskripsi kokurikuler dan catatan perkembangan
-         * @description Izin: `report_card:read`, dan pemegang `report_card:manage` atau wali kelas siswa itu (selain itu 403). `cocurricularNote` (deskripsi kokurikuler) dan `developmentNote` (catatan perkembangan Fase A, tampil di mode deskriptif) maksimal 1.000 karakter; dihilangkan = tidak berubah, null atau teks kosong menghapus. Setidaknya satu harus ada (400 galat validasi). Bila terisi, rapor siswa itu berversi snapshot 2 saat difinalkan. Ditolak 409 `report_final` bila rapor siswa itu sudah final (buka kembali dulu). 404 `not_found` bila siswa tidak terdaftar di kelas pada tahun ajaran semester itu.
+         * @description Izin: `report_card:read`, dan pemegang `report_card:manage` atau wali kelas murid itu (selain itu 403). `cocurricularNote` (deskripsi kokurikuler) dan `developmentNote` (catatan perkembangan Fase A, tampil di mode deskriptif) maksimal 1.000 karakter; dihilangkan = tidak berubah, null atau teks kosong menghapus. Setidaknya satu harus ada (400 galat validasi). Bila terisi, rapor murid itu berversi snapshot 2 saat difinalkan. Ditolak 409 `report_final` bila rapor murid itu sudah final (buka kembali dulu). 404 `not_found` bila murid tidak terdaftar di kelas pada tahun ajaran semester itu.
          */
         put: {
             parameters: {
@@ -39578,7 +39904,7 @@ export interface paths {
         put?: never;
         /**
          * Finalkan rapor satu kelas
-         * @description Izin: `report_card:read`, dan pemegang `report_card:manage` atau wali kelas kelas itu (selain itu 403). Membuat atau menimpa rapor semua siswa aktif dan lulusan kelas (tahun ajaran kelas itu): dokumen rapor dibekukan sebagai snapshot dan status menjadi `final`. Bila ada siswa yang belum punya nilai akhir pada sebagian mapel (atau kelas belum punya penilaian sama sekali) dan `force` bukan true, ditolak 409 `grades_incomplete` dengan jumlah siswa pada pesan. Setiap finalisasi tersimpan di riwayat snapshot (`report_card_snapshot`), jadi snapshot lama tidak hilang bila rapor dibuka kembali. Finalisasi kelas pertama pada sebuah semester lebih dulu membekukan konfigurasi nilai semester itu (KKM, batas predikat, mode, komponen berbobot, dan KKTP) ke `semester_grading_config` sebelum dokumen dihitung, dan menunggu penulisan konfigurasi yang sedang berjalan (kunci per sekolah). Semester/kelas harus milik sekolah ini dan satu tahun ajaran (400 `invalid_reference`). Tiap siswa memakai bagian v2 hanya bila punya deskripsi kokurikuler/perkembangan, deskripsi manual mapel, atau tingkat kelasnya bermode deskriptif: snapshot dan `schema_version` siswa itu menjadi 2; siswa lain (juga di kelas yang sama) tetap v1 persis. Mode deskriptif (`school_level.report_mode`): kelengkapan = setiap mapel punya deskripsi manual (bukan nilai akhir; angka tetap dihitung dan disimpan) dan pesan `grades_incomplete` menyebut "deskripsi"; deskripsi manual atau otomatis dari TP sama-sama memenuhinya. Deskripsi capaian tiap mapel dibekukan dalam bentuk teks efektif: manual (`descriptionSource: manual`) > otomatis dari TP berstatus siswa itu (`objectives`, memakai pengaturan narasi sekolah, plus ringkasan `subjects[].objectives`) > menurut predikat (v1 persis). Siswa yang punya TP berstatus di suatu mapel berversi snapshot 2. `staleNarratives` (hanya bila > 0) = jumlah deskripsi manual yang teks otomatisnya sudah berubah sejak disunting; hanya peringatan, finalisasi tetap berjalan dan memakai teks manual.
+         * @description Izin: `report_card:read`, dan pemegang `report_card:manage` atau wali kelas kelas itu (selain itu 403). Membuat atau menimpa rapor semua murid aktif dan lulusan kelas (tahun ajaran kelas itu): dokumen rapor dibekukan sebagai snapshot dan status menjadi `final`. Bila ada murid yang belum punya nilai akhir pada sebagian mapel (atau kelas belum punya penilaian sama sekali) dan `force` bukan true, ditolak 409 `grades_incomplete` dengan jumlah murid pada pesan. Setiap finalisasi tersimpan di riwayat snapshot (`report_card_snapshot`), jadi snapshot lama tidak hilang bila rapor dibuka kembali. Finalisasi kelas pertama pada sebuah semester lebih dulu membekukan konfigurasi nilai semester itu (KKM, batas predikat, mode, komponen berbobot, dan KKTP) ke `semester_grading_config` sebelum dokumen dihitung, dan menunggu penulisan konfigurasi yang sedang berjalan (kunci per sekolah). Semester/kelas harus milik sekolah ini dan satu tahun ajaran (400 `invalid_reference`). Tiap murid memakai bagian v2 hanya bila punya deskripsi kokurikuler/perkembangan, deskripsi manual mapel, atau tingkat kelasnya bermode deskriptif: snapshot dan `schema_version` murid itu menjadi 2; murid lain (juga di kelas yang sama) tetap v1 persis. Mode deskriptif (`school_level.report_mode`): kelengkapan = setiap mapel punya deskripsi manual (bukan nilai akhir; angka tetap dihitung dan disimpan) dan pesan `grades_incomplete` menyebut "deskripsi"; deskripsi manual atau otomatis dari TP sama-sama memenuhinya. Deskripsi capaian tiap mapel dibekukan dalam bentuk teks efektif: manual (`descriptionSource: manual`) > otomatis dari TP berstatus murid itu (`objectives`, memakai pengaturan narasi sekolah, plus ringkasan `subjects[].objectives`) > menurut predikat (v1 persis). Murid yang punya TP berstatus di suatu mapel berversi snapshot 2. `staleNarratives` (hanya bila > 0) = jumlah deskripsi manual yang teks otomatisnya sudah berubah sejak disunting; hanya peringatan, finalisasi tetap berjalan dan memakai teks manual.
          */
         post: {
             parameters: {
@@ -39787,7 +40113,7 @@ export interface paths {
         };
         /**
          * Deskripsi capaian per mata pelajaran satu kelas
-         * @description Izin: `report_card:read`; modul `grades`. Daftar siswa kelas itu untuk satu mapel dengan deskripsi otomatis (`generated`: dari TP berstatus siswa itu bila ada, memakai aturan dan templat narasi sekolah; selain itu menurut predikat; `generatedSource` menyebut asalnya), deskripsi manual, dan teks efektif yang dipakai rapor (`source`: `manual` > `objectives` > `predicate`). `objectives` (hanya bila ada TP berstatus) memuat ringkasan dan TP yang disebut; `stale: true` (hanya bila benar) menandai deskripsi manual yang teks otomatisnya berubah sejak disunting. Boleh dibaca pemegang `report_card:manage`/`report_card:read_all`, wali kelas, `grade:configure`, atau guru pengampu mapel itu di kelas itu (selain itu 403). Di mode deskriptif (Fase A) deskripsi otomatis dari predikat kosong: deskripsi manual atau otomatis dari TP yang memenuhi kelengkapan. Semester/kelas/mapel harus milik sekolah ini (400 `invalid_reference`).
+         * @description Izin: `report_card:read`; modul `grades`. Daftar murid kelas itu untuk satu mapel dengan deskripsi otomatis (`generated`: dari TP berstatus murid itu bila ada, memakai aturan dan templat narasi sekolah; selain itu menurut predikat; `generatedSource` menyebut asalnya), deskripsi manual, dan teks efektif yang dipakai rapor (`source`: `manual` > `objectives` > `predicate`). `objectives` (hanya bila ada TP berstatus) memuat ringkasan dan TP yang disebut; `stale: true` (hanya bila benar) menandai deskripsi manual yang teks otomatisnya berubah sejak disunting. Boleh dibaca pemegang `report_card:manage`/`report_card:read_all`, wali kelas, `grade:configure`, atau guru pengampu mapel itu di kelas itu (selain itu 403). Di mode deskriptif (Fase A) deskripsi otomatis dari predikat kosong: deskripsi manual atau otomatis dari TP yang memenuhi kelengkapan. Semester/kelas/mapel harus milik sekolah ini (400 `invalid_reference`).
          */
         get: {
             parameters: {
@@ -39832,7 +40158,7 @@ export interface paths {
                                 final: number | null;
                                 /** @enum {string|null} */
                                 predicate: "A" | "B" | "C" | "D" | null;
-                                /** @description Deskripsi otomatis: dari TP berstatus siswa itu (tahap 3.4) bila ada, selain itu menurut predikat; null di mode deskriptif tanpa TP atau bila belum ada predikat */
+                                /** @description Deskripsi otomatis: dari TP berstatus murid itu (tahap 3.4) bila ada, selain itu menurut predikat; null di mode deskriptif tanpa TP atau bila belum ada predikat */
                                 generated: string | null;
                                 /**
                                  * @description Asal teks otomatis: objectives = dari TP, predicate = menurut predikat (v1)
@@ -39849,9 +40175,9 @@ export interface paths {
                                  * @enum {boolean}
                                  */
                                 stale?: true;
-                                /** @description Hanya bila siswa punya TP berstatus di mapel itu */
+                                /** @description Hanya bila murid punya TP berstatus di mapel itu */
                                 objectives?: {
-                                    /** @description Jumlah TP mapel itu yang punya status bagi siswa ini */
+                                    /** @description Jumlah TP mapel itu yang punya status bagi murid ini */
                                     assessed: number;
                                     achieved: number;
                                     /** @description TP tercapai yang disebut (persen menurun) */
@@ -39919,7 +40245,7 @@ export interface paths {
         };
         /**
          * Simpan deskripsi capaian manual satu mapel (batch)
-         * @description Izin: `report_card:read`, dan guru pengampu mapel itu di kelas itu (`grade:input` + penugasan), pemegang `grade:configure`, atau pemegang `report_card:manage` (selain itu 403; wali kelas yang bukan pengampu hanya membaca). Menulis deskripsi manual per siswa untuk satu kelas-mapel-semester (1-200 siswa, teks maksimal 1.000 karakter; null atau kosong menghapus suntingan). Deskripsi manual menang atas deskripsi otomatis dan membuat rapor siswa itu berversi snapshot 2 saat difinalkan. Saat disimpan, sidik teks otomatis saat itu dicatat supaya GET dapat menandai `stale` bila teks otomatis kelak berubah; teks kosong atau null menghapus suntingan sehingga rapor kembali ke teks otomatis. Ditolak seluruhnya 409 `report_final` bila rapor salah satu siswa pada semester itu sudah final (buka kembali dulu). 400 `invalid_reference` bila semester/kelas/mapel tidak milik sekolah ini atau siswa bukan anggota kelas itu pada tahun ajarannya. Bertahan lewat buka kembali.
+         * @description Izin: `report_card:read`, dan guru pengampu mapel itu di kelas itu (`grade:input` + penugasan), pemegang `grade:configure`, atau pemegang `report_card:manage` (selain itu 403; wali kelas yang bukan pengampu hanya membaca). Menulis deskripsi manual per murid untuk satu kelas-mapel-semester (1-200 murid, teks maksimal 1.000 karakter; null atau kosong menghapus suntingan). Deskripsi manual menang atas deskripsi otomatis dan membuat rapor murid itu berversi snapshot 2 saat difinalkan. Saat disimpan, sidik teks otomatis saat itu dicatat supaya GET dapat menandai `stale` bila teks otomatis kelak berubah; teks kosong atau null menghapus suntingan sehingga rapor kembali ke teks otomatis. Ditolak seluruhnya 409 `report_final` bila rapor salah satu murid pada semester itu sudah final (buka kembali dulu). 400 `invalid_reference` bila semester/kelas/mapel tidak milik sekolah ini atau murid bukan anggota kelas itu pada tahun ajarannya. Bertahan lewat buka kembali.
          */
         put: {
             parameters: {
@@ -40037,8 +40363,8 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Tanggapan orang tua/wali atas rapor satu siswa
-         * @description Izin: `report_card:read`; modul `grades`. Hanya pemegang `report_card:manage`/`report_card:read_all` atau wali kelas siswa itu (selain itu 403). Mengembalikan status jendela tanggapan, wali yang terhubung ke siswa, dan semua tanggapan siswa itu pada semester itu (`outdated` true bila rapor sudah difinalkan ulang sesudah tanggapan ditulis). Wali lain tidak pernah melihat tanggapan wali yang berbeda. 404 `not_found` bila siswa tidak terdaftar di kelas.
+         * Tanggapan orang tua/wali atas rapor satu murid
+         * @description Izin: `report_card:read`; modul `grades`. Hanya pemegang `report_card:manage`/`report_card:read_all` atau wali kelas murid itu (selain itu 403). Mengembalikan status jendela tanggapan, wali yang terhubung ke murid, dan semua tanggapan murid itu pada semester itu (`outdated` true bila rapor sudah difinalkan ulang sesudah tanggapan ditulis). Wali lain tidak pernah melihat tanggapan wali yang berbeda. 404 `not_found` bila murid tidak terdaftar di kelas.
          */
         get: {
             parameters: {
@@ -40062,7 +40388,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @description Rapor siswa itu berstatus final (syarat tanggapan) */
+                            /** @description Rapor murid itu berstatus final (syarat tanggapan) */
                             final: boolean;
                             finalizedAt: string | null;
                             /** @description Akhir jendela tanggapan; null = tanpa batas atau belum final */
@@ -40158,7 +40484,7 @@ export interface paths {
         };
         /**
          * Salin tanggapan wali dari rapor kertas
-         * @description Izin: `report_card:read`, dan pemegang `report_card:manage` atau wali kelas siswa itu (selain itu 403). Staf menyalin tanggapan yang ditulis wali di rapor kertas atas nama wali itu (`recordedByKind` staff). Teks polos 1-1.000 karakter. Hanya untuk rapor FINAL (409 `report_not_final`) dan selama jendela tanggapan (409 `response_closed`). Wali harus terhubung ke siswa itu (400 `invalid_reference`). 409 `guardian_response_exists` bila wali itu sudah menulis tanggapannya sendiri lewat portal (staf tidak menimpanya). Tidak menyentuh snapshot dan tidak dijaga `report_final`.
+         * @description Izin: `report_card:read`, dan pemegang `report_card:manage` atau wali kelas murid itu (selain itu 403). Staf menyalin tanggapan yang ditulis wali di rapor kertas atas nama wali itu (`recordedByKind` staff). Teks polos 1-1.000 karakter. Hanya untuk rapor FINAL (409 `report_not_final`) dan selama jendela tanggapan (409 `response_closed`). Wali harus terhubung ke murid itu (400 `invalid_reference`). 409 `guardian_response_exists` bila wali itu sudah menulis tanggapannya sendiri lewat portal (staf tidak menimpanya). Tidak menyentuh snapshot dan tidak dijaga `report_final`.
          */
         put: {
             parameters: {
@@ -40298,7 +40624,7 @@ export interface paths {
         };
         /**
          * Daftar jenis biaya
-         * @description Izin: `finance:read`; modul `finance`. Urut nama. `planCount` dan `invoiceCount` = pemakaian jenis biaya ini. `scope` = `all` (semua siswa), `class` (hanya kelas di `classIds`), atau `student` (hanya siswa di `studentIds`); `targetCount` dan `targetNames` (nama kelas/siswa sasaran) untuk tampilan.
+         * @description Izin: `finance:read`; modul `finance`. Urut nama. `planCount` dan `invoiceCount` = pemakaian jenis biaya ini. `scope` = `all` (semua murid), `class` (hanya kelas di `classIds`), atau `student` (hanya murid di `studentIds`); `targetCount` dan `targetNames` (nama kelas/murid sasaran) untuk tampilan.
          */
         get: {
             parameters: {
@@ -40325,18 +40651,18 @@ export interface paths {
                             /** @enum {string} */
                             kind: "monthly" | "semester" | "one_time" | "yearly";
                             /**
-                             * @description `all` = semua siswa, `class` = kelas tertentu, `student` = siswa tertentu
+                             * @description `all` = semua murid, `class` = kelas tertentu, `student` = murid tertentu
                              * @enum {string}
                              */
                             scope: "all" | "class" | "student";
                             active: boolean;
                             /** @description Kelas sasaran (cakupan `class`); kosong untuk cakupan lain */
                             classIds: string[];
-                            /** @description Siswa sasaran (cakupan `student`); kosong untuk cakupan lain */
+                            /** @description Murid sasaran (cakupan `student`); kosong untuk cakupan lain */
                             studentIds: string[];
-                            /** @description Jumlah sasaran (kelas atau siswa) */
+                            /** @description Jumlah sasaran (kelas atau murid) */
                             targetCount: number;
-                            /** @description Nama kelas atau siswa sasaran, urut abjad */
+                            /** @description Nama kelas atau murid sasaran, urut abjad */
                             targetNames: string[];
                             /** @description Jumlah tarif yang memakai jenis biaya ini */
                             planCount: number;
@@ -40378,7 +40704,7 @@ export interface paths {
         put?: never;
         /**
          * Tambah jenis biaya
-         * @description Izin: `finance:manage`; modul `finance`. `kind`: `monthly` (per bulan, mis. SPP), `semester` (per semester, mis. SPP semester atau uang ujian semester; tarif = nominal per semester), `one_time` (sekali), `yearly` (per tahun ajaran). Nama unik di sekolah (409 `conflict`). `scope` (bawaan `all`): `all` = ditagihkan ke semua siswa; `class` = hanya siswa di kelas `classIds`; `student` = hanya siswa `studentIds`. Cakupan `class`/`student` wajib berisi sasaran (400 `targets_required`); id kelas/siswa yang tidak ada di sekolah ini ditolak 400 `invalid_reference`.
+         * @description Izin: `finance:manage`; modul `finance`. `kind`: `monthly` (per bulan, mis. SPP), `semester` (per semester, mis. SPP semester atau uang ujian semester; tarif = nominal per semester), `one_time` (sekali), `yearly` (per tahun ajaran). Nama unik di sekolah (409 `conflict`). `scope` (bawaan `all`): `all` = ditagihkan ke semua murid; `class` = hanya murid di kelas `classIds`; `student` = hanya murid `studentIds`. Cakupan `class`/`student` wajib berisi sasaran (400 `targets_required`); id kelas/murid yang tidak ada di sekolah ini ditolak 400 `invalid_reference`.
          */
         post: {
             parameters: {
@@ -40424,18 +40750,18 @@ export interface paths {
                             /** @enum {string} */
                             kind: "monthly" | "semester" | "one_time" | "yearly";
                             /**
-                             * @description `all` = semua siswa, `class` = kelas tertentu, `student` = siswa tertentu
+                             * @description `all` = semua murid, `class` = kelas tertentu, `student` = murid tertentu
                              * @enum {string}
                              */
                             scope: "all" | "class" | "student";
                             active: boolean;
                             /** @description Kelas sasaran (cakupan `class`); kosong untuk cakupan lain */
                             classIds: string[];
-                            /** @description Siswa sasaran (cakupan `student`); kosong untuk cakupan lain */
+                            /** @description Murid sasaran (cakupan `student`); kosong untuk cakupan lain */
                             studentIds: string[];
-                            /** @description Jumlah sasaran (kelas atau siswa) */
+                            /** @description Jumlah sasaran (kelas atau murid) */
                             targetCount: number;
-                            /** @description Nama kelas atau siswa sasaran, urut abjad */
+                            /** @description Nama kelas atau murid sasaran, urut abjad */
                             targetNames: string[];
                             /** @description Jumlah tarif yang memakai jenis biaya ini */
                             planCount: number;
@@ -40566,18 +40892,18 @@ export interface paths {
                             /** @enum {string} */
                             kind: "monthly" | "semester" | "one_time" | "yearly";
                             /**
-                             * @description `all` = semua siswa, `class` = kelas tertentu, `student` = siswa tertentu
+                             * @description `all` = semua murid, `class` = kelas tertentu, `student` = murid tertentu
                              * @enum {string}
                              */
                             scope: "all" | "class" | "student";
                             active: boolean;
                             /** @description Kelas sasaran (cakupan `class`); kosong untuk cakupan lain */
                             classIds: string[];
-                            /** @description Siswa sasaran (cakupan `student`); kosong untuk cakupan lain */
+                            /** @description Murid sasaran (cakupan `student`); kosong untuk cakupan lain */
                             studentIds: string[];
-                            /** @description Jumlah sasaran (kelas atau siswa) */
+                            /** @description Jumlah sasaran (kelas atau murid) */
                             targetCount: number;
-                            /** @description Nama kelas atau siswa sasaran, urut abjad */
+                            /** @description Nama kelas atau murid sasaran, urut abjad */
                             targetNames: string[];
                             /** @description Jumlah tarif yang memakai jenis biaya ini */
                             planCount: number;
@@ -40760,8 +41086,8 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Jenis biaya yang berlaku untuk seorang siswa
-         * @description Izin: `finance:read`; modul `finance`. Mengembalikan jenis biaya yang berlaku bagi siswa menurut cakupan: `all` selalu berlaku, `class` bila siswa terdaftar di salah satu kelas sasaran, `student` bila siswa ada di sasaran. `academicYearId` opsional membatasi pendaftaran kelas yang dihitung pada tahun ajaran itu (bila kosong, semua pendaftaran siswa). Urut nama; jenis biaya nonaktif ikut tampil dengan `active` false. 404 `not_found` bila siswa tak ada.
+         * Jenis biaya yang berlaku untuk seorang murid
+         * @description Izin: `finance:read`; modul `finance`. Mengembalikan jenis biaya yang berlaku bagi murid menurut cakupan: `all` selalu berlaku, `class` bila murid terdaftar di salah satu kelas sasaran, `student` bila murid ada di sasaran. `academicYearId` opsional membatasi pendaftaran kelas yang dihitung pada tahun ajaran itu (bila kosong, semua pendaftaran murid). Urut nama; jenis biaya nonaktif ikut tampil dengan `active` false. 404 `not_found` bila murid tak ada.
          */
         get: {
             parameters: {
@@ -41136,7 +41462,7 @@ export interface paths {
         put?: never;
         /**
          * Buat tagihan massal
-         * @description Izin: `finance:manage`; modul `finance`. Membuat tagihan untuk setiap siswa aktif yang terdaftar di tahun ajaran itu (dibatasi `classId` bila diisi). Tarif dipilih dari tingkat kelas siswa; tarif tingkat yang cocok diutamakan daripada tarif semua tingkat (level null). Siswa tanpa tarif tidak dibuatkan tagihan dan dilaporkan di `missingPlan`. Idempoten: tagihan yang sudah ada (siswa, tahun, jenis biaya, periode) dilewati dan dihitung di `skipped`. Judul otomatis, mis. "SPP Agustus 2026"; biaya semester: "SPP Semester Ganjil 2026/2027" (`S1` = ganjil, `S2` = genap; tarif = nominal per semester; cicilan berperiode `S1C01`.. agar tak bentrok antarsemester, dan hanya tagihan semester yang sama yang membuat siswa dilewati). Galat: 400 `period_required` (`period` wajib TTTT-BB untuk jenis `monthly`, wajib `S1`/`S2` untuk jenis `semester` (selain itu 400 `period_invalid`), dan harus null untuk jenis lain), 400 `invalid_reference`, 409 `inactive` (jenis biaya nonaktif). Tarif bernominal 0 = gratis: tagihan tidak dibuat dan dihitung di `free`. Keringanan: aturan aktif yang dipasang pada siswa di tahun ajaran itu dan berlaku untuk jenis biaya ini (jenis kosong atau sama) dijumlahkan (persen dibulatkan ke bawah per aturan + nominal tetap, maksimal sebesar nominal) menjadi `discount` tagihan baru, nama aturan digabung di `discountReason`; `discounted` = jumlah tagihan baru yang berdiskon (tagihan yang sudah ada tidak diubah). `installments` (2..12, hanya jenis non-bulanan; 400 `installments_invalid`) membuat N tagihan berperiode `C01`..`C12` dengan nominal dibagi rata (sisa ke cicilan pertama), jatuh tempo `dueDate` + (i-1) bulan, dan diskon dibagi proporsional; siswa yang sudah punya tagihan jenis itu pada tahun ajaran tsb dilewati. Cakupan jenis biaya: `scope` `class` hanya menagih siswa yang pada tahun ajaran itu terdaftar di kelas sasaran, `student` hanya siswa sasaran, `all` semua siswa; bila `classId` juga diisi, hasilnya irisan keduanya. Siswa di luar sasaran dihitung di `outOfScope` (tidak masuk `missingPlan`).
+         * @description Izin: `finance:manage`; modul `finance`. Membuat tagihan untuk setiap murid aktif yang terdaftar di tahun ajaran itu (dibatasi `classId` bila diisi). Tarif dipilih dari tingkat kelas murid; tarif tingkat yang cocok diutamakan daripada tarif semua tingkat (level null). Murid tanpa tarif tidak dibuatkan tagihan dan dilaporkan di `missingPlan`. Idempoten: tagihan yang sudah ada (murid, tahun, jenis biaya, periode) dilewati dan dihitung di `skipped`. Judul otomatis, mis. "SPP Agustus 2026"; biaya semester: "SPP Semester Ganjil 2026/2027" (`S1` = ganjil, `S2` = genap; tarif = nominal per semester; cicilan berperiode `S1C01`.. agar tak bentrok antarsemester, dan hanya tagihan semester yang sama yang membuat murid dilewati). Galat: 400 `period_required` (`period` wajib TTTT-BB untuk jenis `monthly`, wajib `S1`/`S2` untuk jenis `semester` (selain itu 400 `period_invalid`), dan harus null untuk jenis lain), 400 `invalid_reference`, 409 `inactive` (jenis biaya nonaktif). Tarif bernominal 0 = gratis: tagihan tidak dibuat dan dihitung di `free`. Keringanan: aturan aktif yang dipasang pada murid di tahun ajaran itu dan berlaku untuk jenis biaya ini (jenis kosong atau sama) dijumlahkan (persen dibulatkan ke bawah per aturan + nominal tetap, maksimal sebesar nominal) menjadi `discount` tagihan baru, nama aturan digabung di `discountReason`; `discounted` = jumlah tagihan baru yang berdiskon (tagihan yang sudah ada tidak diubah). `installments` (2..12, hanya jenis non-bulanan; 400 `installments_invalid`) membuat N tagihan berperiode `C01`..`C12` dengan nominal dibagi rata (sisa ke cicilan pertama), jatuh tempo `dueDate` + (i-1) bulan, dan diskon dibagi proporsional; murid yang sudah punya tagihan jenis itu pada tahun ajaran tsb dilewati. Cakupan jenis biaya: `scope` `class` hanya menagih murid yang pada tahun ajaran itu terdaftar di kelas sasaran, `student` hanya murid sasaran, `all` semua murid; bila `classId` juga diisi, hasilnya irisan keduanya. Murid di luar sasaran dihitung di `outOfScope` (tidak masuk `missingPlan`).
          */
         post: {
             parameters: {
@@ -41176,11 +41502,11 @@ export interface paths {
                         "application/json": {
                             created: number;
                             skipped: number;
-                            /** @description Siswa bertarif 0 (gratis); tagihan tidak dibuat */
+                            /** @description Murid bertarif 0 (gratis); tagihan tidak dibuat */
                             free: number;
                             /** @description Jumlah tagihan baru yang berdiskon */
                             discounted: number;
-                            /** @description Siswa aktif terdaftar yang dilewati karena di luar sasaran cakupan jenis biaya */
+                            /** @description Murid aktif terdaftar yang dilewati karena di luar sasaran cakupan jenis biaya */
                             outOfScope: number;
                             missingPlan: {
                                 /** Format: uuid */
@@ -41266,7 +41592,7 @@ export interface paths {
         };
         /**
          * Daftar tagihan
-         * @description Izin: `finance:read`; modul `finance`. Filter opsional: `academicYearId`, `classId` (kelas siswa pada tahun tagihan), `studentId`, `feeTypeId`, `period` (TTTT-BB atau `S1`/`S2`), `status`. Status diturunkan dari kwitansi yang tidak batal: `unpaid`, `partial`, `paid`, `void`. Urut jatuh tempo, nama siswa. `limit` maks 100 (bawaan 50), `offset` bawaan 0. `overdue` = masih ada sisa dan lewat jatuh tempo (hari ini menurut zona waktu sekolah).
+         * @description Izin: `finance:read`; modul `finance`. Filter opsional: `academicYearId`, `classId` (kelas murid pada tahun tagihan), `studentId`, `feeTypeId`, `period` (TTTT-BB atau `S1`/`S2`), `status`. Status diturunkan dari kwitansi yang tidak batal: `unpaid`, `partial`, `paid`, `void`. Urut jatuh tempo, nama murid. `limit` maks 100 (bawaan 50), `offset` bawaan 0. `overdue` = masih ada sisa dan lewat jatuh tempo (hari ini menurut zona waktu sekolah).
          */
         get: {
             parameters: {
@@ -41846,8 +42172,8 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Rekening siswa
-         * @description Izin: `finance:read`; modul `finance`. Semua tagihan siswa pada satu tahun ajaran (`academicYearId` wajib), kwitansi yang menyentuh tagihan itu (termasuk yang batal, bertanda `voided`), dan total. `totals` tidak menghitung tagihan batal maupun kwitansi batal. 404 `not_found` bila siswa tak ada.
+         * Rekening murid
+         * @description Izin: `finance:read`; modul `finance`. Semua tagihan murid pada satu tahun ajaran (`academicYearId` wajib), kwitansi yang menyentuh tagihan itu (termasuk yang batal, bertanda `voided`), dan total. `totals` tidak menghitung tagihan batal maupun kwitansi batal. 404 `not_found` bila murid tak ada.
          */
         get: {
             parameters: {
@@ -42071,7 +42397,7 @@ export interface paths {
         put?: never;
         /**
          * Catat pembayaran (buat kwitansi)
-         * @description Izin: `finance:pay`; modul `finance`. Satu kwitansi untuk 1..50 tagihan milik satu siswa; `total` = jumlah item. Tiap `amount` bilangan bulat > 0 dan tidak boleh melebihi sisa tagihan saat ini; pemeriksaan dilakukan di dalam transaksi dengan penguncian baris tagihan sehingga pembayaran paralel tidak bisa melebihi sisa. Nomor kwitansi `KWT-{tahun}-{6 digit}` dibuat atomik dan berurutan per sekolah per tahun. `paidAt` bawaan sekarang. Galat: 400 `invalid_reference` (siswa/tagihan tak ditemukan atau bukan milik siswa itu), 400 `duplicate_item` (tagihan yang sama dua kali), 400 `invalid_method` (`method` bukan metode aktif sekolah; lihat `/v1/finance/payment-methods`), 409 `invoice_void`, 409 `overpay`.
+         * @description Izin: `finance:pay`; modul `finance`. Satu kwitansi untuk 1..50 tagihan milik satu murid; `total` = jumlah item. Tiap `amount` bilangan bulat > 0 dan tidak boleh melebihi sisa tagihan saat ini; pemeriksaan dilakukan di dalam transaksi dengan penguncian baris tagihan sehingga pembayaran paralel tidak bisa melebihi sisa. Nomor kwitansi `KWT-{tahun}-{6 digit}` dibuat atomik dan berurutan per sekolah per tahun. `paidAt` bawaan sekarang. Galat: 400 `invalid_reference` (murid/tagihan tak ditemukan atau bukan milik murid itu), 400 `duplicate_item` (tagihan yang sama dua kali), 400 `invalid_method` (`method` bukan metode aktif sekolah; lihat `/v1/finance/payment-methods`), 409 `invoice_void`, 409 `overpay`.
          */
         post: {
             parameters: {
@@ -42215,7 +42541,7 @@ export interface paths {
         };
         /**
          * Detail kwitansi
-         * @description Izin: `finance:read`; modul `finance`. Data cetak kwitansi: nomor, siswa, rincian tagihan, nama kasir, dan tanda batal (`voided`, `voidReason`). `school.address` diambil dari pengaturan rapor (null bila belum diisi). 404 `not_found` bila tak ada.
+         * @description Izin: `finance:read`; modul `finance`. Data cetak kwitansi: nomor, murid, rincian tagihan, nama kasir, dan tanda batal (`voided`, `voidReason`). `school.address` diambil dari pengaturan rapor (null bila belum diisi). 404 `not_found` bila tak ada.
          */
         get: {
             parameters: {
@@ -42485,7 +42811,7 @@ export interface paths {
         };
         /**
          * Laporan tunggakan
-         * @description Izin: `finance:read`; modul `finance`. Per siswa yang masih punya sisa tagihan pada satu tahun ajaran (`academicYearId` wajib; `classId` opsional; `asOf` bawaan hari ini). `overdueOutstanding` = sisa pada tagihan yang jatuh temponya sebelum `asOf`; `oldestDue` = jatuh tempo tertua di antara tagihan bersisa. Urut sisa terbesar. Tagihan batal tidak dihitung.
+         * @description Izin: `finance:read`; modul `finance`. Per murid yang masih punya sisa tagihan pada satu tahun ajaran (`academicYearId` wajib; `classId` opsional; `asOf` bawaan hari ini). `overdueOutstanding` = sisa pada tagihan yang jatuh temponya sebelum `asOf`; `oldestDue` = jatuh tempo tertua di antara tagihan bersisa. Urut sisa terbesar. Tagihan batal tidak dihitung.
          */
         get: {
             parameters: {
@@ -42686,7 +43012,7 @@ export interface paths {
         };
         /**
          * Daftar aturan keringanan
-         * @description Izin: `finance:read`; modul `finance`. Aturan keringanan/beasiswa sekolah, urut nama. `assignedCount` = jumlah pemasangan ke siswa.
+         * @description Izin: `finance:read`; modul `finance`. Aturan keringanan/beasiswa sekolah, urut nama. `assignedCount` = jumlah pemasangan ke murid.
          */
         get: {
             parameters: {
@@ -42721,7 +43047,7 @@ export interface paths {
                             feeTypeId: string | null;
                             feeTypeName: string | null;
                             active: boolean;
-                            /** @description Jumlah pemasangan ke siswa */
+                            /** @description Jumlah pemasangan ke murid */
                             assignedCount: number;
                         }[];
                     };
@@ -42810,7 +43136,7 @@ export interface paths {
                             feeTypeId: string | null;
                             feeTypeName: string | null;
                             active: boolean;
-                            /** @description Jumlah pemasangan ke siswa */
+                            /** @description Jumlah pemasangan ke murid */
                             assignedCount: number;
                         };
                     };
@@ -42942,7 +43268,7 @@ export interface paths {
                             feeTypeId: string | null;
                             feeTypeName: string | null;
                             active: boolean;
-                            /** @description Jumlah pemasangan ke siswa */
+                            /** @description Jumlah pemasangan ke murid */
                             assignedCount: number;
                         };
                     };
@@ -43022,7 +43348,7 @@ export interface paths {
         post?: never;
         /**
          * Hapus aturan keringanan
-         * @description Izin: `finance:manage`; modul `finance`. Ditolak 409 `in_use` bila sudah dipasang ke siswa (nonaktifkan saja); 404 `not_found` bila tak ada.
+         * @description Izin: `finance:manage`; modul `finance`. Ditolak 409 `in_use` bila sudah dipasang ke murid (nonaktifkan saja); 404 `not_found` bila tak ada.
          */
         delete: {
             parameters: {
@@ -43121,8 +43447,8 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Keringanan terpasang pada siswa
-         * @description Izin: `finance:read`; modul `finance`. Daftar keringanan yang dipasang pada siswa di satu tahun ajaran (`academicYearId` wajib), urut nama aturan. 404 `not_found` bila siswa tak ada.
+         * Keringanan terpasang pada murid
+         * @description Izin: `finance:read`; modul `finance`. Daftar keringanan yang dipasang pada murid di satu tahun ajaran (`academicYearId` wajib), urut nama aturan. 404 `not_found` bila murid tak ada.
          */
         get: {
             parameters: {
@@ -43226,8 +43552,8 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Pasang keringanan ke siswa
-         * @description Izin: `finance:manage`; modul `finance`. Pasang satu aturan ke `studentIds` (maks 300) atau ke seluruh siswa satu `classId` (terdaftar di kelas itu pada tahun ajaran tsb), tepat salah satunya. Pemasangan yang sudah ada (siswa, aturan, tahun) dilewati dan dihitung di `skipped`. Tidak mengubah tagihan yang sudah dibuat. Galat: 400 `invalid_reference` (aturan, tahun ajaran, kelas, atau siswa bukan milik sekolah).
+         * Pasang keringanan ke murid
+         * @description Izin: `finance:manage`; modul `finance`. Pasang satu aturan ke `studentIds` (maks 300) atau ke seluruh murid satu `classId` (terdaftar di kelas itu pada tahun ajaran tsb), tepat salah satunya. Pemasangan yang sudah ada (murid, aturan, tahun) dilewati dan dihitung di `skipped`. Tidak mengubah tagihan yang sudah dibuat. Galat: 400 `invalid_reference` (aturan, tahun ajaran, kelas, atau murid bukan milik sekolah).
          */
         post: {
             parameters: {
@@ -43327,7 +43653,7 @@ export interface paths {
         put?: never;
         post?: never;
         /**
-         * Lepas keringanan dari siswa
+         * Lepas keringanan dari murid
          * @description Izin: `finance:manage`; modul `finance`. Melepas satu pemasangan. Tidak mengubah tagihan yang sudah dibuat. 404 `not_found` bila tak ada.
          */
         delete: {
@@ -44320,7 +44646,7 @@ export interface paths {
         };
         /**
          * Daftar rekening sekolah
-         * @description Izin: `finance:read`; modul `finance`. Semua rekening sekolah (aktif dan nonaktif) urut `sort`. Rekening `active` tampil kepada wali dan siswa di tab tagihan portal sebagai tujuan pembayaran transfer.
+         * @description Izin: `finance:read`; modul `finance`. Semua rekening sekolah (aktif dan nonaktif) urut `sort`. Rekening `active` tampil kepada wali dan murid di tab tagihan portal sebagai tujuan pembayaran transfer.
          */
         get: {
             parameters: {
@@ -44348,7 +44674,7 @@ export interface paths {
                                 accountNumber: string;
                                 accountHolder: string;
                                 note: string | null;
-                                /** @description Hanya rekening aktif yang tampil di portal wali dan siswa */
+                                /** @description Hanya rekening aktif yang tampil di portal wali dan murid */
                                 active: boolean;
                                 sort: number;
                             }[];
@@ -44426,7 +44752,7 @@ export interface paths {
                             accountNumber: string;
                             accountHolder: string;
                             note: string | null;
-                            /** @description Hanya rekening aktif yang tampil di portal wali dan siswa */
+                            /** @description Hanya rekening aktif yang tampil di portal wali dan murid */
                             active: boolean;
                             sort: number;
                         };
@@ -44540,7 +44866,7 @@ export interface paths {
                                 accountNumber: string;
                                 accountHolder: string;
                                 note: string | null;
-                                /** @description Hanya rekening aktif yang tampil di portal wali dan siswa */
+                                /** @description Hanya rekening aktif yang tampil di portal wali dan murid */
                                 active: boolean;
                                 sort: number;
                             }[];
@@ -44725,7 +45051,7 @@ export interface paths {
                             accountNumber: string;
                             accountHolder: string;
                             note: string | null;
-                            /** @description Hanya rekening aktif yang tampil di portal wali dan siswa */
+                            /** @description Hanya rekening aktif yang tampil di portal wali dan murid */
                             active: boolean;
                             sort: number;
                         };
@@ -44833,7 +45159,7 @@ export interface paths {
                                 dueDay: number | null;
                                 /** @description Wajib untuk `days_after` */
                                 dueDays: number | null;
-                                /** @description Pembatas kelas (opsional); kosong atau null = semua siswa dalam cakupan jenis biaya */
+                                /** @description Pembatas kelas (opsional); kosong atau null = semua murid dalam cakupan jenis biaya */
                                 classIds: string[] | null;
                                 /**
                                  * @description Biaya semester: `start` = saat semester mulai, `custom` = selisih hari. Null untuk jenis lain
@@ -44965,7 +45291,7 @@ export interface paths {
                         dueDay: number | null;
                         /** @description Wajib untuk `days_after` */
                         dueDays: number | null;
-                        /** @description Pembatas kelas (opsional); kosong atau null = semua siswa dalam cakupan jenis biaya */
+                        /** @description Pembatas kelas (opsional); kosong atau null = semua murid dalam cakupan jenis biaya */
                         classIds: string[] | null;
                         /**
                          * @description Biaya semester: `start` = saat semester mulai, `custom` = selisih hari. Null untuk jenis lain
@@ -45007,7 +45333,7 @@ export interface paths {
                             dueDay: number | null;
                             /** @description Wajib untuk `days_after` */
                             dueDays: number | null;
-                            /** @description Pembatas kelas (opsional); kosong atau null = semua siswa dalam cakupan jenis biaya */
+                            /** @description Pembatas kelas (opsional); kosong atau null = semua murid dalam cakupan jenis biaya */
                             classIds: string[] | null;
                             /**
                              * @description Biaya semester: `start` = saat semester mulai, `custom` = selisih hari. Null untuk jenis lain
@@ -45487,7 +45813,7 @@ export interface paths {
         put?: never;
         /**
          * Pratinjau aturan tagihan otomatis
-         * @description Izin: `finance:read`; modul `finance`. Tanpa menyimpan apa pun. Mengembalikan tiga jadwal berikutnya (tanggal pembuatan dan jatuh tempo) serta perkiraan untuk periode terdekat: jumlah tagihan yang akan dibuat (`wouldCreate`), yang sudah ada (`alreadyBilled`), gratis, dan siswa tanpa tarif (`missingPlan`). `error` berisi kode bila perkiraan tak bisa dihitung (mis. `inactive`, `no_year`, `no_semester`).
+         * @description Izin: `finance:read`; modul `finance`. Tanpa menyimpan apa pun. Mengembalikan tiga jadwal berikutnya (tanggal pembuatan dan jatuh tempo) serta perkiraan untuk periode terdekat: jumlah tagihan yang akan dibuat (`wouldCreate`), yang sudah ada (`alreadyBilled`), gratis, dan murid tanpa tarif (`missingPlan`). `error` berisi kode bila perkiraan tak bisa dihitung (mis. `inactive`, `no_year`, `no_semester`).
          */
         post: {
             parameters: {
@@ -45516,7 +45842,7 @@ export interface paths {
                             dueDay: number | null;
                             /** @description Wajib untuk `days_after` */
                             dueDays: number | null;
-                            /** @description Pembatas kelas (opsional); kosong atau null = semua siswa dalam cakupan jenis biaya */
+                            /** @description Pembatas kelas (opsional); kosong atau null = semua murid dalam cakupan jenis biaya */
                             classIds: string[] | null;
                             /**
                              * @description Biaya semester: `start` = saat semester mulai, `custom` = selisih hari. Null untuk jenis lain
@@ -45871,8 +46197,8 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Buat pembayaran online untuk tagihan siswa
-         * @description Izin: `finance:pay`; modul `finance`. Membuat transaksi Midtrans (Snap) milik sekolah untuk 1..50 tagihan satu siswa. Nominal dihitung server dari sisa tagihan (nominal dari klien tidak dipakai). Kwitansi baru tercatat setelah Midtrans mengabarkan pembayaran berhasil. Galat: 409 `gateway_disabled`, 409 `already_paid`, 409 `invoice_void`, 400 `invalid_reference`, 400 `duplicate_item`, 502 `gateway_error`.
+         * Buat pembayaran online untuk tagihan murid
+         * @description Izin: `finance:pay`; modul `finance`. Membuat transaksi Midtrans (Snap) milik sekolah untuk 1..50 tagihan satu murid. Nominal dihitung server dari sisa tagihan (nominal dari klien tidak dipakai). Kwitansi baru tercatat setelah Midtrans mengabarkan pembayaran berhasil. Galat: 409 `gateway_disabled`, 409 `already_paid`, 409 `invoice_void`, 400 `invalid_reference`, 400 `duplicate_item`, 502 `gateway_error`.
          */
         post: {
             parameters: {
@@ -45996,7 +46322,7 @@ export interface paths {
         put?: never;
         /**
          * Bayar tagihan anak secara online
-         * @description Izin: `portal:read`; modul `parent_portal` dan `finance`. Wali hanya untuk anaknya, siswa hanya untuk dirinya (selain itu 404 `not_found`). Perilaku dan galat sama dengan `/v1/finance/invoices/pay-online`.
+         * @description Izin: `portal:read`; modul `parent_portal` dan `finance`. Wali hanya untuk anaknya, murid hanya untuk dirinya (selain itu 404 `not_found`). Perilaku dan galat sama dengan `/v1/finance/invoices/pay-online`.
          */
         post: {
             parameters: {
@@ -46400,7 +46726,7 @@ export interface paths {
         };
         /**
          * Daftar transaksi online
-         * @description Izin: `finance:read`; modul `finance`. Transaksi Midtrans terbaru sekolah (terbaru dulu), beserta nama siswa dan nomor kwitansi bila sudah dibayar. `limit` bawaan 50 (maksimal 200); `status` menyaring.
+         * @description Izin: `finance:read`; modul `finance`. Transaksi Midtrans terbaru sekolah (terbaru dulu), beserta nama murid dan nomor kwitansi bila sudah dibayar. `limit` bawaan 50 (maksimal 200); `status` menyaring.
          */
         get: {
             parameters: {
@@ -47523,8 +47849,8 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Daftar ulang: jadikan pendaftar siswa
-         * @description Izin: `admission:manage`; modul `admissions`. Body wajib (boleh `{}`). Hanya dari status `accepted` (409 `invalid_transition`). Dalam SATU transaksi: membuat siswa (NISN bentrok: 409 `nisn_taken`), wali + tautan wali utama, menempatkan di kelas `classId` bila diberikan (400 `invalid_reference` bila kelas tidak ada), mengubah status menjadi `enrolled`, dan mengisi `studentId`. Gagal di tengah = tidak ada yang tersimpan.
+         * Daftar ulang: jadikan pendaftar murid
+         * @description Izin: `admission:manage`; modul `admissions`. Body wajib (boleh `{}`). Hanya dari status `accepted` (409 `invalid_transition`). Dalam SATU transaksi: membuat murid (NISN bentrok: 409 `nisn_taken`), wali + tautan wali utama, menempatkan di kelas `classId` bila diberikan (400 `invalid_reference` bila kelas tidak ada), mengubah status menjadi `enrolled`, dan mengisi `studentId`. Gagal di tengah = tidak ada yang tersimpan.
          */
         post: {
             parameters: {
@@ -48435,7 +48761,7 @@ export interface paths {
         };
         /**
          * Ringkasan hidup hari ini
-         * @description Anggota sekolah mana pun boleh memanggil (tanpa izin khusus). Tiap bagian null bila modulnya tidak aktif ATAU pengguna tidak punya izinnya: `attendance` dan `lessons` (modul `attendance` + `attendance:read`), `finance` (modul `finance` + `finance:read`), `messaging` (modul `messaging` + `message:read`), `extracurricular` (modul `extracurricular` + `extracurricular:read`). `date`/`time` menurut zona waktu sekolah. `closed` = libur atau jeda kalender sekolah hari ini. `attendance` dihitung seperti `summary` pada `/v1/gate/daily` (siswa aktif di tahun ajaran aktif, tanpa daftar siswa). `lessons.running` = jam yang sedang berlangsung menurut jadwal hari ini di tahun ajaran aktif (maksimal 30; kosong pada hari libur/Minggu); `currentPeriod` nomor jam yang berlangsung, `nextPeriodStartsAt` jam mulai jam berikutnya (HH:MM), `unfilled` = jumlah sel jadwal hari ini yang sudah mulai tetapi belum ada satu pun catatan absensi jamnya. `finance` = agregat tagihan tidak batal semua tahun ajaran (`openInvoices` yang masih bersisa, `outstanding` total sisa, `overdueOutstanding` sisa yang jatuh temponya sebelum hari ini) dan `paidToday` = total kwitansi tidak batal hari ini (rupiah). `messaging.queued` = pesan antre/sedang dikirim; `failed24h` = pesan gagal yang dibuat 24 jam terakhir. `extracurricular.sessionsToday` = pertemuan ekstrakurikuler bertanggal hari ini. Ringan dan hanya agregat; aman dipanggil berkala.
+         * @description Anggota sekolah mana pun boleh memanggil (tanpa izin khusus). Tiap bagian null bila modulnya tidak aktif ATAU pengguna tidak punya izinnya: `attendance` dan `lessons` (modul `attendance` + `attendance:read`), `finance` (modul `finance` + `finance:read`), `messaging` (modul `messaging` + `message:read`), `extracurricular` (modul `extracurricular` + `extracurricular:read`). `date`/`time` menurut zona waktu sekolah. `closed` = libur atau jeda kalender sekolah hari ini. `attendance` dihitung seperti `summary` pada `/v1/gate/daily` (murid aktif di tahun ajaran aktif, tanpa daftar murid). `lessons.running` = jam yang sedang berlangsung menurut jadwal hari ini di tahun ajaran aktif (maksimal 30; kosong pada hari libur/Minggu); `currentPeriod` nomor jam yang berlangsung, `nextPeriodStartsAt` jam mulai jam berikutnya (HH:MM), `unfilled` = jumlah sel jadwal hari ini yang sudah mulai tetapi belum ada satu pun catatan absensi jamnya. `finance` = agregat tagihan tidak batal semua tahun ajaran (`openInvoices` yang masih bersisa, `outstanding` total sisa, `overdueOutstanding` sisa yang jatuh temponya sebelum hari ini) dan `paidToday` = total kwitansi tidak batal hari ini (rupiah). `messaging.queued` = pesan antre/sedang dikirim; `failed24h` = pesan gagal yang dibuat 24 jam terakhir. `extracurricular.sessionsToday` = pertemuan ekstrakurikuler bertanggal hari ini. Ringan dan hanya agregat; aman dipanggil berkala.
          */
         get: {
             parameters: {
@@ -50341,7 +50667,7 @@ export interface paths {
         };
         /**
          * Anggota halaqah
-         * @description Izin: `tahfidz:read`; modul `tahfidz`. Siswa aktif anggota halaqah, urut nama. `className` adalah kelas siswa pada tahun ajaran halaqah.
+         * @description Izin: `tahfidz:read`; modul `tahfidz`. Murid aktif anggota halaqah, urut nama. `className` adalah kelas murid pada tahun ajaran halaqah.
          */
         get: {
             parameters: {
@@ -50420,7 +50746,7 @@ export interface paths {
         put?: never;
         /**
          * Tambah anggota halaqah
-         * @description Izin: `tahfidz:read` ditambah pengelola (`tahfidz:manage`) atau guru mentor halaqah ini; selain itu 403 `forbidden`. Hanya siswa aktif sekolah ini (400 `invalid_reference` bila ada yang bukan). Satu siswa satu halaqah per tahun ajaran: siswa yang sudah berada di halaqah mana pun pada tahun ajaran halaqah ini dilewati dan dilaporkan di `skipped` beserta nama halaqahnya. Maksimal 200 siswa per permintaan.
+         * @description Izin: `tahfidz:read` ditambah pengelola (`tahfidz:manage`) atau guru mentor halaqah ini; selain itu 403 `forbidden`. Hanya murid aktif sekolah ini (400 `invalid_reference` bila ada yang bukan). Satu murid satu halaqah per tahun ajaran: murid yang sudah berada di halaqah mana pun pada tahun ajaran halaqah ini dilewati dan dilaporkan di `skipped` beserta nama halaqahnya. Maksimal 200 murid per permintaan.
          */
         post: {
             parameters: {
@@ -50708,7 +51034,7 @@ export interface paths {
         put?: never;
         /**
          * Catat setoran hafalan
-         * @description Izin: `tahfidz:read` ditambah pengelola (`tahfidz:manage`) atau guru mentor halaqah siswa itu; guru lain 403 `forbidden`. Tanggal tidak boleh belum tiba (409 `future_date`). Rentang ayat harus ada dan awal tidak melewati akhir (400 `invalid_range`). Selain pengelola, siswa harus anggota halaqah pada tahun ajaran yang mencakup tanggal (400 `invalid_reference`); setoran pengelola untuk siswa tanpa halaqah tersimpan tanpa halaqah. `kind`: `ziyadah` (hafalan baru) atau `murajaah`; `quality`: `fluent`, `fair`, atau `repeat` (harus diulang, tidak dihitung sebagai hafalan baru).
+         * @description Izin: `tahfidz:read` ditambah pengelola (`tahfidz:manage`) atau guru mentor halaqah murid itu; guru lain 403 `forbidden`. Tanggal tidak boleh belum tiba (409 `future_date`). Rentang ayat harus ada dan awal tidak melewati akhir (400 `invalid_range`). Selain pengelola, murid harus anggota halaqah pada tahun ajaran yang mencakup tanggal (400 `invalid_reference`); setoran pengelola untuk murid tanpa halaqah tersimpan tanpa halaqah. `kind`: `ziyadah` (hafalan baru) atau `murajaah`; `quality`: `fluent`, `fair`, atau `repeat` (harus diulang, tidak dihitung sebagai hafalan baru).
          */
         post: {
             parameters: {
@@ -50934,7 +51260,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Progres hafalan siswa
+         * Progres hafalan murid
          * @description Izin: `tahfidz:read`; modul `tahfidz`. `coverage` menghitung ayat unik dari seluruh setoran ziyadah dengan kualitas selain `repeat` (rentang tumpang tindih tidak menggandakan); `juzComplete` = jumlah juz yang seluruh ayatnya tercakup. `semester` (bawaan: semester aktif; `id` null bila tidak ada) memuat target dan capaian ayat unik dalam rentang semester; `percentOfTarget` = (ziyadah dan murajaah tercapai, masing-masing dibatasi targetnya) / total target, null bila target 0. `last30Days` berisi 30 hari terakhir (nol bila tak ada setoran). `streakDays` = hari beruntun dengan setoran sampai hari ini (atau kemarin bila hari ini belum ada). `next` = ayat lanjutan setoran ziyadah terakhir (awal setoran itu bila kualitasnya `repeat`).
          */
         get: {
@@ -51085,7 +51411,7 @@ export interface paths {
         };
         /**
          * Ringkasan halaqah
-         * @description Izin: `tahfidz:read`; modul `tahfidz`. Per anggota: `ayahsTotal` dan `percent` (ayat unik ziyadah bukan `repeat` seluruh waktu), `ziyadahInRange` dan `murajaahInRange` (ayat unik pada `from`..`to`; bawaan 30 hari terakhir, maksimal 366 hari, selain itu 400 `invalid_range`), `lastEntryDate` dan `daysSinceLast` (hari sejak setoran terakhir sampai hari ini; null bila belum pernah). `onTarget`: membandingkan capaian dalam semester yang memuat tanggal `to` (atau semester aktif tahun halaqah) dengan target yang dibagi rata per hari sampai `to`; null bila siswa belum punya target atau tidak ada semester.
+         * @description Izin: `tahfidz:read`; modul `tahfidz`. Per anggota: `ayahsTotal` dan `percent` (ayat unik ziyadah bukan `repeat` seluruh waktu), `ziyadahInRange` dan `murajaahInRange` (ayat unik pada `from`..`to`; bawaan 30 hari terakhir, maksimal 366 hari, selain itu 400 `invalid_range`), `lastEntryDate` dan `daysSinceLast` (hari sejak setoran terakhir sampai hari ini; null bila belum pernah). `onTarget`: membandingkan capaian dalam semester yang memuat tanggal `to` (atau semester aktif tahun halaqah) dengan target yang dibagi rata per hari sampai `to`; null bila murid belum punya target atau tidak ada semester.
          */
         get: {
             parameters: {
@@ -51213,7 +51539,7 @@ export interface paths {
         };
         /**
          * Target hafalan per semester
-         * @description Izin: `tahfidz:read`; modul `tahfidz`. Dengan `halaqahId`: seluruh anggota halaqah (target 0 dan `set: false` bila belum ditetapkan). Tanpa `halaqahId`: semua siswa yang punya target pada semester itu. Semester tak dikenal: 400 `invalid_reference`.
+         * @description Izin: `tahfidz:read`; modul `tahfidz`. Dengan `halaqahId`: seluruh anggota halaqah (target 0 dan `set: false` bila belum ditetapkan). Tanpa `halaqahId`: semua murid yang punya target pada semester itu. Semester tak dikenal: 400 `invalid_reference`.
          */
         get: {
             parameters: {
@@ -51244,7 +51570,7 @@ export interface paths {
                             halaqahId: string | null;
                             ziyadahAyahs: number;
                             murajaahAyahs: number;
-                            /** @description Sudah ada target tersimpan untuk siswa ini */
+                            /** @description Sudah ada target tersimpan untuk murid ini */
                             set: boolean;
                         }[];
                     };
@@ -51309,7 +51635,7 @@ export interface paths {
         };
         /**
          * Simpan target hafalan
-         * @description Izin: `tahfidz:read` ditambah pengelola (`tahfidz:manage`) atau guru mentor halaqah tiap siswa pada tahun ajaran semester itu; guru lain 403 `forbidden`. Semester harus milik sekolah ini dan siswa aktif (400 `invalid_reference`). Selain pengelola, siswa harus anggota halaqah mentor itu. Target berupa jumlah ayat baru (ziyadah) dan ayat murajaah selama semester. Maksimal 200 baris.
+         * @description Izin: `tahfidz:read` ditambah pengelola (`tahfidz:manage`) atau guru mentor halaqah tiap murid pada tahun ajaran semester itu; guru lain 403 `forbidden`. Semester harus milik sekolah ini dan murid aktif (400 `invalid_reference`). Selain pengelola, murid harus anggota halaqah mentor itu. Target berupa jumlah ayat baru (ziyadah) dan ayat murajaah selama semester. Maksimal 200 baris.
          */
         put: {
             parameters: {
@@ -51893,7 +52219,7 @@ export interface paths {
         };
         /**
          * Simpan lembar ibadah harian
-         * @description Izin: `tahfidz:read` ditambah pengelola (`tahfidz:manage`) atau guru mentor halaqah tiap siswa; guru lain 403 `forbidden`. Tanggal tidak boleh belum tiba (409 `future_date`). Siswa harus aktif dan anggota halaqah atau terdaftar di kelas pada tahun ajaran tanggal itu; butir harus aktif (400 `invalid_reference`). Mengganti catatan yang sudah ada (satu catatan per siswa per butir per tanggal). Maksimal 500 baris.
+         * @description Izin: `tahfidz:read` ditambah pengelola (`tahfidz:manage`) atau guru mentor halaqah tiap murid; guru lain 403 `forbidden`. Tanggal tidak boleh belum tiba (409 `future_date`). Murid harus aktif dan anggota halaqah atau terdaftar di kelas pada tahun ajaran tanggal itu; butir harus aktif (400 `invalid_reference`). Mengganti catatan yang sudah ada (satu catatan per murid per butir per tanggal). Maksimal 500 baris.
          */
         put: {
             parameters: {
@@ -52008,7 +52334,7 @@ export interface paths {
         };
         /**
          * Laporan ibadah
-         * @description Izin: `tahfidz:read`; modul `tahfidz`. Berikan tepat satu dari `halaqahId`, `classId`, atau `studentId` (400 `invalid_scope`). Rentang `from`..`to` bawaan 30 hari terakhir, maksimal 366 hari (400 `invalid_range`). Per siswa per butir: `total` = jumlah hari yang tercatat, `done` = yang dikerjakan, `percent` = done/total (dua desimal; 0 bila belum ada catatan). Butir mencakup yang aktif dan yang punya catatan pada rentang itu.
+         * @description Izin: `tahfidz:read`; modul `tahfidz`. Berikan tepat satu dari `halaqahId`, `classId`, atau `studentId` (400 `invalid_scope`). Rentang `from`..`to` bawaan 30 hari terakhir, maksimal 366 hari (400 `invalid_range`). Per murid per butir: `total` = jumlah hari yang tercatat, `done` = yang dikerjakan, `percent` = done/total (dua desimal; 0 bila belum ada catatan). Butir mencakup yang aktif dan yang punya catatan pada rentang itu.
          */
         get: {
             parameters: {
@@ -52978,7 +53304,7 @@ export interface paths {
         };
         /**
          * Daftar penempatan PKL
-         * @description Izin: `pkl:read`; modul `internship`. Filter `periodId`, `partnerId`, `status`, dan `q` (nama siswa atau mitra). `finalScore` null bila belum ada nilai; `canWrite` menandai penempatan yang boleh diisi pengguna ini.
+         * @description Izin: `pkl:read`; modul `internship`. Filter `periodId`, `partnerId`, `status`, dan `q` (nama murid atau mitra). `finalScore` null bila belum ada nilai; `canWrite` menandai penempatan yang boleh diisi pengguna ini.
          */
         get: {
             parameters: {
@@ -53076,8 +53402,8 @@ export interface paths {
         };
         put?: never;
         /**
-         * Tempatkan siswa PKL (massal)
-         * @description Izin: `pkl:manage`; modul `internship`. Satu siswa hanya boleh satu penempatan per periode: yang sudah ditempatkan dilaporkan di `skipped` (alasan `already_placed`), sisanya dibuat. Periode, mitra aktif, siswa aktif, dan guru pembimbing harus milik sekolah ini (400 `invalid_reference`).
+         * Tempatkan murid PKL (massal)
+         * @description Izin: `pkl:manage`; modul `internship`. Satu murid hanya boleh satu penempatan per periode: yang sudah ditempatkan dilaporkan di `skipped` (alasan `already_placed`), sisanya dibuat. Periode, mitra aktif, murid aktif, dan guru pembimbing harus milik sekolah ini (400 `invalid_reference`).
          */
         post: {
             parameters: {
@@ -55299,7 +55625,7 @@ export interface paths {
         put?: never;
         /**
          * Nomori sertifikat PKL satu periode
-         * @description Izin: `pkl:manage`; modul `internship`. Memberi nomor berurutan menurut pola sekolah (`/v1/vocational/settings/pkl`, bawaan `PKL/{seq}/{code}/{year}`) kepada penempatan `completed` yang belum bernomor, urut nama siswa. Nomor yang sudah terpakai dilewati. Idempoten: penempatan yang sudah bernomor tidak diubah. Tanpa penempatan selesai sama sekali: 409 `placement_not_completed`. Periode tertaut ke rapor dan ada rapor murid final: 409 `report_final`. 404 `not_found`.
+         * @description Izin: `pkl:manage`; modul `internship`. Memberi nomor berurutan menurut pola sekolah (`/v1/vocational/settings/pkl`, bawaan `PKL/{seq}/{code}/{year}`) kepada penempatan `completed` yang belum bernomor, urut nama murid. Nomor yang sudah terpakai dilewati. Idempoten: penempatan yang sudah bernomor tidak diubah. Tanpa penempatan selesai sama sekali: 409 `placement_not_completed`. Periode tertaut ke rapor dan ada rapor murid final: 409 `report_final`. 404 `not_found`.
          */
         post: {
             parameters: {
@@ -55520,7 +55846,7 @@ export interface paths {
         };
         /**
          * Tampilan tautan pembimbing industri (publik)
-         * @description Tanpa login; token ada di path. Memuat sekolah, siswa, mitra, periode, 30 jurnal terakhir, aspek beserta nilai dari industri, dan `canWrite` (false bila periode sudah lewat lebih dari 14 hari atau penempatan dibatalkan). Token salah, dicabut, atau penempatan batal dijawab seragam 404 `not_found`. Dibatasi 60 permintaan per menit per IP.
+         * @description Tanpa login; token ada di path. Memuat sekolah, murid, mitra, periode, 30 jurnal terakhir, aspek beserta nilai dari industri, dan `canWrite` (false bila periode sudah lewat lebih dari 14 hari atau penempatan dibatalkan). Token salah, dicabut, atau penempatan batal dijawab seragam 404 `not_found`. Dibatasi 60 permintaan per menit per IP.
          */
         get: {
             parameters: {
@@ -61428,6 +61754,811 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/exam/rooms": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Daftar ruang ujian
+         * @description Izin: `exam:read`; modul `exams`. Urut `sort` lalu nama. Kosong bila sekolah tidak memakai ruang.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                            /** @description Kosong = tanpa batas */
+                            capacity: number | null;
+                            sort: number;
+                            active: boolean;
+                        }[];
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Tambah ruang ujian
+         * @description Izin: `exam:manage`; modul `exams`. `capacity` kosong = tanpa batas (penempatan otomatis mewajibkannya). Nama unik per sekolah (409 `conflict`).
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        name: string;
+                        capacity?: number | null;
+                        sort?: number;
+                        /** @default true */
+                        active?: boolean;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                            /** @description Kosong = tanpa batas */
+                            capacity: number | null;
+                            sort: number;
+                            active: boolean;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/exam/rooms/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Ubah ruang ujian
+         * @description Izin: `exam:manage`; modul `exams`. 404 `not_found`; nama bentrok 409 `conflict`. Penempatan yang ada tidak diperiksa ulang bila kapasitas diturunkan.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        name: string;
+                        capacity?: number | null;
+                        sort?: number;
+                        /** @default true */
+                        active?: boolean;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                            /** @description Kosong = tanpa batas */
+                            capacity: number | null;
+                            sort: number;
+                            active: boolean;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        /**
+         * Hapus ruang ujian
+         * @description Izin: `exam:manage`; modul `exams`. 404 `not_found`. Penempatan murid di ruang itu ikut terhapus (murid menjadi belum berruang).
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: true;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/exam/room-assignments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Susunan ruang ujian per semester dan jenis ujian
+         * @description Izin: `exam:read`; modul `exams`. Murid kandidat = murid aktif yang terdaftar di kelas tahun ajaran semester itu, urut kelas, nama, id. `rooms` = ruang aktif (atau yang sudah berisi) beserta muridnya; `unassigned` = kandidat tanpa ruang. Semester atau jenis ujian bukan milik sekolah: 400 `invalid_reference`.
+         */
+        get: {
+            parameters: {
+                query: {
+                    semesterId: string;
+                    examTypeId: string;
+                };
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            rooms: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                capacity: number | null;
+                                students: {
+                                    /** Format: uuid */
+                                    studentId: string;
+                                    name: string;
+                                    /** @description Kosong bila murid belum punya NIS */
+                                    nis: string;
+                                    /** Format: uuid */
+                                    classId: string;
+                                    className: string;
+                                }[];
+                            }[];
+                            unassigned: {
+                                /** Format: uuid */
+                                studentId: string;
+                                name: string;
+                                /** @description Kosong bila murid belum punya NIS */
+                                nis: string;
+                                /** Format: uuid */
+                                classId: string;
+                                className: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        /**
+         * Pindahkan murid antar ruang ujian
+         * @description Izin: `exam:manage`; modul `exams`. `moves`: `roomId` null = lepas dari ruang. Idempotent (upsert); satu murid disebut dua kali, yang terakhir berlaku. Rujukan tidak dikenal: 400 `invalid_reference`. Ruang yang melebihi kapasitas setelah perpindahan: 409 `room_full` dan tidak ada yang berubah. Maks. 500 perpindahan.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        semesterId: string;
+                        /** Format: uuid */
+                        examTypeId: string;
+                        moves: {
+                            /** Format: uuid */
+                            studentId: string;
+                            /** Format: uuid */
+                            roomId: string | null;
+                        }[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            rooms: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                capacity: number | null;
+                                students: {
+                                    /** Format: uuid */
+                                    studentId: string;
+                                    name: string;
+                                    /** @description Kosong bila murid belum punya NIS */
+                                    nis: string;
+                                    /** Format: uuid */
+                                    classId: string;
+                                    className: string;
+                                }[];
+                            }[];
+                            unassigned: {
+                                /** Format: uuid */
+                                studentId: string;
+                                name: string;
+                                /** @description Kosong bila murid belum punya NIS */
+                                nis: string;
+                                /** Format: uuid */
+                                classId: string;
+                                className: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        /**
+         * Kosongkan penempatan ruang ujian
+         * @description Izin: `exam:manage`; modul `exams`. Menghapus semua penempatan semester dan jenis ujian itu (ruangnya tetap). Rujukan tidak dikenal: 400 `invalid_reference`.
+         */
+        delete: {
+            parameters: {
+                query: {
+                    semesterId: string;
+                    examTypeId: string;
+                };
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            removed: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/exam/room-assignments/auto": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Penempatan ruang ujian otomatis menurut kapasitas
+         * @description Izin: `exam:manage`; modul `exams`. Murid kandidat (urut kelas, nama, id) diisikan ke ruang menurut urutan `sort` sampai kapasitasnya penuh. `classIds` bawaan = semua kelas tahun ajaran semester; `roomIds` bawaan = semua ruang aktif. `overwrite=false` menjaga penempatan yang ada dan hanya mengisi murid yang belum berruang; `overwrite=true` mengosongkan penempatan murid dalam cakupan lalu membagi ulang. Ruang terpilih wajib berkapasitas (400 `capacity_required`); tanpa ruang 400 `no_rooms`; kapasitas sisa kurang dari murid yang harus ditempatkan: 409 `rooms_full` (tidak ada yang berubah). Hasil: susunan seperti GET ditambah `placed`.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        semesterId: string;
+                        /** Format: uuid */
+                        examTypeId: string;
+                        classIds?: string[];
+                        roomIds?: string[];
+                        /** @default false */
+                        overwrite?: boolean;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            rooms: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                capacity: number | null;
+                                students: {
+                                    /** Format: uuid */
+                                    studentId: string;
+                                    name: string;
+                                    /** @description Kosong bila murid belum punya NIS */
+                                    nis: string;
+                                    /** Format: uuid */
+                                    classId: string;
+                                    className: string;
+                                }[];
+                            }[];
+                            unassigned: {
+                                /** Format: uuid */
+                                studentId: string;
+                                name: string;
+                                /** @description Kosong bila murid belum punya NIS */
+                                nis: string;
+                                /** Format: uuid */
+                                classId: string;
+                                className: string;
+                            }[];
+                            placed: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/exam/paper-settings": {
         parameters: {
             query?: never;
@@ -61437,7 +62568,7 @@ export interface paths {
         };
         /**
          * Pengaturan lembar ujian sekolah
-         * @description Izin: `exam:read`; modul `exams`. Kop, judul, blok keterangan, petunjuk umum, dan blok identitas siswa. `custom` false = belum pernah disimpan, nilai bawaan dikembalikan.
+         * @description Izin: `exam:read`; modul `exams`. Kop, judul, blok keterangan, petunjuk umum, dan blok identitas murid. `custom` false = belum pernah disimpan, nilai bawaan dikembalikan.
          */
         get: {
             parameters: {
@@ -63401,7 +64532,7 @@ export interface paths {
         };
         /**
          * Lembar nilai ujian
-         * @description Izin: `exam:read`; modul `exams`. Siswa kelas peserta (menurut pendaftaran tahun ajaran semester ujian) dengan jawaban dan skor yang sudah dimasukkan, jumlah skor, dan persentase. Lulusan yang punya pendaftaran pada tahun ajaran semester itu ikut tampil (tahun lampau tetap utuh); siswa pindah/keluar tidak. 404 `not_found` (juga bagi guru yang tidak mengampu mapelnya).
+         * @description Izin: `exam:read`; modul `exams`. Murid kelas peserta (menurut pendaftaran tahun ajaran semester ujian) dengan jawaban dan skor yang sudah dimasukkan, jumlah skor, dan persentase. Lulusan yang punya pendaftaran pada tahun ajaran semester itu ikut tampil (tahun lampau tetap utuh); murid pindah/keluar tidak. 404 `not_found` (juga bagi guru yang tidak mengampu mapelnya).
          */
         get: {
             parameters: {
@@ -63446,11 +64577,11 @@ export interface paths {
                                 classId: string;
                                 className: string;
                                 /**
-                                 * @description Status siswa; `graduated` = lulusan yang hanya tampil untuk dibaca (tidak dapat diisi atau diubah)
+                                 * @description Status murid; `graduated` = lulusan yang hanya tampil untuk dibaca (tidak dapat diisi atau diubah)
                                  * @enum {string}
                                  */
                                 studentStatus?: "active" | "graduated";
-                                /** @description Sudah ada data hasil untuk siswa ini */
+                                /** @description Sudah ada data hasil untuk murid ini */
                                 entered: boolean;
                                 absent: boolean;
                                 /** @description Kunci = id soal ujian */
@@ -63470,7 +64601,7 @@ export interface paths {
                                 startedAt: string | null;
                                 /** @description CBT: waktu dikumpulkan; null bila belum */
                                 submittedAt: string | null;
-                                /** @description CBT: berapa kali siswa meninggalkan tab ujian */
+                                /** @description CBT: berapa kali murid meninggalkan tab ujian */
                                 blurCount: number;
                             }[];
                         };
@@ -63521,8 +64652,8 @@ export interface paths {
             };
         };
         /**
-         * Simpan hasil ujian siswa
-         * @description Izin: `exam:author`; modul `exams`; guru hanya untuk mapel yang ia ampu (403). Per siswa: `absent` (tidak hadir menghapus jawabannya) dan `answers`. Pilihan ganda: `answer` = huruf opsi atau kosong; skor dihitung otomatis (benar = poin soal, selain itu 0) dan `score` kiriman diabaikan. Esai: `score` 0 sampai poin soal (kosong = belum dinilai). Soal yang tidak disebut tidak berubah. Siswa di luar kelas peserta (lulusan tidak bisa diisi; hanya siswa aktif), soal di luar ujian, huruf di luar opsi, atau skor di luar rentang: 400 `invalid_reference`/`validation`. Ditolak 409 `report_final` bila hasil ujian sudah dikirim ke buku nilai kelas yang rapornya final.
+         * Simpan hasil ujian murid
+         * @description Izin: `exam:author`; modul `exams`; guru hanya untuk mapel yang ia ampu (403). Per murid: `absent` (tidak hadir menghapus jawabannya) dan `answers`. Pilihan ganda: `answer` = huruf opsi atau kosong; skor dihitung otomatis (benar = poin soal, selain itu 0) dan `score` kiriman diabaikan. Esai: `score` 0 sampai poin soal (kosong = belum dinilai). Soal yang tidak disebut tidak berubah. Murid di luar kelas peserta (lulusan tidak bisa diisi; hanya murid aktif), soal di luar ujian, huruf di luar opsi, atau skor di luar rentang: 400 `invalid_reference`/`validation`. Ditolak 409 `report_final` bila hasil ujian sudah dikirim ke buku nilai kelas yang rapornya final.
          */
         put: {
             parameters: {
@@ -63585,11 +64716,11 @@ export interface paths {
                                 classId: string;
                                 className: string;
                                 /**
-                                 * @description Status siswa; `graduated` = lulusan yang hanya tampil untuk dibaca (tidak dapat diisi atau diubah)
+                                 * @description Status murid; `graduated` = lulusan yang hanya tampil untuk dibaca (tidak dapat diisi atau diubah)
                                  * @enum {string}
                                  */
                                 studentStatus?: "active" | "graduated";
-                                /** @description Sudah ada data hasil untuk siswa ini */
+                                /** @description Sudah ada data hasil untuk murid ini */
                                 entered: boolean;
                                 absent: boolean;
                                 /** @description Kunci = id soal ujian */
@@ -63609,7 +64740,7 @@ export interface paths {
                                 startedAt: string | null;
                                 /** @description CBT: waktu dikumpulkan; null bila belum */
                                 submittedAt: string | null;
-                                /** @description CBT: berapa kali siswa meninggalkan tab ujian */
+                                /** @description CBT: berapa kali murid meninggalkan tab ujian */
                                 blurCount: number;
                             }[];
                         };
@@ -63705,7 +64836,7 @@ export interface paths {
         put?: never;
         /**
          * Kirim hasil ujian ke buku nilai
-         * @description Izin: `exam:author`; modul `exams` dan `grades`; guru hanya untuk mapel yang ia ampu (403). Membuat atau memperbarui satu penilaian per kelas peserta pada komponen `componentId` (skala 100 = jumlah skor / total poin x 100, dua desimal) dan mengisi skor siswa yang sudah punya data; siswa tidak hadir diberi skor kosong. Bila rombel menandai mapel ujian ini hanya diikuti murid yang memilih, hanya murid yang mengambil mapel itu pada semester ujian yang diberi skor; yang lain dilewati dan jumlahnya ada di `skippedNotTaking` (hanya bila ada). Dipanggil ulang menimpa penilaian yang sama (tidak ganda). Ujian tanpa soal: 400 `no_questions`; komponen tidak ada: 400 `invalid_reference`. Bila ada siswa hadir dengan esai yang belum dinilai, ditolak 409 `essay_pending` kecuali `allowPending` = true (esai itu dihitung 0). Ditolak 409 `report_final` bila rapor salah satu kelas peserta pada semester ujian sudah final. Ditolak 409 `component_not_in_semester` bila konfigurasi nilai semester ujian sudah dibekukan dan komponennya tidak ada di salinan beku. Kategori komponen menentukan kategori penilaian: dorong ke komponen formatif membuat penilaian formatif yang TIDAK masuk nilai akhir. `technique` (bawaan `test`) dipakai hanya saat penilaian pertama kali dibuat; dorong ulang tidak menyentuh `technique`, `purpose`, `summativeScope`, atau kaitan tujuan pembelajaran (TP, `PUT /v1/assessments/{id}/objectives`) yang sudah diatur guru; kaitan TP bertahan walau nilai didorong ulang. Dorong ulang hanya mengubah skor ASLI; percobaan remedial (`POST /v1/assessments/{id}/remedial-attempts`) tidak tersentuh, dan audit mencatat jumlah skor yang berubah (`scoresChanged`) serta percobaan yang dipertahankan (`remedialAttemptsKept`). Bila komponen diganti ke kategori yang tidak cocok dengan tanda penilaian (mis. `purpose` `initial` ke komponen sumatif) ditolak 400 `initial_requires_formative` atau `scope_requires_summative`.
+         * @description Izin: `exam:author`; modul `exams` dan `grades`; guru hanya untuk mapel yang ia ampu (403). Membuat atau memperbarui satu penilaian per kelas peserta pada komponen `componentId` (skala 100 = jumlah skor / total poin x 100, dua desimal) dan mengisi skor murid yang sudah punya data; murid tidak hadir diberi skor kosong. Bila rombel menandai mapel ujian ini hanya diikuti murid yang memilih, hanya murid yang mengambil mapel itu pada semester ujian yang diberi skor; yang lain dilewati dan jumlahnya ada di `skippedNotTaking` (hanya bila ada). Dipanggil ulang menimpa penilaian yang sama (tidak ganda). Ujian tanpa soal: 400 `no_questions`; komponen tidak ada: 400 `invalid_reference`. Bila ada murid hadir dengan esai yang belum dinilai, ditolak 409 `essay_pending` kecuali `allowPending` = true (esai itu dihitung 0). Ditolak 409 `report_final` bila rapor salah satu kelas peserta pada semester ujian sudah final. Ditolak 409 `component_not_in_semester` bila konfigurasi nilai semester ujian sudah dibekukan dan komponennya tidak ada di salinan beku. Kategori komponen menentukan kategori penilaian: dorong ke komponen formatif membuat penilaian formatif yang TIDAK masuk nilai akhir. `technique` (bawaan `test`) dipakai hanya saat penilaian pertama kali dibuat; dorong ulang tidak menyentuh `technique`, `purpose`, `summativeScope`, atau kaitan tujuan pembelajaran (TP, `PUT /v1/assessments/{id}/objectives`) yang sudah diatur guru; kaitan TP bertahan walau nilai didorong ulang. Dorong ulang hanya mengubah skor ASLI; percobaan remedial (`POST /v1/assessments/{id}/remedial-attempts`) tidak tersentuh, dan audit mencatat jumlah skor yang berubah (`scoresChanged`) serta percobaan yang dipertahankan (`remedialAttemptsKept`). Bila komponen diganti ke kategori yang tidak cocok dengan tanda penilaian (mis. `purpose` `initial` ke komponen sumatif) ditolak 400 `initial_requires_formative` atau `scope_requires_summative`.
          */
         post: {
             parameters: {
@@ -63837,8 +64968,8 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Daftar ujian di layar untuk siswa
-         * @description Izin: `portal:read`; modul `exams`. Akun yang bukan siswa (wali, staf) mendapat daftar kosong. Ujian bermode `cbt`/`both` berstatus `ready` untuk kelas siswa pada tahun ajaran semester ujian. `state`: `unscheduled` (belum ada jadwal), `upcoming`, `open` (boleh mulai), `in_progress`, `submitted`, `closed` (waktu lewat tanpa dikerjakan). Ujian yang selesai lebih dari 30 hari lalu tidak ditampilkan.
+         * Daftar ujian di layar untuk murid
+         * @description Izin: `portal:read`; modul `exams`. Akun yang bukan murid (wali, staf) mendapat daftar kosong. Ujian bermode `cbt`/`both` berstatus `ready` untuk kelas murid pada tahun ajaran semester ujian. `state`: `unscheduled` (belum ada jadwal), `upcoming`, `open` (boleh mulai), `in_progress`, `submitted`, `closed` (waktu lewat tanpa dikerjakan). Ujian yang selesai lebih dari 30 hari lalu tidak ditampilkan.
          */
         get: {
             parameters: {
@@ -63922,7 +65053,7 @@ export interface paths {
         put?: never;
         /**
          * Mulai (atau lanjutkan) ujian
-         * @description Izin: `portal:read` (akun siswa); modul `exams`. Hanya saat `state` = `open`/`in_progress`. Waktu dihitung server: batas akhir = yang lebih awal antara mulai + durasi dan akhir jendela ujian. Memanggil lagi melanjutkan percobaan yang sama (tidak mengulang waktu). Sudah dikumpulkan: 409 `already_submitted`; belum waktunya/lewat: 409 `not_open`. Soal dikirim tanpa kunci jawaban.
+         * @description Izin: `portal:read` (akun murid); modul `exams`. Hanya saat `state` = `open`/`in_progress`. Waktu dihitung server: batas akhir = yang lebih awal antara mulai + durasi dan akhir jendela ujian. Memanggil lagi melanjutkan percobaan yang sama (tidak mengulang waktu). Sudah dikumpulkan: 409 `already_submitted`; belum waktunya/lewat: 409 `not_open`. Soal dikirim tanpa kunci jawaban.
          */
         post: {
             parameters: {
@@ -64047,7 +65178,7 @@ export interface paths {
         };
         /**
          * Muat ulang sesi ujian yang sedang berjalan
-         * @description Izin: `portal:read` (akun siswa); modul `exams`. Soal (tanpa kunci), jawaban tersimpan, dan batas akhir; dipakai saat halaman dimuat ulang. 404 `not_found` bila belum dimulai. Bila waktu sudah habis, percobaan otomatis dikumpulkan dan `state` = `submitted`.
+         * @description Izin: `portal:read` (akun murid); modul `exams`. Soal (tanpa kunci), jawaban tersimpan, dan batas akhir; dipakai saat halaman dimuat ulang. 404 `not_found` bila belum dimulai. Bila waktu sudah habis, percobaan otomatis dikumpulkan dan `state` = `submitted`.
          */
         get: {
             parameters: {
@@ -64161,7 +65292,7 @@ export interface paths {
         get?: never;
         /**
          * Simpan jawaban (otomatis, berkala)
-         * @description Izin: `portal:read` (akun siswa); modul `exams`. Menyimpan jawaban yang disebut saja. Pilihan ganda: huruf opsi atau kosong (400 `validation` bila huruf tidak ada); esai: teks sampai 10.000 karakter. `blurs` = jumlah siswa meninggalkan tab (hanya naik). Sesudah dikumpulkan atau waktu habis: 409 `closed`; bila rapor siswa pada semester ujian sudah final: 409 `report_final`.
+         * @description Izin: `portal:read` (akun murid); modul `exams`. Menyimpan jawaban yang disebut saja. Pilihan ganda: huruf opsi atau kosong (400 `validation` bila huruf tidak ada); esai: teks sampai 10.000 karakter. `blurs` = jumlah murid meninggalkan tab (hanya naik). Sesudah dikumpulkan atau waktu habis: 409 `closed`; bila rapor murid pada semester ujian sudah final: 409 `report_final`.
          */
         put: {
             parameters: {
@@ -64290,7 +65421,7 @@ export interface paths {
         put?: never;
         /**
          * Kumpulkan ujian
-         * @description Izin: `portal:read` (akun siswa); modul `exams`. Menutup percobaan; sesudahnya jawaban tidak bisa diubah. Memanggil ulang pada percobaan yang sudah terkumpul tidak error. Skor tidak dikembalikan ke siswa. Ditolak 409 `report_final` bila rapor siswa pada semester ujian sudah final.
+         * @description Izin: `portal:read` (akun murid); modul `exams`. Menutup percobaan; sesudahnya jawaban tidak bisa diubah. Memanggil ulang pada percobaan yang sudah terkumpul tidak error. Skor tidak dikembalikan ke murid. Ditolak 409 `report_final` bila rapor murid pada semester ujian sudah final.
          */
         post: {
             parameters: {
@@ -69358,7 +70489,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Wali seorang siswa
+         * Wali seorang murid
          * @description Izin: `student:read`. NIK wali utuh hanya untuk pemegang `student:manage`; yang lain menerima `nikMasked`.
          */
         get: {
@@ -69396,7 +70527,7 @@ export interface paths {
                             /** @enum {string} */
                             relation: "father" | "mother" | "guardian" | "other";
                             isPrimary: boolean;
-                            /** @description Jumlah siswa yang dinaungi wali ini (kakak-adik) */
+                            /** @description Jumlah murid yang dinaungi wali ini (kakak-adik) */
                             studentCount: number;
                         }[];
                     };
@@ -69447,8 +70578,8 @@ export interface paths {
         };
         put?: never;
         /**
-         * Tambah wali untuk siswa
-         * @description Izin: `student:manage`. Kirim `guardianId` untuk menautkan wali yang sudah ada, atau `name` (dan opsional telepon, email, NIK 16 digit, alamat, pekerjaan) untuk membuat wali baru. Telepon dinormalkan ke digit berawalan 62. NIK wali harus unik di sekolah (409 `nik_taken`). Satu siswa hanya punya satu wali utama; menandai wali utama melepas tanda dari yang lain.
+         * Tambah wali untuk murid
+         * @description Izin: `student:manage`. Kirim `guardianId` untuk menautkan wali yang sudah ada, atau `name` (dan opsional telepon, email, NIK 16 digit, alamat, pekerjaan) untuk membuat wali baru. Telepon dinormalkan ke digit berawalan 62. NIK wali harus unik di sekolah (409 `nik_taken`). Satu murid hanya punya satu wali utama; menandai wali utama melepas tanda dari yang lain.
          */
         post: {
             parameters: {
@@ -69507,7 +70638,7 @@ export interface paths {
                             /** @enum {string} */
                             relation: "father" | "mother" | "guardian" | "other";
                             isPrimary: boolean;
-                            /** @description Jumlah siswa yang dinaungi wali ini (kakak-adik) */
+                            /** @description Jumlah murid yang dinaungi wali ini (kakak-adik) */
                             studentCount: number;
                         }[];
                     };
@@ -69599,7 +70730,7 @@ export interface paths {
         };
         /**
          * Cari wali
-         * @description Izin: `student:read`. Mencari pada nama, telepon, atau email; dipakai untuk menautkan wali yang sudah ada (mis. kakak-adik) ke siswa lain. Maksimal 20 hasil.
+         * @description Izin: `student:read`. Mencari pada nama, telepon, atau email; dipakai untuk menautkan wali yang sudah ada (mis. kakak-adik) ke murid lain. Maksimal 20 hasil.
          */
         get: {
             parameters: {
@@ -69676,7 +70807,7 @@ export interface paths {
         };
         /**
          * Data wali (daftar berhalaman)
-         * @description Izin: `student:read`. Daftar semua wali sekolah untuk halaman Data wali, urut nama. `q` mencari pada nama, email, nama anak, NIK (angka), dan telepon (0812… cocok dengan 62812…). `missingNik=true` hanya wali tanpa NIK. `portal`: `has` (punya akun portal), `invited` (undangan terbuka belum kedaluwarsa), `none` (belum punya akun dan belum diundang). `studentId` hanya wali siswa itu. Tiap wali memuat anak (maksimal 10, jumlah penuh di `childCount`), status portal, dan email akun portal yang disamarkan. `totals` berlaku untuk seluruh sekolah (tanpa saringan). NIK utuh hanya untuk pemegang `student:manage`; yang lain menerima `nikMasked`.
+         * @description Izin: `student:read`. Daftar semua wali sekolah untuk halaman Data wali, urut nama. `q` mencari pada nama, email, nama anak, NIK (angka), dan telepon (0812… cocok dengan 62812…). `missingNik=true` hanya wali tanpa NIK. `portal`: `has` (punya akun portal), `invited` (undangan terbuka belum kedaluwarsa), `none` (belum punya akun dan belum diundang). `studentId` hanya wali murid itu. Tiap wali memuat anak (maksimal 10, jumlah penuh di `childCount`), status portal, dan email akun portal yang disamarkan. `totals` berlaku untuk seluruh sekolah (tanpa saringan). NIK utuh hanya untuk pemegang `student:manage`; yang lain menerima `nikMasked`.
          */
         get: {
             parameters: {
@@ -69717,7 +70848,7 @@ export interface paths {
                                 email: string | null;
                                 occupation: string | null;
                                 address: string | null;
-                                /** @description Jumlah siswa yang dinaungi (semua, bukan hanya yang tampil) */
+                                /** @description Jumlah murid yang dinaungi (semua, bukan hanya yang tampil) */
                                 childCount: number;
                                 children: {
                                     /** Format: uuid */
@@ -69795,7 +70926,7 @@ export interface paths {
         get?: never;
         /**
          * Ubah data wali
-         * @description Izin: `student:manage`. Perubahan berlaku untuk semua siswa yang dinaungi wali ini (kakak-adik).
+         * @description Izin: `student:manage`. Perubahan berlaku untuk semua murid yang dinaungi wali ini (kakak-adik).
          */
         put: {
             parameters: {
@@ -69909,7 +71040,7 @@ export interface paths {
         post?: never;
         /**
          * Hapus data wali
-         * @description Izin: `student:manage`. Hanya wali yang tidak menaungi siswa mana pun dan tidak punya akun portal; selain itu 409 `guardian_in_use` (lepas dulu dari siswa atau cabut akun portalnya). Undangan portal yang belum dipakai ikut dihapus. Wali yang riwayatnya masih dirujuk (mis. pesan) juga 409 `guardian_in_use`.
+         * @description Izin: `student:manage`. Hanya wali yang tidak menaungi murid mana pun dan tidak punya akun portal; selain itu 409 `guardian_in_use` (lepas dulu dari murid atau cabut akun portalnya). Undangan portal yang belum dipakai ikut dihapus. Wali yang riwayatnya masih dirujuk (mis. pesan) juga 409 `guardian_in_use`.
          */
         delete: {
             parameters: {
@@ -70056,7 +71187,7 @@ export interface paths {
                             /** @enum {string} */
                             relation: "father" | "mother" | "guardian" | "other";
                             isPrimary: boolean;
-                            /** @description Jumlah siswa yang dinaungi wali ini (kakak-adik) */
+                            /** @description Jumlah murid yang dinaungi wali ini (kakak-adik) */
                             studentCount: number;
                         }[];
                     };
@@ -70107,8 +71238,8 @@ export interface paths {
         };
         post?: never;
         /**
-         * Lepas wali dari siswa
-         * @description Izin: `student:manage`. Wali yang tidak menaungi siswa mana pun lagi ikut dihapus. Bila yang dilepas adalah wali utama, wali berikutnya (bila ada) menjadi utama.
+         * Lepas wali dari murid
+         * @description Izin: `student:manage`. Wali yang tidak menaungi murid mana pun lagi ikut dihapus. Bila yang dilepas adalah wali utama, wali berikutnya (bila ada) menjadi utama.
          */
         delete: {
             parameters: {
@@ -70194,8 +71325,8 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Ekspor siswa beserta wali
-         * @description Izin: `student:read`. Saringan sama dengan daftar siswa (`q`, `classId`, `status`) tetapi tanpa paginasi; maksimal 5000 siswa (`total` memuat jumlah sebenarnya). Setiap siswa membawa semua walinya, wali utama lebih dulu.
+         * Ekspor murid beserta wali
+         * @description Izin: `student:read`. Saringan sama dengan daftar murid (`q`, `classId`, `status`) tetapi tanpa paginasi; maksimal 5000 murid (`total` memuat jumlah sebenarnya). Setiap murid membawa semua walinya, wali utama lebih dulu.
          */
         get: {
             parameters: {
@@ -70310,8 +71441,8 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Impor siswa (pratinjau atau simpan)
-         * @description Izin: `student:manage`. Maksimal 1000 baris. Dengan `dryRun: true` hanya memeriksa dan melaporkan kesalahan per baris. Tanpa `dryRun`, siswa baru disimpan hanya bila semua baris valid. Kelas (`className`) dicocokkan dengan nama kelas pada tahun ajaran aktif; NIS dan NISN harus unik di file dan di sekolah. Data diri opsional: `nik` (16 digit), `birthPlace`, `religion` (Islam, Kristen, Katolik, Hindu, Buddha, Konghucu, Lainnya, atau padanan Inggris), `address`, `phone`, `email`. Dua wali per baris (`g1*` wali utama, `g2*`): hubungan Ayah/Ibu/Wali/Lainnya (kosong: wali 1 ayah, wali 2 ibu); nama wajib bila ada isian lain pada blok itu. Blok wali juga menerima `g1Nik`/`g2Nik` (16 digit), `g1Address`, `g1Occupation`. NIK siswa harus unik di file dan di sekolah. Wali dipakai ulang bila NIK, atau telepon (setelah dinormalkan), sama dengan wali yang sudah ada di sekolah atau yang dibuat lebih awal di file yang sama; selain itu wali baru dibuat.
+         * Impor murid (pratinjau atau simpan)
+         * @description Izin: `student:manage`. Maksimal 1000 baris. Dengan `dryRun: true` hanya memeriksa dan melaporkan kesalahan per baris. Tanpa `dryRun`, murid baru disimpan hanya bila semua baris valid. Kelas (`className`) dicocokkan dengan nama kelas pada tahun ajaran aktif; NIS dan NISN harus unik di file dan di sekolah. Data diri opsional: `nik` (16 digit), `birthPlace`, `religion` (Islam, Kristen, Katolik, Hindu, Buddha, Konghucu, Lainnya, atau padanan Inggris), `address`, `phone`, `email`. Dua wali per baris (`g1*` wali utama, `g2*`): hubungan Ayah/Ibu/Wali/Lainnya (kosong: wali 1 ayah, wali 2 ibu); nama wajib bila ada isian lain pada blok itu. Blok wali juga menerima `g1Nik`/`g2Nik` (16 digit), `g1Address`, `g1Occupation`. NIK murid harus unik di file dan di sekolah. Wali dipakai ulang bila NIK, atau telepon (setelah dinormalkan), sama dengan wali yang sudah ada di sekolah atau yang dibuat lebih awal di file yang sama; selain itu wali baru dibuat.
          */
         post: {
             parameters: {
@@ -71036,7 +72167,7 @@ export interface paths {
                             kind: "guardian" | "student";
                             /**
                              * Format: uuid
-                             * @description Id wali (kind guardian) atau siswa (kind student)
+                             * @description Id wali (kind guardian) atau murid (kind student)
                              */
                             targetId: string;
                             targetName: string;
@@ -71081,8 +72212,8 @@ export interface paths {
         };
         put?: never;
         /**
-         * Buat undangan portal untuk wali atau siswa
-         * @description Izin: `student:manage`; modul `parent_portal`. Membuat undangan sekali pakai yang berlaku 14 hari untuk satu wali (`kind` guardian + `guardianId`, wali harus punya minimal satu siswa) atau satu siswa (`kind` student + `studentId`). Token acak dikembalikan sekali di `token` dan `link` (hanya hash yang disimpan); bila `email` diisi, tautan juga dikirim ke email itu dan akun yang dibuat wajib memakai email itu. Undangan lama yang belum dipakai untuk target yang sama dicabut otomatis. 400 `invalid_reference` bila wali/siswa tidak ada; 409 `already_linked` bila target sudah punya akun portal.
+         * Buat undangan portal untuk wali atau murid
+         * @description Izin: `student:manage`; modul `parent_portal`. Membuat undangan sekali pakai yang berlaku 14 hari untuk satu wali (`kind` guardian + `guardianId`, wali harus punya minimal satu murid) atau satu murid (`kind` student + `studentId`). Token acak dikembalikan sekali di `token` dan `link` (hanya hash yang disimpan); bila `email` diisi, tautan juga dikirim ke email itu dan akun yang dibuat wajib memakai email itu. Undangan lama yang belum dipakai untuk target yang sama dicabut otomatis. 400 `invalid_reference` bila wali/murid tidak ada; 409 `already_linked` bila target sudah punya akun portal.
          */
         post: {
             parameters: {
@@ -71121,7 +72252,7 @@ export interface paths {
                             kind: "guardian" | "student";
                             /**
                              * Format: uuid
-                             * @description Id wali (kind guardian) atau siswa (kind student)
+                             * @description Id wali (kind guardian) atau murid (kind student)
                              */
                             targetId: string;
                             targetName: string;
@@ -71299,8 +72430,8 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Akun portal wali dan siswa
-         * @description Izin: `student:manage`; modul `parent_portal`. Akun yang sudah menerima undangan, beserta wali/siswa yang ditautkan dan status keanggotaannya (`disabled` bila dinonaktifkan).
+         * Akun portal wali dan murid
+         * @description Izin: `student:manage`; modul `parent_portal`. Akun yang sudah menerima undangan, beserta wali/murid yang ditautkan dan status keanggotaannya (`disabled` bila dinonaktifkan).
          */
         get: {
             parameters: {
@@ -71392,7 +72523,7 @@ export interface paths {
         post?: never;
         /**
          * Cabut akun portal
-         * @description Izin: `student:manage`; modul `parent_portal`. Menghapus tautan portal dan peran wali/siswa dari anggota itu; bila tidak ada peran lain, keanggotaannya dinonaktifkan sehingga tidak bisa masuk lagi. Akun masuk (user) tidak dihapus. Wali/siswa bisa diundang ulang setelahnya. 404 bila tautan tidak ada.
+         * @description Izin: `student:manage`; modul `parent_portal`. Menghapus tautan portal dan peran wali/murid dari anggota itu; bila tidak ada peran lain, keanggotaannya dinonaktifkan sehingga tidak bisa masuk lagi. Akun masuk (user) tidak dihapus. Wali/murid bisa diundang ulang setelahnya. 404 bila tautan tidak ada.
          */
         delete: {
             parameters: {
@@ -71478,7 +72609,7 @@ export interface paths {
         };
         /**
          * Profil akun portal dan daftar anak
-         * @description Izin: `portal:read`; modul `parent_portal`. Untuk wali: anak yang terhubung lewat data wali. Untuk siswa: dirinya saja. Akun tanpa tautan portal (mis. admin) mendapat `linked` false dan daftar kosong. `sections` menandai bagian portal yang modulnya aktif.
+         * @description Izin: `portal:read`; modul `parent_portal`. Untuk wali: anak yang terhubung lewat data wali. Untuk murid: dirinya saja. Akun tanpa tautan portal (mis. admin) mendapat `linked` false dan daftar kosong. `sections` menandai bagian portal yang modulnya aktif.
          */
         get: {
             parameters: {
@@ -72021,7 +73152,7 @@ export interface paths {
                                 source?: "report";
                                 /** @description Penanda remedial; ada hanya bila ada percobaan. Skor asli tidak pernah ditimpa; nilai akhir memakai nilai efektif menurut kebijakan sekolah. */
                                 remedial?: {
-                                    /** @description Jumlah percobaan remedial siswa pada mapel ini (semua penilaian) */
+                                    /** @description Jumlah percobaan remedial murid pada mapel ini (semua penilaian) */
                                     attempts: number;
                                     /**
                                      * @description `remedial` = ada nilai efektif yang berbeda dari skor asli menurut kebijakan remedial sekolah; `original` = skor asli dipakai (mis. kebijakan hanya mencatat)
@@ -72365,7 +73496,7 @@ export interface paths {
         };
         /**
          * Dokumen rapor final satu semester
-         * @description Izin: `portal:read`; modul `parent_portal` dan `grades`. Snapshot beku saat rapor difinalisasi. 404 `not_found` bila belum final, tidak ada, atau anak bukan milik akun ini; 403 `module_disabled` bila modul `grades` tidak aktif. Bagian v2 hanya ada bila dipakai: `schemaVersion` (hanya bila 2), `reportMode`, `cocurricularNote`, `cocurricular`, `schoolNsm` (hanya bila NSM madrasah terisi), `expertise` dan `subjects[].group` (rapor SMK berkelompok, hanya bila dipakai), `developmentNote`, `subjects[].descriptionSource`. Mode deskriptif (Fase A) MEMPROYEKSIKAN dokumen tanpa `final`, `predicate`, `kkm`, `belowKkm` per mapel dan tanpa `rank`. `guardianResponses` hanya memuat tanggapan milik wali pemanggil (tautan wali); tautan siswa dan wali lain tidak melihatnya.
+         * @description Izin: `portal:read`; modul `parent_portal` dan `grades`. Snapshot beku saat rapor difinalisasi. 404 `not_found` bila belum final, tidak ada, atau anak bukan milik akun ini; 403 `module_disabled` bila modul `grades` tidak aktif. Bagian v2 hanya ada bila dipakai: `schemaVersion` (hanya bila 2), `reportMode`, `cocurricularNote`, `cocurricular`, `schoolNsm` (hanya bila NSM madrasah terisi), `expertise` dan `subjects[].group` (rapor SMK berkelompok, hanya bila dipakai), `developmentNote`, `subjects[].descriptionSource`. Mode deskriptif (Fase A) MEMPROYEKSIKAN dokumen tanpa `final`, `predicate`, `kkm`, `belowKkm` per mapel dan tanpa `rank`. `guardianResponses` hanya memuat tanggapan milik wali pemanggil (tautan wali); tautan murid dan wali lain tidak melihatnya.
          */
         get: {
             parameters: {
@@ -72625,7 +73756,7 @@ export interface paths {
         };
         /**
          * Tanggapan wali atas rapor final seorang anak
-         * @description Izin: `portal:read`; modul `parent_portal` dan `grades`; hanya tautan wali (403 `not_guardian` untuk tautan siswa). Mengembalikan status jendela tanggapan dan tanggapan MILIK SENDIRI (`response`, null bila belum). Tanggapan wali lain dari anak yang sama tidak pernah tampil. `open` true bila rapor final dan jendela (`windowDays` sejak finalisasi) belum lewat. 404 `not_found` bila anak bukan milik akun ini.
+         * @description Izin: `portal:read`; modul `parent_portal` dan `grades`; hanya tautan wali (403 `not_guardian` untuk tautan murid). Mengembalikan status jendela tanggapan dan tanggapan MILIK SENDIRI (`response`, null bila belum). Tanggapan wali lain dari anak yang sama tidak pernah tampil. `open` true bila rapor final dan jendela (`windowDays` sejak finalisasi) belum lewat. 404 `not_found` bila anak bukan milik akun ini.
          */
         get: {
             parameters: {
@@ -72725,7 +73856,7 @@ export interface paths {
         };
         /**
          * Tulis atau ubah tanggapan wali atas rapor final
-         * @description Izin: `portal:respond`; modul `parent_portal` dan `grades`; hanya tautan wali (403 `not_guardian` untuk tautan siswa) dan hanya untuk anak yang terhubung lewat data wali (selain itu 404 `not_found`). Satu tanggapan per wali per anak per semester (menulis lagi mengubahnya). Teks polos 1-1.000 karakter, tanpa lampiran. 409 `report_not_final` bila rapor belum final; 409 `response_closed` sesudah jendela tanggapan (bawaan 30 hari sejak finalisasi). Tanggapan menyimpan versi finalisasi saat ditulis, tidak menyentuh snapshot, dan tidak hilang bila rapor dibuka kembali. Hanya terlihat oleh penulisnya, wali kelas, dan pemegang izin kelola/lihat semua rapor. Dibatasi 30 permintaan per menit.
+         * @description Izin: `portal:respond`; modul `parent_portal` dan `grades`; hanya tautan wali (403 `not_guardian` untuk tautan murid) dan hanya untuk anak yang terhubung lewat data wali (selain itu 404 `not_found`). Satu tanggapan per wali per anak per semester (menulis lagi mengubahnya). Teks polos 1-1.000 karakter, tanpa lampiran. 409 `report_not_final` bila rapor belum final; 409 `response_closed` sesudah jendela tanggapan (bawaan 30 hari sejak finalisasi). Tanggapan menyimpan versi finalisasi saat ditulis, tidak menyentuh snapshot, dan tidak hilang bila rapor dibuka kembali. Hanya terlihat oleh penulisnya, wali kelas, dan pemegang izin kelola/lihat semua rapor. Dibatasi 30 permintaan per menit.
          */
         put: {
             parameters: {
@@ -72984,7 +74115,7 @@ export interface paths {
         };
         /**
          * Lihat undangan portal dari tautan
-         * @description Publik, hanya untuk pemegang token. Mengembalikan sekolah, jenis (wali/siswa), nama yang ditautkan, dan email yang dikunci undangan (null bila bebas), serta apakah email itu sudah punya akun. 410 `invitation_invalid` bila token salah, sudah dipakai, kedaluwarsa, dicabut, atau sekolah ditangguhkan; 403 `module_disabled` bila portal tidak aktif.
+         * @description Publik, hanya untuk pemegang token. Mengembalikan sekolah, jenis (wali/murid), nama yang ditautkan, dan email yang dikunci undangan (null bila bebas), serta apakah email itu sudah punya akun. 410 `invitation_invalid` bila token salah, sudah dipakai, kedaluwarsa, dicabut, atau sekolah ditangguhkan; 403 `module_disabled` bila portal tidak aktif.
          */
         get: {
             parameters: {
@@ -73065,7 +74196,7 @@ export interface paths {
         put?: never;
         /**
          * Terima undangan portal dan buat akun
-         * @description Publik, hanya untuk pemegang token; sekali pakai. Membuat akun masuk baru (nama, email, kata sandi 12-128 karakter) lalu keanggotaan sekolah dengan peran `guardian`/`student` dan tautan portal ke wali/siswa undangan. Bila undangan mengunci email, `email` harus sama (400 `email_mismatch`). Bila email sudah punya akun, kata sandi akun itu dipakai untuk memastikan pemiliknya (401 `invalid_credentials` bila salah) dan akun yang sama ditautkan; 409 `already_member` bila akun itu sudah anggota sekolah ini, 409 `already_linked` bila target sudah punya akun. Setelah berhasil, masuk lewat halaman login sekolah. 410 `invitation_invalid` bila token tidak berlaku.
+         * @description Publik, hanya untuk pemegang token; sekali pakai. Membuat akun masuk baru (nama, email, kata sandi 12-128 karakter) lalu keanggotaan sekolah dengan peran `guardian`/`student` dan tautan portal ke wali/murid undangan. Bila undangan mengunci email, `email` harus sama (400 `email_mismatch`). Bila email sudah punya akun, kata sandi akun itu dipakai untuk memastikan pemiliknya (401 `invalid_credentials` bila salah) dan akun yang sama ditautkan; 409 `already_member` bila akun itu sudah anggota sekolah ini, 409 `already_linked` bila target sudah punya akun. Setelah berhasil, masuk lewat halaman login sekolah. 410 `invitation_invalid` bila token tidak berlaku.
          */
         post: {
             parameters: {

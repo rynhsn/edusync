@@ -824,7 +824,7 @@ describe('mode deskriptif: TP memenuhi kelengkapan', () => {
     });
     // Edo lengkap lewat TP; hanya Fani yang kurang.
     expect([res.statusCode, code(res)]).toEqual([409, 'grades_incomplete']);
-    expect(res.json().error.message).toContain('1 siswa');
+    expect(res.json().error.message).toContain('1 murid');
     expect(res.json().error.message).toContain('deskripsi');
     const edo = await docOf('edo');
     expect(edo.reportMode).toBe('descriptive');

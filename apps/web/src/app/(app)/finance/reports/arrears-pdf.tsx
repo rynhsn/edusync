@@ -84,7 +84,7 @@ export function ArrearsPdf({ schoolName, scope, asOf, generated, rows, totals }:
           <View style={styles.stats}>
             <View style={styles.stat}>
               <Text style={styles.statValue}>{totals.students}</Text>
-              <Text style={styles.statLabel}>Siswa</Text>
+              <Text style={styles.statLabel}>Murid</Text>
             </View>
             <View style={styles.stat}>
               <Text style={styles.statValue}>{rupiahText(totals.outstanding)}</Text>
@@ -99,7 +99,7 @@ export function ArrearsPdf({ schoolName, scope, asOf, generated, rows, totals }:
 
         <View style={styles.headRow} fixed>
           <Text style={[styles.idx, styles.bold]}>#</Text>
-          <Text style={[styles.name, styles.bold]}>Siswa</Text>
+          <Text style={[styles.name, styles.bold]}>Murid</Text>
           <Text style={[styles.cls, styles.bold]}>Kelas</Text>
           <Text style={[styles.cnt, styles.bold]}>Tagihan</Text>
           <Text style={[styles.money, styles.bold]}>Tunggakan</Text>

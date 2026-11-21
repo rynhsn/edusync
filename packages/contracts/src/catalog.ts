@@ -26,12 +26,12 @@ export interface CatalogItem {
 }
 
 export const DEFAULT_CATALOG: readonly CatalogItem[] = [
-  { kind: 'base', key: 'core', name: 'Modul inti (sampai 300 siswa)', priceMonthly: 150_000, sort: 0 },
-  { kind: 'tier', key: 't300', name: 'Sampai 300 siswa', priceMonthly: 0, sort: 1, maxStudents: 300 },
+  { kind: 'base', key: 'core', name: 'Modul inti (sampai 300 murid)', priceMonthly: 150_000, sort: 0 },
+  { kind: 'tier', key: 't300', name: 'Sampai 300 murid', priceMonthly: 0, sort: 1, maxStudents: 300 },
   {
     kind: 'tier',
     key: 't800',
-    name: '301 sampai 800 siswa',
+    name: '301 sampai 800 murid',
     priceMonthly: 100_000,
     sort: 2,
     maxStudents: 800,
@@ -39,7 +39,7 @@ export const DEFAULT_CATALOG: readonly CatalogItem[] = [
   {
     kind: 'tier',
     key: 't1500',
-    name: '801 sampai 1.500 siswa',
+    name: '801 sampai 1.500 murid',
     priceMonthly: 250_000,
     sort: 3,
     maxStudents: 1500,
@@ -71,7 +71,7 @@ export const DEFAULT_CATALOG: readonly CatalogItem[] = [
   {
     kind: 'module',
     key: 'parent_portal',
-    name: 'Portal wali dan siswa',
+    name: 'Portal wali dan murid',
     priceMonthly: 50_000,
     sort: 20,
     requires: ['attendance'],

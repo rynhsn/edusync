@@ -796,7 +796,7 @@ describe('finalisasi, snapshot, dan buka kembali', () => {
     const res = await finalize(waliCookie);
     expect(res.statusCode).toBe(409);
     expect(res.json().error.code).toBe('grades_incomplete');
-    expect(res.json().error.message).toContain('1 siswa');
+    expect(res.json().error.message).toContain('1 murid');
     expect((await call('GET', docUrl(ids.ani), adminCookie)).json().status).toBe('draft');
   });
 

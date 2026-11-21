@@ -9,25 +9,25 @@ export const CARD_DOCS: DocArticle[] = [
     group: 'master',
     text: {
       id: {
-        title: 'Merancang dan mencetak kartu siswa dan kartu ujian',
+        title: 'Merancang dan mencetak kartu murid dan kartu ujian',
         summary:
-          'Rancang kartu sendiri di editor visual, lalu cetak kartu siswa (dengan kode kartu RFID) dan kartu peserta ujian satu kelas sekaligus.',
+          'Rancang kartu sendiri di editor visual, lalu cetak kartu murid (dengan kode kartu RFID) dan kartu peserta ujian satu kelas sekaligus.',
         forWho:
           'Admin sekolah yang merancang templat kartu; operator dan guru yang mencetak kartu satu kelas.',
         sections: [
           {
             heading: 'Membuka halaman Kartu',
-            body: 'Menu Kartu cetak berisi dua tab: Kartu siswa dan Kartu ujian (tab ujian muncul bila modul Ujian aktif). Di tiap tab ada daftar templat dengan pratinjau kecil dan bagian Cetak di bawahnya. Sekolah yang belum menyimpan templat tetap bisa mencetak memakai rancangan bawaan sistem.',
+            body: 'Menu Kartu cetak berisi dua tab: Kartu murid dan Kartu ujian (tab ujian muncul bila modul Ujian aktif). Di tiap tab ada daftar templat dengan pratinjau kecil dan bagian Cetak di bawahnya. Sekolah yang belum menyimpan templat tetap bisa mencetak memakai rancangan bawaan sistem.',
             href: '/cards',
           },
           {
             heading: 'Merancang templat di editor',
-            body: 'Editor menggambar kartu dalam satuan milimeter. Kartu siswa bawaan berukuran 86 x 54 mm (ukuran kartu ID), kartu ujian bawaan 100 x 60 mm. Anda bisa mengganti ukuran dengan pilihan cepat atau mengetik angkanya sendiri.',
+            body: 'Editor menggambar kartu dalam satuan milimeter. Kartu murid bawaan berukuran 86 x 54 mm (ukuran kartu ID), kartu ujian bawaan 100 x 60 mm. Anda bisa mengganti ukuran dengan pilihan cepat atau mengetik angkanya sendiri.',
             steps: [
               'Di tab yang diinginkan, klik Tambah dari bawaan untuk mulai dari rancangan siap pakai, atau Templat baru untuk kanvas kosong.',
               'Beri nama templat, lalu pilih atau ketik ukuran kartu.',
               'Klik Unggah latar bila ingin gambar latar (PNG atau JPEG, paling besar 1,5 MB).',
-              'Tambahkan elemen dari panel kiri: Teks, Kolom data, Gambar, Foto siswa, Kode QR, Kode batang, Kotak, atau Garis.',
+              'Tambahkan elemen dari panel kiri: Teks, Kolom data, Gambar, Foto murid, Kode QR, Kode batang, Kotak, Garis, atau Tabel jadwal (khusus kartu ujian).',
               'Seret elemen untuk menggeser, tarik pegangan di tepinya untuk mengubah ukuran, dan atur detailnya di panel Properti di kanan.',
               'Klik Simpan. Bila ada isian yang salah, daftar perbaikan muncul di atas editor.',
             ],
@@ -36,15 +36,15 @@ export const CARD_DOCS: DocArticle[] = [
           },
           {
             heading: 'Kolom data, gambar, dan lapisan',
-            body: 'Kolom data diisi otomatis dari data siswa saat dicetak, misalnya nama, NIS, kelas, tahun ajaran, atau nama sekolah. Awalan seperti "NIS: " bisa ditulis di panel Properti. Foto siswa mengambil foto dari data siswa. Kode QR dan kode batang pada kartu siswa berisi QR identitas siswa, dan pada kartu peserta ujian berisi nomor peserta; NIS dan kode kartu RFID hanya bisa tampil sebagai teks. Elemen yang di bawah daftar Lapisan digambar lebih dulu; gunakan tombol urutan untuk membawa elemen ke depan atau belakang.',
+            body: 'Kolom data diisi otomatis dari data murid saat dicetak, misalnya nama, NIS, kelas, tahun ajaran, atau nama sekolah. Awalan seperti "NIS: " bisa ditulis di panel Properti. Foto murid mengambil foto dari data murid. Kode QR dan kode batang pada kartu murid berisi QR identitas murid, dan pada kartu peserta ujian berisi nomor peserta; NIS dan kode kartu RFID hanya bisa tampil sebagai teks. Elemen yang di bawah daftar Lapisan digambar lebih dulu; gunakan tombol urutan untuk membawa elemen ke depan atau belakang.',
             warning:
               'Teks yang terlalu panjang untuk kotaknya dikecilkan otomatis sampai muat, jadi lebarkan kotaknya bila huruf terlihat terlalu kecil.',
           },
           {
-            heading: 'Mencetak kartu siswa',
+            heading: 'Mencetak kartu murid',
             body: 'Pilih templat dan kelas, lalu unduh PDF. Anda bisa memilih satu kartu per halaman (seukuran kartu, untuk printer kartu ID) atau beberapa kartu per lembar kertas.',
             steps: [
-              'Buka tab Kartu siswa dan pilih templat pada bagian Cetak.',
+              'Buka tab Kartu murid dan pilih templat pada bagian Cetak.',
               'Pilih tahun ajaran dan kelas. Jumlah kartu dan pratinjau muncul.',
               'Pilih susunan: satu kartu per halaman, atau beberapa kartu per lembar. Untuk lembar, atur jenis kertas, tepi kertas, jarak antar-kartu, dan tanda potong.',
               'Klik Unduh PDF dan tunggu sampai selesai. Cetak PDF-nya dengan skala 100 persen.',
@@ -54,7 +54,7 @@ export const CARD_DOCS: DocArticle[] = [
           },
           {
             heading: 'Mencetak kartu peserta ujian',
-            body: 'Pilih templat, tahun ajaran, semester, kelas, dan bila perlu jenis ujian. Nomor peserta dibuat otomatis dengan aturan: singkatan jenis ujian, tanda hubung, dua angka tahun mulai tahun ajaran, tanda hubung, lalu nomor urut tiga angka. Contoh: ASTS-26-007 berarti siswa ke-7 di kelasnya pada tahun ajaran 2026/2027 untuk jenis ujian ASTS. Nomor urut menurut urutan nama siswa aktif di kelas itu, jadi tetap sama selama susunan kelas tidak berubah. Jadwal pada kartu diambil dari ujian semester tersebut yang mencakup kelas siswa.',
+            body: 'Pilih templat, tahun ajaran, semester, kelas, dan bila perlu jenis ujian. Nomor peserta dibuat otomatis dengan aturan: singkatan jenis ujian, tanda hubung, dua angka tahun mulai tahun ajaran, tanda hubung, lalu nomor urut tiga angka. Contoh: ASTS-26-007 berarti murid ke-7 di kelasnya pada tahun ajaran 2026/2027 untuk jenis ujian ASTS. Nomor urut menurut urutan nama murid aktif di kelas itu, jadi tetap sama selama susunan kelas tidak berubah. Jadwal pada kartu diambil dari ujian semester tersebut yang mencakup kelas murid.',
             steps: [
               'Buka tab Kartu ujian dan pilih templat.',
               'Pilih tahun ajaran, semester, dan kelas. Pilih jenis ujian bila ingin membatasi jadwal.',
@@ -62,23 +62,29 @@ export const CARD_DOCS: DocArticle[] = [
               'Klik Unduh PDF.',
             ],
             warning:
-              'Kartu hanya menampilkan jadwal bila ujiannya sudah dibuat dengan tanggal dan jam. Kolom Ruang masih kosong karena belum ada data ruang di aplikasi.',
+              'Kartu hanya menampilkan jadwal bila ujiannya sudah dibuat dengan tanggal dan jam. Kolom Ruang bersifat opsional: terisi bila sekolah mengatur ruang ujian di menu Ujian, dan kosong bila tidak.',
           },
           {
-            heading: 'Foto siswa',
-            body: 'Foto dipasang per siswa. Buka menu Siswa, pilih Ubah pada siswa yang diinginkan, lalu klik Unggah foto. Foto otomatis dipotong dengan rasio 3:4 dan dikecilkan. Foto hanya bisa dilihat anggota sekolah yang berhak, bukan publik. Siswa tanpa foto tetap dicetak, dengan kotak foto kosong.',
+            heading: 'Tabel jadwal, ruang, dan tanda peserta A4 (opsional)',
+            body: 'Format tanda peserta tiap sekolah berbeda, jadi semua bagian ini opsional dan bisa Anda pasang atau buang di editor. Pada kartu ujian ada elemen Tabel jadwal (tombol di panel Tambah elemen) yang terisi otomatis dari jadwal ujian kelas murid. Di panel Properti Anda dapat memilih kolom yang dipakai (No, Hari tanggal, Hari, Tanggal, Waktu, Mata pelajaran), mengatur urutannya dengan tombol panah, mengganti judul tiap kolom (kosong = judul bawaan), menyalakan atau mematikan baris judul dan penggabungan hari yang sama, serta mengubah ukuran huruf, warna judul, dan garis tepi. Ukuran huruf mengecil otomatis bila jadwal banyak, dan nama mata pelajaran yang terlalu panjang dipotong. Kolom data baru untuk kartu ujian: Alamat, Nama kepala sekolah, dan Kota dan tanggal cetak (nama kepala sekolah dari pengaturan rapor). Kolom data Ruang terisi dari ruang ujian yang diatur sekolah di menu Ujian; bila sekolah tidak mengatur ruang, kolom ini kosong dan Anda tinggal tidak memakainya. Untuk contoh lengkap satu halaman A4 (kop sekolah, kotak ruang, tabel jadwal, catatan kaki, tanda tangan dengan QR), di tab Kartu ujian klik Tanda peserta A4 bawaan. Ini hanya titik awal: setelah ditambahkan, setiap bagian bisa diubah atau dihapus, dan kartu ujian bawaan 100 x 60 mm tetap menjadi bawaan.',
+            tip: 'Kartu yang terlalu besar untuk lembar berisi banyak kartu (seperti A4) otomatis dicetak satu per halaman seukuran kartu. Cetak PDF-nya dengan skala 100 persen.',
+            href: '/cards',
+          },
+          {
+            heading: 'Foto murid',
+            body: 'Foto dipasang per murid. Buka menu Murid, pilih Ubah pada murid yang diinginkan, lalu klik Unggah foto. Foto otomatis dipotong dengan rasio 3:4 dan dikecilkan. Foto hanya bisa dilihat anggota sekolah yang berhak, bukan publik. Murid tanpa foto tetap dicetak, dengan kotak foto kosong.',
             href: '/students',
           },
           {
-            heading: 'QR identitas siswa di kartu',
-            body: 'Kartu siswa bawaan memuat QR identitas siswa: satu kode acak unik per siswa (bukan NIS) yang dibuat otomatis saat data cetak dimuat, jadi tidak ada langkah tambahan. Kode hanya menunjuk siswa; menu tempat QR dipindai yang menentukan tindakannya. Contohnya, di menu Absen datang & pulang (tab Pindai QR) memindai berarti mencatat datang atau pulang sebagai cadangan saat kiosk RFID tidak bisa dipakai, sedangkan kiosk RFID tetap cara utama absensi. Menu lain yang kelak memakai kartu yang sama (misalnya peminjaman) cukup memindai QR yang sama. Di editor, elemen Kode QR dan Kode batang pada kartu siswa selalu berisi QR identitas siswa (tidak bisa diganti ke kolom lain). Kode batang berisi QR identitas yang sama, tetapi panjang (perlu lebar minimal 55 mm); bila kartu tidak muat, cukup QR saja. NIS dan kode kartu RFID tetap bisa dicetak sebagai teks lewat elemen Kolom data, tetapi tidak bisa menjadi isi QR atau kode batang. Templat lama yang QR atau kode batangnya berisi NIS atau kode RFID otomatis dialihkan ke QR identitas siswa.',
+            heading: 'QR identitas murid di kartu',
+            body: 'Kartu murid bawaan memuat QR identitas murid: satu kode acak unik per murid (bukan NIS) yang dibuat otomatis saat data cetak dimuat, jadi tidak ada langkah tambahan. Kode hanya menunjuk murid; menu tempat QR dipindai yang menentukan tindakannya. Contohnya, di menu Absen datang & pulang (tab Pindai QR) memindai berarti mencatat datang atau pulang sebagai cadangan saat kiosk RFID tidak bisa dipakai, sedangkan kiosk RFID tetap cara utama absensi. Menu lain yang kelak memakai kartu yang sama (misalnya peminjaman) cukup memindai QR yang sama. Di editor, elemen Kode QR dan Kode batang pada kartu murid selalu berisi QR identitas murid (tidak bisa diganti ke kolom lain). Kode batang berisi QR identitas yang sama, tetapi panjang (perlu lebar minimal 55 mm); bila kartu tidak muat, cukup QR saja. NIS dan kode kartu RFID tetap bisa dicetak sebagai teks lewat elemen Kolom data, tetapi tidak bisa menjadi isi QR atau kode batang. Templat lama yang QR atau kode batangnya berisi NIS atau kode RFID otomatis dialihkan ke QR identitas murid.',
             warning:
-              'Keamanan: QR hanya mengidentifikasi siswa dan tidak membuka data apa pun dengan sendirinya; setiap pemindai wajib masuk (login) dan memiliki izin fitur masing-masing. Karena itu orang yang hanya memegang kartu tidak bisa mencatat absensi tanpa akun guru. Kartu yang hilang: buka menu Siswa, pilih kartu siswa itu, lalu Buat ulang QR identitas. QR lama langsung tidak berlaku di SEMUA fitur sekaligus dan kartu baru harus dicetak ulang. Jangan membagikan foto kartu.',
+              'Keamanan: QR hanya mengidentifikasi murid dan tidak membuka data apa pun dengan sendirinya; setiap pemindai wajib masuk (login) dan memiliki izin fitur masing-masing. Karena itu orang yang hanya memegang kartu tidak bisa mencatat absensi tanpa akun guru. Kartu yang hilang: buka menu Murid, pilih kartu murid itu, lalu Buat ulang QR identitas. QR lama langsung tidak berlaku di SEMUA fitur sekaligus dan kartu baru harus dicetak ulang. Jangan membagikan foto kartu.',
             href: '/cards',
           },
           {
             heading: 'Kode kartu RFID harus didaftarkan lebih dulu',
-            body: 'Kartu siswa hanya bisa mencetak kode RFID bila kode kartu fisik siswa sudah didaftarkan di menu Kartu RFID. Kartu cetak ini adalah desainnya; yang dibaca pembaca gerbang tetap kode pada kartu fisik yang terdaftar.',
+            body: 'Kartu murid hanya bisa mencetak kode RFID bila kode kartu fisik murid sudah didaftarkan di menu Kartu RFID. Kartu cetak ini adalah desainnya; yang dibaca pembaca gerbang tetap kode pada kartu fisik yang terdaftar.',
             warning: 'Bila kode RFID belum didaftarkan, kolom Kode kartu RFID akan kosong di kartu.',
             href: '/attendance/cards',
           },
@@ -94,7 +100,7 @@ export const CARD_DOCS: DocArticle[] = [
           },
           {
             q: 'Mengapa PDF tidak bisa dibuat untuk kertas lembar?',
-            a: 'Kartu mungkin lebih besar dari kertas setelah dikurangi tepi. Kecilkan tepi kertas atau jarak antar-kartu, atau pilih kertas yang lebih besar.',
+            a: 'Kartu yang lebih besar dari kertas setelah dikurangi tepi otomatis dicetak satu per halaman seukuran kartu. Bila ingin beberapa kartu per lembar, kecilkan tepi kertas atau jarak antar-kartu, atau pilih kertas yang lebih besar.',
           },
           {
             q: 'Bolehkah saya membuat beberapa templat?',
@@ -121,7 +127,7 @@ export const CARD_DOCS: DocArticle[] = [
               'In the tab you want, click Add from default to start from a ready design, or New template for an empty canvas.',
               'Name the template, then choose or type the card size.',
               'Click Upload background if you want a background image (PNG or JPEG, up to 1.5 MB).',
-              'Add elements from the left panel: Text, Data field, Image, Student photo, QR code, Barcode, Box, or Line.',
+              'Add elements from the left panel: Text, Data field, Image, Student photo, QR code, Barcode, Box, Line, or Schedule table (exam cards only).',
               'Drag an element to move it, pull a handle on its edge to resize it, and set the details in the Properties panel on the right.',
               'Click Save. If anything is wrong, a list of fixes appears above the editor.',
             ],
@@ -156,7 +162,13 @@ export const CARD_DOCS: DocArticle[] = [
               'Click Download PDF.',
             ],
             warning:
-              'The card shows a schedule only when the exams were created with a date and time. The Room field is still empty because the app has no room data yet.',
+              'The card shows a schedule only when the exams were created with a date and time. The Room field is optional: it is filled when the school sets up exam rooms under the Exams menu, and empty otherwise.',
+          },
+          {
+            heading: 'Schedule table, room and the A4 exam slip (optional)',
+            body: 'Every school has its own exam slip format, so all of this is optional and you add or remove it in the editor. Exam cards have a Schedule table element (button in the Add element panel) that fills automatically from the exam schedule of the student class. In the Properties panel you can choose the columns (No, Day and date, Day, Date, Time, Subject), set their order with the arrow buttons, rename each column (blank = default title), turn the header row and the merging of same-day rows on or off, and change the font size, header color and border. The font shrinks automatically when there are many exams, and subject names that are too long are cut off. New data fields for exam cards: Address, Principal name and City and print date (the principal name comes from the report settings). The Room data field is filled from the exam rooms the school sets up under the Exams menu; if the school does not set up rooms the field is empty and you can simply leave it out. For a full one-page A4 example (letterhead, room box, schedule table, footnote, signature with QR), click Default A4 exam slip in the Exam cards tab. It is only a starting point: once added, every part can be changed or deleted, and the built-in 100 x 60 mm exam card stays the default.',
+            tip: 'A card too large for a multi-card sheet (such as A4) is automatically printed one per page at the card size. Print the PDF at 100 percent scale.',
+            href: '/cards',
           },
           {
             heading: 'Student photos',
@@ -189,7 +201,7 @@ export const CARD_DOCS: DocArticle[] = [
           },
           {
             q: 'Why can the PDF not be made for sheet paper?',
-            a: 'The card may be bigger than the paper after the margin is removed. Reduce the paper margin or the gap, or pick bigger paper.',
+            a: 'A card bigger than the paper after the margin is removed is printed automatically one per page at the card size. To get several cards per sheet, reduce the paper margin or the gap, or pick bigger paper.',
           },
           {
             q: 'Can I have several templates?',
@@ -215,7 +227,7 @@ export const CARD_DOCS: DocArticle[] = [
               'Dina tab anu dipikahayang, klik Tambah tina bawaan pikeun ngamimitian ti rarancang anu geus siap, atawa Templat anyar pikeun kanvas kosong.',
               'Pasihan ngaran templat, terus pilih atawa ketik ukuran kartu.',
               'Klik Unggah latar upami hayang gambar latar (PNG atawa JPEG, pangbadagna 1,5 MB).',
-              'Tambahkeun unsur tina panél kénca: Téks, Kolom data, Gambar, Poto siswa, Kode QR, Kode bar, Kotak, atawa Garis.',
+              'Tambahkeun unsur tina panél kénca: Téks, Kolom data, Gambar, Poto siswa, Kode QR, Kode bar, Kotak, Garis, atawa Tabel jadwal (husus kartu ujian).',
               'Sered unsur pikeun mindahkeun, tarik cekelan di sisina pikeun ngarobah ukuran, jeung atur rinciannana dina panél Properti di katuhu.',
               'Klik Simpen. Upami aya isian anu salah, daptar pangbenerna muncul di luhur éditor.',
             ],
@@ -250,7 +262,13 @@ export const CARD_DOCS: DocArticle[] = [
               'Klik Unduh PDF.',
             ],
             warning:
-              'Kartu ngan mintonkeun jadwal upami ujianana geus dijieun kalayan tanggal jeung jam. Kolom Rohangan masih kosong sabab can aya data rohangan dina aplikasi.',
+              'Kartu ngan mintonkeun jadwal upami ujianana geus dijieun kalayan tanggal jeung jam. Kolom Rohangan sipatna opsional: kaeusi upami sakola ngatur rohangan ujian dina ménu Ujian, jeung kosong upami henteu.',
+          },
+          {
+            heading: 'Tabel jadwal, rohangan, jeung tanda pamilon A4 (opsional)',
+            body: 'Format tanda pamilon unggal sakola béda, jadi sakabéh bagian ieu opsional sarta bisa dipasang atawa dipiceun dina éditor. Dina kartu ujian aya unsur Tabel jadwal (tombol dina panél Tambah unsur) anu kaeusi otomatis tina jadwal ujian kelas siswa. Dina panél Properti Anjeun bisa milih kolom anu dipaké (No, Poé tanggal, Poé, Tanggal, Waktu, Mata pelajaran), ngatur urutanana ku tombol panah, ngaganti judul unggal kolom (kosong = judul bawaan), ngahurungkeun atawa mareuman baris judul jeung ngagabung poé anu sarua, sarta ngarobah ukuran hurup, warna judul, jeung garis tepi. Ukuran hurup leutik otomatis upami jadwal loba, jeung ngaran mata pelajaran anu pohara panjang dipotong. Kolom data anyar pikeun kartu ujian: Alamat, Ngaran kepala sakola, jeung Kota jeung tanggal citak (ngaran kepala sakola tina pangaturan rapor). Kolom data Rohangan kaeusi tina rohangan ujian anu diatur sakola dina ménu Ujian; upami sakola teu ngatur rohangan, kolom ieu kosong jeung tinggal teu dipaké. Pikeun conto lengkep hiji kaca A4 (kop sakola, kotak rohangan, tabel jadwal, catetan suku, tanda tangan jeung QR), dina tab Kartu ujian klik Tanda pamilon A4 bawaan. Ieu ngan titik awal: sanggeus ditambahkeun, unggal bagian bisa dirobah atawa dipiceun, jeung kartu ujian bawaan 100 x 60 mm tetep jadi bawaan.',
+            tip: 'Kartu anu kagedean pikeun lambar loba kartu (saperti A4) otomatis dicitak hiji per kaca saukuran kartu. Citak PDF-na kalayan skala 100 persén.',
+            href: '/cards',
           },
           {
             heading: 'Poto siswa',
@@ -282,7 +300,7 @@ export const CARD_DOCS: DocArticle[] = [
           },
           {
             q: 'Naha PDF teu bisa dijieun pikeun kertas lambar?',
-            a: 'Kartu meureun leuwih gedé batan kertas sanggeus tepi dikurangan. Leutikan tepi kertas atawa jarak antar-kartu, atawa pilih kertas anu leuwih gedé.',
+            a: 'Kartu anu leuwih gedé batan kertas sanggeus tepi dikurangan otomatis dicitak hiji per kaca saukuran kartu. Upami hayang sababaraha kartu per lambar, leutikan tepi kertas atawa jarak antar-kartu, atawa pilih kertas anu leuwih gedé.',
           },
           {
             q: 'Naha bisa boga sababaraha templat?',

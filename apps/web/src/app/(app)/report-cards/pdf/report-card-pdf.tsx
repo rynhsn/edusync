@@ -449,7 +449,7 @@ export function ReportCardPage({
         </View>
         {view.showRank && doc.rank ? (
           <Text style={{ marginTop: 6 }}>
-            Peringkat: <Text style={styles.bold}>{doc.rank.position}</Text> dari {doc.rank.of} siswa
+            Peringkat: <Text style={styles.bold}>{doc.rank.position}</Text> dari {doc.rank.of} murid
           </Text>
         ) : null}
       </View>

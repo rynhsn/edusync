@@ -645,10 +645,10 @@ export async function admissionRoutes(instance: FastifyInstance) {
       onRequest: manage,
       schema: {
         tags,
-        summary: 'Daftar ulang: jadikan pendaftar siswa',
+        summary: 'Daftar ulang: jadikan pendaftar murid',
         description:
           'Izin: `admission:manage`; modul `admissions`. Body wajib (boleh `{}`). Hanya dari status `accepted` (409 `invalid_transition`). ' +
-          'Dalam SATU transaksi: membuat siswa (NISN bentrok: 409 `nisn_taken`), wali + tautan wali utama, ' +
+          'Dalam SATU transaksi: membuat murid (NISN bentrok: 409 `nisn_taken`), wali + tautan wali utama, ' +
           'menempatkan di kelas `classId` bila diberikan (400 `invalid_reference` bila kelas tidak ada), mengubah ' +
           'status menjadi `enrolled`, dan mengisi `studentId`. Gagal di tengah = tidak ada yang tersimpan.',
         headers: schoolHeader,
@@ -689,7 +689,7 @@ export async function admissionRoutes(instance: FastifyInstance) {
           }
           if (a.nisn) {
             const [taken] = await tx.select({ id: student.id }).from(student).where(eq(student.nisn, a.nisn));
-            if (taken) throw new HttpError(409, 'nisn_taken', 'NISN pendaftar sudah dipakai siswa lain.');
+            if (taken) throw new HttpError(409, 'nisn_taken', 'NISN pendaftar sudah dipakai murid lain.');
           }
           const [s] = await tx
             .insert(student)
@@ -746,7 +746,7 @@ export async function admissionRoutes(instance: FastifyInstance) {
         // Cadangan bila NISN bentrok lewat jalur balapan (unique constraint).
         const e = error as { code?: string; cause?: { code?: string } };
         if (e?.code === '23505' || e?.cause?.code === '23505') {
-          throw new HttpError(409, 'nisn_taken', 'NISN pendaftar sudah dipakai siswa lain.');
+          throw new HttpError(409, 'nisn_taken', 'NISN pendaftar sudah dipakai murid lain.');
         }
         throw error;
       }

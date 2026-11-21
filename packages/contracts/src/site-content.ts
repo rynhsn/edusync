@@ -129,7 +129,7 @@ const DEFAULT_FEATURES: readonly FeatureDefault[] = [
   ],
   [
     'CalendarCheck',
-    ['Absensi', 'Catat kehadiran siswa dengan cepat dan lihat rekapnya.'],
+    ['Absensi', 'Catat kehadiran murid dengan cepat dan lihat rekapnya.'],
     ['Attendance', 'Record student attendance quickly and review the summaries.'],
     ['Absénsi', 'Catet kahadiran siswa gancang tur tingali rekapna.'],
   ],
@@ -171,15 +171,15 @@ const DEFAULT_FEATURES: readonly FeatureDefault[] = [
   ],
   [
     'UserPlus',
-    ['PPDB / penerimaan siswa', 'Terima pendaftar baru secara daring dan proses seleksinya di satu tempat.'],
+    ['PPDB / penerimaan murid', 'Terima pendaftar baru secara daring dan proses seleksinya di satu tempat.'],
     ['Admissions', 'Receive new applicants online and handle selection in one place.'],
     ['PPDB / panarimaan siswa', 'Tampa pendaptar anyar sacara daring tur prosés seléksina dina hiji tempat.'],
   ],
   [
     'Users',
     [
-      'Portal wali dan siswa',
-      'Wali murid dan siswa melihat informasi yang relevan dengan akun masing-masing.',
+      'Portal wali dan murid',
+      'Wali murid dan murid melihat informasi yang relevan dengan akun masing-masing.',
     ],
     ['Parent and student portal', 'Parents and students see the information relevant to their own accounts.'],
     [

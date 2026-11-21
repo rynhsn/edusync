@@ -25,7 +25,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { SelectField } from '@/components/ui/select-field';
-import type { OrderMove } from '@/lib/cards/elements';
+import {
+  hiddenScheduleColumns,
+  moveScheduleColumn,
+  type OrderMove,
+  setScheduleHeader,
+  toggleScheduleColumn,
+} from '@/lib/cards/elements';
 import { cn } from '@/lib/utils';
 import { CheckField } from '../check-field';
 import { NumberField } from './number-field';
@@ -407,6 +413,120 @@ export function PropertiesPanel({
             />
           </Row>
         </div>
+      )}
+
+      {el.type === 'schedule' && (
+        <>
+          <p className="text-muted-foreground text-xs">{t('scheduleHint')}</p>
+          <div className="grid grid-cols-2 gap-3">
+            <Row label={t('fontSize')} htmlFor={id('fs')}>
+              <NumberField
+                id={id('fs')}
+                value={el.fontSize}
+                min={4}
+                max={40}
+                step={0.5}
+                onChange={(v) => onChange({ fontSize: v }, `${el.id}:fs`)}
+              />
+            </Row>
+            <Row label={t('color')} htmlFor={id('color')}>
+              <ColorField
+                id={id('color')}
+                label={t('color')}
+                value={el.color}
+                onChange={(v) => onChange({ color: v }, `${el.id}:color`)}
+              />
+            </Row>
+            <Row label={t('headerFill')} htmlFor={id('hfill')}>
+              <ColorField
+                id={id('hfill')}
+                label={t('headerFill')}
+                value={el.headerFill}
+                onChange={(v) => onChange({ headerFill: v }, `${el.id}:hfill`)}
+              />
+            </Row>
+            <Row label={t('borderColor')} htmlFor={id('border')}>
+              <ColorField
+                id={id('border')}
+                label={t('borderColor')}
+                value={el.borderColor}
+                onChange={(v) => onChange({ borderColor: v }, `${el.id}:border`)}
+              />
+            </Row>
+            <Row label={t('borderWidth')} htmlFor={id('bw')}>
+              <NumberField
+                id={id('bw')}
+                value={el.borderWidth}
+                min={0.1}
+                max={2}
+                step={0.1}
+                onChange={(v) => onChange({ borderWidth: v }, `${el.id}:bw`)}
+              />
+            </Row>
+          </div>
+          <CheckField checked={el.showHeader} onChange={(c) => onChange({ showHeader: c })}>
+            {t('showHeader')}
+          </CheckField>
+          <CheckField checked={el.mergeDays} onChange={(c) => onChange({ mergeDays: c })}>
+            {t('mergeDays')}
+          </CheckField>
+          <div className="grid gap-2">
+            <h4 className="text-xs font-medium">{t('columns')}</h4>
+            <p className="text-muted-foreground text-xs">{t('columnsHint')}</p>
+            <ul className="grid gap-2">
+              {[...el.columns, ...hiddenScheduleColumns(el.columns)].map((col) => {
+                const i = el.columns.indexOf(col);
+                const shown = i >= 0;
+                const state = { columns: el.columns, headers: el.headers };
+                return (
+                  <li key={col} className="grid gap-1.5 rounded-lg border p-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <CheckField
+                        checked={shown}
+                        onChange={(c) => onChange(toggleScheduleColumn(state, col, c))}
+                      >
+                        {t(`col_${col}`)}
+                      </CheckField>
+                      {shown && (
+                        <div className="flex items-center">
+                          <Button
+                            size="icon-sm"
+                            variant="ghost"
+                            aria-label={t('columnUp', { name: t(`col_${col}`) })}
+                            disabled={i === 0}
+                            onClick={() => onChange(moveScheduleColumn(state, col, -1))}
+                          >
+                            <ChevronUp className="size-4" />
+                          </Button>
+                          <Button
+                            size="icon-sm"
+                            variant="ghost"
+                            aria-label={t('columnDown', { name: t(`col_${col}`) })}
+                            disabled={i === el.columns.length - 1}
+                            onClick={() => onChange(moveScheduleColumn(state, col, 1))}
+                          >
+                            <ChevronDown className="size-4" />
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                    {shown && (
+                      <Input
+                        aria-label={t('columnTitle', { name: t(`col_${col}`) })}
+                        maxLength={30}
+                        value={el.headers?.[i] ?? ''}
+                        placeholder={t(`col_${col}`)}
+                        onChange={(e) =>
+                          onChange(setScheduleHeader(state, col, e.target.value), `${el.id}:h${col}`)
+                        }
+                      />
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        </>
       )}
 
       <div className="flex gap-2">

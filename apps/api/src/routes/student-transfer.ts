@@ -46,7 +46,7 @@ const gate = [requirePermission('student:manage')];
 const readGate = [requirePermission('student:read')];
 
 const invalidRef = (message: string) => new HttpError(400, 'invalid_reference', message);
-const studentNotFound = () => new HttpError(404, 'not_found', 'Siswa tidak ditemukan.');
+const studentNotFound = () => new HttpError(404, 'not_found', 'Murid tidak ditemukan.');
 
 const npsnField = z
   .string()
@@ -250,11 +250,11 @@ export async function studentTransferRoutes(instance: FastifyInstance) {
         tags: tag,
         summary: 'Catat mutasi keluar (pindah atau putus sekolah)',
         description:
-          'Izin: `student:manage`. Dalam satu transaksi: mencatat mutasi, mengubah status siswa menjadi `transferred` (`kind: transfer`) ' +
+          'Izin: `student:manage`. Dalam satu transaksi: mencatat mutasi, mengubah status murid menjadi `transferred` (`kind: transfer`) ' +
           'atau `dropped` (`kind: dropped`), dan membekukan dokumen rapor draf semester berjalan sebagai keterangan nilai saat pindah ' +
-          '(`departureDocument`, hanya bila modul `grades` aktif dan rapornya belum final). Enrollment tidak dihapus: rapor final siswa tetap ' +
-          'tampil di daftar rapor kelas semester yang berakhir sebelum tanggal efektif. Siswa harus aktif (409 `student_not_active`); ' +
-          'siswa berstatus pindah/keluar tanpa catatan mutasi boleh dilengkapi (tanpa dokumen keberangkatan dan tanpa larangan). ' +
+          '(`departureDocument`, hanya bila modul `grades` aktif dan rapornya belum final). Enrollment tidak dihapus: rapor final murid tetap ' +
+          'tampil di daftar rapor kelas semester yang berakhir sebelum tanggal efektif. Murid harus aktif (409 `student_not_active`); ' +
+          'murid berstatus pindah/keluar tanpa catatan mutasi boleh dilengkapi (tanpa dokumen keberangkatan dan tanpa larangan). ' +
           'Pindah sekolah pada semester genap tingkat akhir ditolak 409 `transfer_final_level_even_semester`; pemegang `school:manage` ' +
           'dapat menimpanya dengan `exceptionReason` (tanpa izin itu 403 `exception_requires_school_manage`); putus sekolah tidak terkena larangan.',
         headers: schoolHeader,
@@ -293,7 +293,7 @@ export async function studentTransferRoutes(instance: FastifyInstance) {
             throw new HttpError(
               409,
               'student_not_active',
-              'Siswa ini tidak berstatus aktif, jadi tidak dapat dimutasi.',
+              'Murid ini tidak berstatus aktif, jadi tidak dapat dimutasi.',
             );
           }
         }
@@ -361,13 +361,13 @@ export async function studentTransferRoutes(instance: FastifyInstance) {
       onRequest: gate,
       schema: {
         tags: tag,
-        summary: 'Catat mutasi masuk (siswa pindahan)',
+        summary: 'Catat mutasi masuk (murid pindahan)',
         description:
-          'Izin: `student:manage`. Membuat siswa baru (status aktif) beserta penempatan di `classId` (pada tahun ajaran kelas itu) dan ' +
+          'Izin: `student:manage`. Membuat murid baru (status aktif) beserta penempatan di `classId` (pada tahun ajaran kelas itu) dan ' +
           'catatan mutasi masuk dengan sekolah asal. Nilai sekolah asal tidak diimpor. Aturan NIS/NISN/NIK sama dengan `POST /v1/students` ' +
           '(409 `nik_taken`/`conflict`). Penempatan di kelas tingkat akhir pada semester genap ditolak 409 ' +
           '`transfer_final_level_even_semester`; pemegang `school:manage` dapat menimpanya dengan `exceptionReason` (tanpa izin itu 403 ' +
-          '`exception_requires_school_manage`). Respons memuat mutasi dan siswa.',
+          '`exception_requires_school_manage`). Respons memuat mutasi dan murid.',
         headers: schoolHeader,
         body: studentBody.omit({ status: true }).extend({
           ...transferFields,
@@ -395,7 +395,7 @@ export async function studentTransferRoutes(instance: FastifyInstance) {
         exceptionReason,
         ...person
       } = request.body;
-      const result = await nikConflictAs409('NIS atau NISN itu sudah dipakai siswa lain.', () =>
+      const result = await nikConflictAs409('NIS atau NISN itu sudah dipakai murid lain.', () =>
         tenant(request, async (tx) => {
           const [cls] = await tx
             .select({ academicYearId: classRoom.academicYearId })
@@ -454,7 +454,7 @@ export async function studentTransferRoutes(instance: FastifyInstance) {
       onRequest: readGate,
       schema: {
         tags: tag,
-        summary: 'Daftar mutasi siswa',
+        summary: 'Daftar mutasi murid',
         description:
           'Izin: `student:read`. Terbaru dulu (tanggal efektif). Filter opsional `academicYearId`, `direction` (`in`/`out`), `studentId`. ' +
           '`departureDocument` hanya ada di detail (`GET /v1/student-transfers/{id}`).',
@@ -516,8 +516,8 @@ export async function studentTransferRoutes(instance: FastifyInstance) {
       onRequest: readGate,
       schema: {
         tags: tag,
-        summary: 'Mutasi satu siswa',
-        description: 'Izin: `student:read`. Terbaru dulu. 404 `not_found` bila siswa tidak ada.',
+        summary: 'Mutasi satu murid',
+        description: 'Izin: `student:read`. Terbaru dulu. 404 `not_found` bila murid tidak ada.',
         headers: schoolHeader,
         params: idParams,
         response: { 200: z.array(transferView), 404: errorSchema, ...guarded },
@@ -578,10 +578,10 @@ export async function studentTransferRoutes(instance: FastifyInstance) {
         tags: tag,
         summary: 'Batalkan mutasi keluar',
         description:
-          'Izin: `student:manage`. Menghapus catatan mutasi keluar dan mengembalikan status siswa menjadi aktif. Hanya mutasi keluar ' +
-          'terbaru milik siswa yang statusnya masih sesuai: 409 `student_status_changed` bila status siswa sudah diubah, 409 ' +
+          'Izin: `student:manage`. Menghapus catatan mutasi keluar dan mengembalikan status murid menjadi aktif. Hanya mutasi keluar ' +
+          'terbaru milik murid yang statusnya masih sesuai: 409 `student_status_changed` bila status murid sudah diubah, 409 ' +
           '`transfer_superseded` bila ada mutasi yang lebih baru. Mutasi masuk tidak dapat dibatalkan (409 `transfer_not_cancellable`); ' +
-          'ubah status siswa bila perlu.',
+          'ubah status murid bila perlu.',
         headers: schoolHeader,
         params: idParams,
         response: { 200: ok, 404: errorSchema, 409: errorSchema, ...guarded },
@@ -595,7 +595,7 @@ export async function studentTransferRoutes(instance: FastifyInstance) {
           throw new HttpError(
             409,
             'transfer_not_cancellable',
-            'Mutasi masuk tidak dapat dibatalkan. Ubah status siswa bila perlu.',
+            'Mutasi masuk tidak dapat dibatalkan. Ubah status murid bila perlu.',
           );
         }
         const [stu] = await tx.select().from(student).where(eq(student.id, t.studentId));
@@ -604,7 +604,7 @@ export async function studentTransferRoutes(instance: FastifyInstance) {
           throw new HttpError(
             409,
             'student_status_changed',
-            'Status siswa sudah berubah sejak mutasi ini dicatat, jadi mutasi tidak dapat dibatalkan.',
+            'Status murid sudah berubah sejak mutasi ini dicatat, jadi mutasi tidak dapat dibatalkan.',
           );
         }
         const later = await tx
@@ -612,7 +612,7 @@ export async function studentTransferRoutes(instance: FastifyInstance) {
           .from(studentTransfer)
           .where(eq(studentTransfer.studentId, t.studentId));
         if (later.some((r) => r.id !== t.id && r.createdAt >= t.createdAt)) {
-          throw new HttpError(409, 'transfer_superseded', 'Ada mutasi yang lebih baru untuk siswa ini.');
+          throw new HttpError(409, 'transfer_superseded', 'Ada mutasi yang lebih baru untuk murid ini.');
         }
         await tx.delete(studentTransfer).where(eq(studentTransfer.id, t.id));
         await tx.update(student).set({ status: 'active' }).where(eq(student.id, t.studentId));
@@ -635,9 +635,9 @@ export async function studentTransferRoutes(instance: FastifyInstance) {
       onRequest: readGate,
       schema: {
         tags: tag,
-        summary: 'Riwayat akademik siswa (rombel, keputusan, rapor, mutasi)',
+        summary: 'Riwayat akademik murid (rombel, keputusan, rapor, mutasi)',
         description:
-          'Izin: `student:read`. Per tahun ajaran (terlama dulu) yang menyentuh siswa ini: rombel kini (`class`), perpindahan rombel ' +
+          'Izin: `student:read`. Per tahun ajaran (terlama dulu) yang menyentuh murid ini: rombel kini (`class`), perpindahan rombel ' +
           '(`classChanges`, dari `enrollment_change`), keputusan kenaikan/kelulusan (`decision`), status rapor per semester (`reports`), ' +
           'dan mutasi (`transfers`). Hanya tahun yang punya salah satunya.',
         headers: schoolHeader,

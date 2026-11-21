@@ -27,7 +27,7 @@ const MODULE = 'grades';
 const readGate = [requirePermission('report_card:read'), requireModule(MODULE)];
 
 export const responseWindowSchema = z.object({
-  final: z.boolean().describe('Rapor siswa itu berstatus final (syarat tanggapan)'),
+  final: z.boolean().describe('Rapor murid itu berstatus final (syarat tanggapan)'),
   finalizedAt: z.string().nullable(),
   closesAt: z.string().nullable().describe('Akhir jendela tanggapan; null = tanpa batas atau belum final'),
   open: z.boolean().describe('true bila rapor final dan jendela tanggapan belum lewat'),
@@ -54,12 +54,12 @@ export async function reportCardResponseRoutes(instance: FastifyInstance) {
       onRequest: readGate,
       schema: {
         tags: tag,
-        summary: 'Tanggapan orang tua/wali atas rapor satu siswa',
+        summary: 'Tanggapan orang tua/wali atas rapor satu murid',
         description:
           'Izin: `report_card:read`; modul `grades`. Hanya pemegang `report_card:manage`/`report_card:read_all` atau wali ' +
-          'kelas siswa itu (selain itu 403). Mengembalikan status jendela tanggapan, wali yang terhubung ke siswa, dan semua ' +
-          'tanggapan siswa itu pada semester itu (`outdated` true bila rapor sudah difinalkan ulang sesudah tanggapan ditulis). ' +
-          'Wali lain tidak pernah melihat tanggapan wali yang berbeda. 404 `not_found` bila siswa tidak terdaftar di kelas.',
+          'kelas murid itu (selain itu 403). Mengembalikan status jendela tanggapan, wali yang terhubung ke murid, dan semua ' +
+          'tanggapan murid itu pada semester itu (`outdated` true bila rapor sudah difinalkan ulang sesudah tanggapan ditulis). ' +
+          'Wali lain tidak pernah melihat tanggapan wali yang berbeda. 404 `not_found` bila murid tidak terdaftar di kelas.',
         headers: schoolHeader,
         querystring: z.object({ semesterId: z.uuid(), studentId: z.uuid() }),
         response: {
@@ -96,10 +96,10 @@ export async function reportCardResponseRoutes(instance: FastifyInstance) {
         tags: tag,
         summary: 'Salin tanggapan wali dari rapor kertas',
         description:
-          'Izin: `report_card:read`, dan pemegang `report_card:manage` atau wali kelas siswa itu (selain itu 403). Staf ' +
+          'Izin: `report_card:read`, dan pemegang `report_card:manage` atau wali kelas murid itu (selain itu 403). Staf ' +
           'menyalin tanggapan yang ditulis wali di rapor kertas atas nama wali itu (`recordedByKind` staff). Teks polos 1-1.000 ' +
           'karakter. Hanya untuk rapor FINAL (409 `report_not_final`) dan selama jendela tanggapan (409 `response_closed`). ' +
-          'Wali harus terhubung ke siswa itu (400 `invalid_reference`). 409 `guardian_response_exists` bila wali itu sudah menulis ' +
+          'Wali harus terhubung ke murid itu (400 `invalid_reference`). 409 `guardian_response_exists` bila wali itu sudah menulis ' +
           'tanggapannya sendiri lewat portal (staf tidak menimpanya). Tidak menyentuh snapshot dan tidak dijaga `report_final`.',
         headers: schoolHeader,
         body: z.object({
@@ -124,7 +124,7 @@ export async function reportCardResponseRoutes(instance: FastifyInstance) {
         const { cls } = await locate(tx, semesterId, studentId);
         if (!(await canWriteClass(tx, ctx, cls.homeroomTeacherId))) throw notAllowed();
         if (!(await isGuardianOf(tx, studentId, guardianId))) {
-          throw new HttpError(400, 'invalid_reference', 'Wali itu tidak terhubung dengan siswa ini.');
+          throw new HttpError(400, 'invalid_reference', 'Wali itu tidak terhubung dengan murid ini.');
         }
         const view = await saveResponse(tx, ctx, { semesterId, studentId, guardianId, text, kind: 'staff' });
         await audit(tx, ctx, 'report_card.response', 'report_card', studentId, {

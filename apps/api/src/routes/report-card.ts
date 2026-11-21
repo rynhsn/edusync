@@ -291,11 +291,11 @@ export async function reportCardRoutes(instance: FastifyInstance) {
         tags: tag,
         summary: 'Daftar rapor satu kelas',
         description:
-          'Izin: `report_card:read`; modul `grades`. Siswa aktif dan lulusan kelas pada tahun ajaran kelas itu (urut nama) dengan status rapor, ada tidaknya ' +
+          'Izin: `report_card:read`; modul `grades`. Murid aktif dan lulusan kelas pada tahun ajaran kelas itu (urut nama) dengan status rapor, ada tidaknya ' +
           'catatan wali kelas, rata-rata nilai akhir mapel, dan kelengkapan nilai (`subjectsGraded` dari ' +
           '`subjectsTotal`; mapel = yang punya penilaian di kelas itu pada semester itu). `cocurricularMissing: true` (sparse, ' +
           'lencana info; tidak memengaruhi finalisasi) bila rapor masih draf, rombel ikut program kokurikuler aktif yang tampil ' +
-          'di rapor, dan siswa belum punya penilaiannya. Rapor final memakai snapshot. Hanya pemegang `report_card:manage`, kepala sekolah, kurikulum, atau wali kelas itu (selain itu ' +
+          'di rapor, dan murid belum punya penilaiannya. Rapor final memakai snapshot. Hanya pemegang `report_card:manage`, kepala sekolah, kurikulum, atau wali kelas itu (selain itu ' +
           '403). Semester/kelas harus milik sekolah ini dan satu tahun ajaran (400 `invalid_reference`).',
         headers: schoolHeader,
         querystring: listQuery,
@@ -397,13 +397,13 @@ export async function reportCardRoutes(instance: FastifyInstance) {
         tags: tag,
         summary: 'Legger satu kelas',
         description:
-          'Izin: `report_card:read`; modul `grades`. Matriks siswa x mapel untuk satu kelas pada satu semester: nilai akhir, ' +
+          'Izin: `report_card:read`; modul `grades`. Matriks murid x mapel untuk satu kelas pada satu semester: nilai akhir, ' +
           'predikat, rata-rata, peringkat (hanya bila ada: pengaturan rapor menampilkan peringkat atau tertera di snapshot), ' +
-          'ketidakhadiran (sakit, izin, alpa, terlambat), status rapor, dan sumber angka. Daftar siswa sama dengan daftar rapor ' +
-          '(aktif, lulusan, dan siswa yang keluar sesudah semester berakhir). Rapor final dibaca dari snapshot (`source: snapshot`); ' +
+          'ketidakhadiran (sakit, izin, alpa, terlambat), status rapor, dan sumber angka. Daftar murid sama dengan daftar rapor ' +
+          '(aktif, lulusan, dan murid yang keluar sesudah semester berakhir). Rapor final dibaca dari snapshot (`source: snapshot`); ' +
           'draf dihitung dari nilai terkini dengan rumus yang sama dengan rapor dan rekap (`source: live`). Kolom mapel = mapel ' +
           'yang dinilai di kelas itu pada semester itu, ditambah mapel yang hanya ada di snapshot. Sel mapel yang tidak diambil ' +
-          'siswa itu (mapel pilihan) membawa `notTaken: true`; kunci itu absen bila tidak berlaku. `belowKkm: true` hanya bila ' +
+          'murid itu (mapel pilihan) membawa `notTaken: true`; kunci itu absen bila tidak berlaku. `belowKkm: true` hanya bila ' +
           'nilai di bawah KKM. `reportMode: descriptive` (hanya bila tingkat kelas bermode rapor deskriptif) menandai bahwa angka ' +
           'ini khusus staf dan tidak untuk dibagikan ke wali. Hanya pemegang `report_card:manage`, kepala sekolah, kurikulum, ' +
           'atau wali kelas itu (selain itu 403). Semester/kelas harus milik sekolah ini dan satu tahun ajaran (400 ' +
@@ -470,21 +470,21 @@ export async function reportCardRoutes(instance: FastifyInstance) {
       onRequest: readGate,
       schema: {
         tags: tag,
-        summary: 'Dokumen rapor satu siswa',
+        summary: 'Dokumen rapor satu murid',
         description:
           'Izin: `report_card:read`; modul `grades`. Rapor final dikembalikan dari snapshot saat finalisasi; rapor ' +
           'draft dihitung langsung dari nilai terkini memakai rumus yang sama dengan rekap penilaian. Mapel = yang ' +
-          'punya penilaian di kelas siswa pada semester itu; deskripsi capaian diisi otomatis dari pengaturan rapor ' +
+          'punya penilaian di kelas murid pada semester itu; deskripsi capaian diisi otomatis dari pengaturan rapor ' +
           'menurut predikat. `attendance` menghitung hari yang tercatat pada rentang semester. `rank` hanya ada bila ' +
           'pengaturan menampilkan peringkat (rata-rata sama berbagi peringkat). Hanya pemegang `report_card:manage`, ' +
-          'kepala sekolah, kurikulum, atau wali kelas siswa itu (selain itu 403). 404 `not_found` bila siswa tidak ' +
+          'kepala sekolah, kurikulum, atau wali kelas murid itu (selain itu 403). 404 `not_found` bila murid tidak ' +
           'ada atau tidak terdaftar di kelas pada tahun ajaran semester itu. Bagian v2 hanya ada bila dipakai (sparse): ' +
           '`schemaVersion` (hanya bila 2; draf membawa versi yang akan ditulis bila difinalkan), `reportMode` ' +
           '(`descriptive` bila tingkat kelas bermode deskriptif Fase A; angka tetap ada untuk staf), `cocurricularNote`, ' +
-          '`cocurricular` (penilaian kokurikuler terstruktur per program: butir, tingkat rubrik, catatan; hanya bila siswa punya ' +
+          '`cocurricular` (penilaian kokurikuler terstruktur per program: butir, tingkat rubrik, catatan; hanya bila murid punya ' +
           'penilaian pada program yang tampil di rapor; label dibekukan di snapshot; server tidak pernah mengisi `cocurricularNote` otomatis), ' +
           '`schoolNsm` (NSM madrasah untuk kop, hanya bila terisi; dibekukan di snapshot), `expertise` (bidang/program/konsentrasi keahlian untuk kop SMK, hanya bila sakelar `reportGrouped` menyala dan jurusan rombel ditautkan ke konsentrasi), `subjects[].group` (kelompok mapel beku {key,label,section}, hanya bila sakelar `reportGrouped` menyala dan mapel punya kelompok; mapel diurut per kelompok), `developmentNote` (hanya mode deskriptif), `subjects[].descriptionSource` (`manual` bila ada deskripsi manual, `objectives` bila ' +
-          'dari TP berstatus siswa itu; absen = dari predikat), `subjects[].objectives` (ringkasan TP, hanya bila ada TP berstatus) dan ' +
+          'dari TP berstatus murid itu; absen = dari predikat), `subjects[].objectives` (ringkasan TP, hanya bila ada TP berstatus) dan ' +
           '`guardianResponses` (tanggapan wali, bukan isi snapshot; terlihat staf yang berhak). Rapor final v1 dikembalikan ' +
           'persis seperti dulu.',
         headers: schoolHeader,
@@ -533,9 +533,9 @@ export async function reportCardRoutes(instance: FastifyInstance) {
         tags: tag,
         summary: 'Simpan catatan wali kelas',
         description:
-          'Izin: `report_card:read`, dan pemegang `report_card:manage` atau wali kelas siswa itu (selain itu 403). ' +
+          'Izin: `report_card:read`, dan pemegang `report_card:manage` atau wali kelas murid itu (selain itu 403). ' +
           '`note` maksimal 500 karakter; null atau teks kosong menghapus catatan. Ditolak 409 `report_final` bila ' +
-          'rapor sudah final (buka kembali dulu). 404 `not_found` bila siswa tidak terdaftar di kelas pada tahun ' +
+          'rapor sudah final (buka kembali dulu). 404 `not_found` bila murid tidak terdaftar di kelas pada tahun ' +
           'ajaran semester itu.',
         headers: schoolHeader,
         body: z.object({
@@ -595,11 +595,11 @@ export async function reportCardRoutes(instance: FastifyInstance) {
         tags: tag,
         summary: 'Simpan deskripsi kokurikuler dan catatan perkembangan',
         description:
-          'Izin: `report_card:read`, dan pemegang `report_card:manage` atau wali kelas siswa itu (selain itu 403). ' +
+          'Izin: `report_card:read`, dan pemegang `report_card:manage` atau wali kelas murid itu (selain itu 403). ' +
           '`cocurricularNote` (deskripsi kokurikuler) dan `developmentNote` (catatan perkembangan Fase A, tampil di mode ' +
           'deskriptif) maksimal 1.000 karakter; dihilangkan = tidak berubah, null atau teks kosong menghapus. Setidaknya ' +
-          'satu harus ada (400 galat validasi). Bila terisi, rapor siswa itu berversi snapshot 2 saat difinalkan. Ditolak ' +
-          '409 `report_final` bila rapor siswa itu sudah final (buka kembali dulu). 404 `not_found` bila siswa tidak ' +
+          'satu harus ada (400 galat validasi). Bila terisi, rapor murid itu berversi snapshot 2 saat difinalkan. Ditolak ' +
+          '409 `report_final` bila rapor murid itu sudah final (buka kembali dulu). 404 `not_found` bila murid tidak ' +
           'terdaftar di kelas pada tahun ajaran semester itu.',
         headers: schoolHeader,
         body: z
@@ -667,21 +667,21 @@ export async function reportCardRoutes(instance: FastifyInstance) {
         summary: 'Finalkan rapor satu kelas',
         description:
           'Izin: `report_card:read`, dan pemegang `report_card:manage` atau wali kelas kelas itu (selain itu 403). ' +
-          'Membuat atau menimpa rapor semua siswa aktif dan lulusan kelas (tahun ajaran kelas itu): dokumen rapor dibekukan sebagai snapshot dan status ' +
-          'menjadi `final`. Bila ada siswa yang belum punya nilai akhir pada sebagian mapel (atau kelas belum punya ' +
-          'penilaian sama sekali) dan `force` bukan true, ditolak 409 `grades_incomplete` dengan jumlah siswa pada ' +
+          'Membuat atau menimpa rapor semua murid aktif dan lulusan kelas (tahun ajaran kelas itu): dokumen rapor dibekukan sebagai snapshot dan status ' +
+          'menjadi `final`. Bila ada murid yang belum punya nilai akhir pada sebagian mapel (atau kelas belum punya ' +
+          'penilaian sama sekali) dan `force` bukan true, ditolak 409 `grades_incomplete` dengan jumlah murid pada ' +
           'pesan. Setiap finalisasi tersimpan di riwayat snapshot (`report_card_snapshot`), jadi snapshot lama tidak ' +
           'hilang bila rapor dibuka kembali. Finalisasi kelas pertama pada sebuah semester lebih dulu membekukan konfigurasi ' +
           'nilai semester itu (KKM, batas predikat, mode, komponen berbobot, dan KKTP) ke `semester_grading_config` sebelum dokumen ' +
           'dihitung, dan menunggu penulisan konfigurasi yang sedang berjalan (kunci per sekolah). Semester/kelas harus milik ' +
-          'sekolah ini dan satu tahun ajaran (400 `invalid_reference`). Tiap siswa memakai bagian v2 hanya bila punya ' +
+          'sekolah ini dan satu tahun ajaran (400 `invalid_reference`). Tiap murid memakai bagian v2 hanya bila punya ' +
           'deskripsi kokurikuler/perkembangan, deskripsi manual mapel, atau tingkat kelasnya bermode deskriptif: snapshot dan ' +
-          '`schema_version` siswa itu menjadi 2; siswa lain (juga di kelas yang sama) tetap v1 persis. Mode deskriptif ' +
+          '`schema_version` murid itu menjadi 2; murid lain (juga di kelas yang sama) tetap v1 persis. Mode deskriptif ' +
           '(`school_level.report_mode`): kelengkapan = setiap mapel punya deskripsi manual (bukan nilai akhir; angka tetap dihitung ' +
           'dan disimpan) dan pesan `grades_incomplete` menyebut "deskripsi"; deskripsi manual atau otomatis dari TP sama-sama ' +
           'memenuhinya. Deskripsi capaian tiap mapel dibekukan dalam bentuk teks efektif: manual (`descriptionSource: manual`) ' +
-          '> otomatis dari TP berstatus siswa itu (`objectives`, memakai pengaturan narasi sekolah, plus ringkasan ' +
-          '`subjects[].objectives`) > menurut predikat (v1 persis). Siswa yang punya TP berstatus di suatu mapel berversi ' +
+          '> otomatis dari TP berstatus murid itu (`objectives`, memakai pengaturan narasi sekolah, plus ringkasan ' +
+          '`subjects[].objectives`) > menurut predikat (v1 persis). Murid yang punya TP berstatus di suatu mapel berversi ' +
           'snapshot 2. `staleNarratives` (hanya bila > 0) = jumlah deskripsi manual yang teks otomatisnya sudah berubah sejak ' +
           'disunting; hanya peringatan, finalisasi tetap berjalan dan memakai teks manual.',
         headers: schoolHeader,
@@ -727,9 +727,9 @@ export async function reportCardRoutes(instance: FastifyInstance) {
             409,
             'grades_incomplete',
             descriptive
-              ? `${incomplete.length} siswa belum punya deskripsi capaian pada sebagian mata pelajaran. ` +
+              ? `${incomplete.length} murid belum punya deskripsi capaian pada sebagian mata pelajaran. ` +
                   'Lengkapi deskripsinya atau finalkan dengan force.'
-              : `${incomplete.length} siswa belum punya nilai akhir pada sebagian mata pelajaran. ` +
+              : `${incomplete.length} murid belum punya nilai akhir pada sebagian mata pelajaran. ` +
                   'Lengkapi nilainya atau finalkan dengan force.',
           );
         }

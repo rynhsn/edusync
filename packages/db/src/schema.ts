@@ -3743,6 +3743,54 @@ export const examType = pgTable(
   (t) => [unique('exam_type_school_name_uq').on(t.schoolId, t.name)],
 );
 
+/** Ruang ujian (opsional). `capacity` kosong = tanpa batas; CHECK > 0 dan FK komposit ada di SQL tangan 0120. */
+export const examRoom = pgTable(
+  'exam_room',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    name: text('name').notNull(),
+    capacity: integer('capacity'),
+    sort: integer('sort').notNull().default(0),
+    active: boolean('active').notNull().default(true),
+    createdAt: createdAt(),
+  },
+  (t) => [unique('exam_room_school_name_uq').on(t.schoolId, t.name)],
+);
+
+/**
+ * Penempatan siswa ke ruang untuk satu semester dan jenis ujian (satu ruang per siswa). FK komposit ke semester, jenis ujian,
+ * siswa, dan ruang (ON DELETE CASCADE) ada di SQL tangan 0120; Drizzle tidak memodelkannya.
+ */
+export const examRoomAssignment = pgTable(
+  'exam_room_assignment',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    semesterId: uuid('semester_id')
+      .notNull()
+      .references(() => semester.id),
+    examTypeId: uuid('exam_type_id')
+      .notNull()
+      .references(() => examType.id),
+    studentId: uuid('student_id')
+      .notNull()
+      .references(() => student.id),
+    roomId: uuid('room_id')
+      .notNull()
+      .references(() => examRoom.id),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    unique('exam_room_assignment_student_uq').on(t.semesterId, t.examTypeId, t.studentId),
+    index('exam_room_assignment_room_idx').on(t.schoolId, t.roomId),
+  ],
+);
+
 export interface QuestionOption {
   key: string;
   text: string;

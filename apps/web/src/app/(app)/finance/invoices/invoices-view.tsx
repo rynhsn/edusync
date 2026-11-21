@@ -374,7 +374,7 @@ export function InvoicesView() {
       const blob = await buildExport(
         'Tagihan',
         [
-          'Siswa',
+          'Murid',
           'NIS',
           'Kelas',
           'Tagihan',

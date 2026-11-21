@@ -294,11 +294,11 @@ function statusOf(r: { created: number; skipped: number; free: number; missingPl
   if (r.missingPlan > 0) {
     return {
       status: 'partial',
-      error: `${r.missingPlan} siswa belum punya tarif untuk jenis biaya ini; atur tarifnya lalu jalankan lagi.`,
+      error: `${r.missingPlan} murid belum punya tarif untuk jenis biaya ini; atur tarifnya lalu jalankan lagi.`,
     };
   }
   if (r.created + r.skipped + r.free === 0) {
-    return { status: 'partial', error: 'Tidak ada siswa aktif dalam cakupan jenis biaya ini.' };
+    return { status: 'partial', error: 'Tidak ada murid aktif dalam cakupan jenis biaya ini.' };
   }
   return { status: 'ok', error: null };
 }
@@ -336,7 +336,7 @@ async function notifyRun(
     `Sudah ada (dilewati): ${rupiahNumber(run.skipped)}`,
     ...(run.free > 0 ? [`Gratis (tarif 0): ${rupiahNumber(run.free)}`] : []),
     ...(run.missingPlan > 0
-      ? [`Siswa tanpa tarif: ${rupiahNumber(run.missingPlan)} (atur tarif lalu jalankan lagi)`]
+      ? [`Murid tanpa tarif: ${rupiahNumber(run.missingPlan)} (atur tarif lalu jalankan lagi)`]
       : []),
     '',
     ...(input.webUrl ? [`Lihat tagihan: ${input.webUrl.replace(/\/$/, '')}/finance/invoices`, ''] : []),
