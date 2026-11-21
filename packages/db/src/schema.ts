@@ -4886,3 +4886,50 @@ export const learningPlanObjective = pgTable(
   },
   (t) => [primaryKey({ columns: [t.planId, t.objectiveId], name: 'learning_plan_objective_pk' })],
 );
+
+/**
+ * Jurnal mengajar (tahap 3.6.2): ringkasan materi satu jam pelajaran pada satu tanggal, opsional per sekolah
+ * (`learning_plan_setting.journal_enabled`). Satu baris per (sel jadwal, tanggal). `actualTeacherId` = guru pengganti yang
+ * mengisi. FK komposit (sel CASCADE, perencanaan SET NULL, guru) dan CHECK panjang ada di SQL tangan 0123.
+ */
+export const lessonJournal = pgTable(
+  'lesson_journal',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    scheduleEntryId: uuid('schedule_entry_id')
+      .notNull()
+      .references(() => scheduleEntry.id),
+    date: date('date').notNull(),
+    topic: text('topic').notNull(),
+    note: text('note'),
+    planId: uuid('plan_id').references(() => learningPlan.id),
+    actualTeacherId: uuid('actual_teacher_id').references(() => teacher.id),
+    recordedBy: text('recorded_by').notNull(),
+    createdAt: createdAt(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique('lesson_journal_uq').on(t.scheduleEntryId, t.date),
+    index('lesson_journal_school_date_idx').on(t.schoolId, t.date),
+  ],
+);
+
+/** Relasi jurnal - TP (ternormalisasi). Jurnal CASCADE, TP NO ACTION; FK komposit di SQL tangan 0123. */
+export const lessonJournalObjective = pgTable(
+  'lesson_journal_objective',
+  {
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    journalId: uuid('journal_id')
+      .notNull()
+      .references(() => lessonJournal.id),
+    objectiveId: uuid('objective_id')
+      .notNull()
+      .references(() => learningObjective.id),
+  },
+  (t) => [primaryKey({ columns: [t.journalId, t.objectiveId], name: 'lesson_journal_objective_pk' })],
+);

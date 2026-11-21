@@ -862,6 +862,13 @@
       "when": 1798853400000,
       "tag": "0122_learning_plan",
       "breakpoints": true
+    },
+    {
+      "idx": 123,
+      "version": "7",
+      "when": 1798939800000,
+      "tag": "0123_lesson_journal",
+      "breakpoints": true
     }
   ]
 }

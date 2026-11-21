@@ -2548,6 +2548,20 @@ export const ACADEMIC_DOCS: DocArticle[] = [
             warning: 'Pilihan yang tidak dibawa harus diisi ulang di tab Mapel dan peserta kelas tujuan.',
           },
           {
+            heading: 'Jurnal mengajar (opsional)',
+            body: 'Jurnal mengajar adalah catatan singkat materi yang diajarkan pada satu jam pelajaran: materi, catatan atau kendala, perencanaan terkait, dan TP yang tercapai. Fitur ini mati bawaan. Admin sekolah atau kurikulum menyalakannya per sekolah di Perangkat ajar saya (tab Perencanaan, centang Nyalakan jurnal mengajar). Setelah menyala, lembar Absensi per jam memiliki bagian lipat Jurnal di bawah daftar murid, yang disimpan sendiri dan terpisah dari absensi. Jurnal tidak wajib, tidak ada pengingat, tidak diblokir rapor final, dan tidak terlihat oleh murid maupun wali. Pada pertemuan gabungan, satu kali simpan menuliskan jurnal yang sama ke jam tiap kelas. Bila yang mengisi guru pengganti atau guru piket, jurnal ditandai dengan namanya. Sekolah yang tidak menyalakan sakelar ini tidak melihat perubahan apa pun.',
+            steps: [
+              'Buka Absensi per jam, pilih tanggal, lalu buka lembar sebuah jam.',
+              'Buka bagian Jurnal mengajar di bawah daftar murid.',
+              'Isi materi (wajib untuk menyimpan), lalu catatan, perencanaan terkait, dan TP bila perlu.',
+              'Klik Simpan jurnal. Klik Hapus jurnal untuk menghapusnya.',
+            ],
+            href: '/lessons',
+            tip: 'Memilih perencanaan terkait otomatis memilih TP milik perencanaan itu; Anda masih bisa menambah atau mengurangi TP (maksimal 10).',
+            warning:
+              'Hanya guru jam itu, guru piket hari itu, atau pengurus absensi yang boleh mengisi jurnal. Tanggal yang belum tiba atau hari libur ditolak, sama seperti absensi.',
+          },
+          {
             heading: 'Jadwal paralel dan kelas gabungan',
             body: 'Mapel pilihan sering berjalan bersamaan: murid yang memilih Fisika belajar di satu ruang sementara yang memilih Kimia di ruang lain pada jam yang sama. Di halaman Jadwal pelajaran, buka sel kelas lalu klik Tambah jalur paralel untuk menaruh mapel pilihan lain di jam yang sama; tiap jalur punya guru pengampunya sendiri. Jalur paralel hanya bisa diisi mapel yang sudah ditandai sebagai pilihan di kelas itu, dan seorang guru tetap tidak bisa mengajar dua jalur pada jam yang sama. Bila satu guru mengajar mapel pilihan yang sama untuk beberapa kelas sekaligus (kelas gabungan), centang Pertemuan gabungan dengan kelas lain di sel itu lalu pilih kelas lain yang jamnya sama; guru tidak dianggap bentrok untuk pertemuan gabungan itu.',
             steps: [
@@ -2676,6 +2690,20 @@ export const ACADEMIC_DOCS: DocArticle[] = [
               'Choices that were not carried must be entered again in the target class Subjects and participants tab.',
           },
           {
+            heading: 'Teaching journal (optional)',
+            body: 'The teaching journal is a short record of what was taught in one lesson: topic, notes or obstacles, a related lesson plan, and the TP covered. It is off by default. The school admin or curriculum lead turns it on per school in My teaching materials (Lesson plans tab, tick Turn on teaching journal). Once on, the per-lesson Attendance sheet gets a collapsible Journal section under the student list, saved on its own and separate from attendance. The journal is not mandatory, has no reminders, is not blocked by a final report card, and is not visible to students or guardians. For a combined meeting, one save writes the same journal to each class lesson. When a substitute or duty teacher fills it in, the journal is marked with their name. Schools that leave this switch off see no change at all.',
+            steps: [
+              'Open Per-period attendance, pick the date, then open the sheet of a lesson.',
+              'Open the Teaching journal section under the student list.',
+              'Fill in the topic (required to save), then notes, related lesson plan, and TP if needed.',
+              'Click Save journal. Click Delete journal to remove it.',
+            ],
+            href: '/lessons',
+            tip: 'Choosing a related lesson plan automatically selects the TP of that plan; you can still add or remove TP (up to 10).',
+            warning:
+              'Only the teacher of that lesson, the duty teacher of the day, or an attendance manager can fill in the journal. Future dates and closure days are rejected, same as attendance.',
+          },
+          {
             heading: 'Parallel schedule and combined classes',
             body: 'Elective subjects often run at the same time: students who chose Physics study in one room while those who chose Chemistry study in another during the same period. On the Lesson schedule page, open a class cell and click Add parallel lane to put another elective subject in the same period; each lane has its own teacher. A parallel lane can only hold subjects already marked as electives in that class, and one teacher still cannot teach two lanes in the same period. When one teacher teaches the same elective for several classes at once (a combined class), tick Combined meeting with other classes in that cell and pick the other class with the same period; the teacher is not treated as double-booked for that combined meeting.',
             steps: [
@@ -2801,6 +2829,20 @@ export const ACADEMIC_DOCS: DocArticle[] = [
             href: '/promotion',
             tip: 'Murid kelas X can boga pilihan pikeun dibawa; pilihanana diaranan anyar di kelas XI.',
             warning: 'Pilihan anu henteu dibawa kudu diisi deui dina tab Mapel jeung pamilon kelas tujuan.',
+          },
+          {
+            heading: 'Jurnal ngajar (opsional)',
+            body: 'Jurnal ngajar téh catetan ringkes matéri nu diajarkeun dina hiji jam pelajaran: matéri, catetan atawa kandala, rencana pangajaran patali, jeung TP nu kahontal. Fitur ieu pareum sacara baku. Admin sakola atawa kurikulum ngaktipkeunana per sakola di Parabot ngajar kuring (tab Rencana pangajaran, centang Aktipkeun jurnal ngajar). Saatos aktip, lembar Absénsi per jam boga bagian lipet Jurnal handapeun daptar murid, disimpen sorangan jeung dipisah tina absénsi. Jurnal teu wajib, taya panginget, teu diblokir rapor final, jeung teu katingali ku murid atawa wali. Dina patepungan gabungan, sakali simpen nuliskeun jurnal anu sarua kana jam unggal kelas. Upami nu ngeusian guru pengganti atawa guru piket, jurnal ditandaan ku ngaranna. Sakola nu teu ngaktipkeun sakelar ieu teu aya parobahan.',
+            steps: [
+              'Buka Absénsi per jam, pilih tanggal, tuluy buka lembar hiji jam.',
+              'Buka bagian Jurnal ngajar handapeun daptar murid.',
+              'Eusian matéri (wajib pikeun nyimpen), tuluy catetan, rencana pangajaran patali, jeung TP upami perlu.',
+              'Klik Simpen jurnal. Klik Hapus jurnal pikeun mupus.',
+            ],
+            href: '/lessons',
+            tip: 'Milih rencana pangajaran patali otomatis milih TP rencana éta; Anjeun masih bisa nambahan atawa ngurangan TP (maksimal 10).',
+            warning:
+              'Ngan guru jam éta, guru piket poé éta, atawa pangurus absénsi nu meunang ngeusian jurnal. Tanggal nu can datang atawa poé libur ditolak, sarua jeung absénsi.',
           },
           {
             heading: 'Jadwal paralel jeung kelas gabungan',

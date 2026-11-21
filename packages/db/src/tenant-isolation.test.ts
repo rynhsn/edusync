@@ -19,6 +19,9 @@ import {
   learningPlan,
   learningPlanObjective,
   learningPlanSetting,
+  lessonJournal,
+  lessonJournalObjective,
+  lessonPeriod,
   msgAttachment,
   msgBatch,
   msgDirectTemplate,
@@ -29,6 +32,7 @@ import {
   pklPlacement,
   program,
   programConcentration,
+  scheduleEntry,
   school,
   schoolIdentifier,
   schoolProfileItem,
@@ -1232,6 +1236,148 @@ describe('tabel tenant perencanaan pembelajaran (tahap 3.6.1, migrasi 0122)', ()
         await platform.db.delete(learningOutcome).where(eq(learningOutcome.schoolId, sid));
         await platform.db.delete(teacher).where(eq(teacher.schoolId, sid));
         await platform.db.delete(subject).where(eq(subject.schoolId, sid));
+      }
+    }
+  });
+});
+
+describe('tabel tenant jurnal mengajar (tahap 3.6.2, migrasi 0123)', () => {
+  it('jurnal dan relasi TP terisolasi; FK komposit, unik per sel+tanggal, SET NULL perencanaan, CASCADE sel', async () => {
+    const seed = async (sid: string, n: number) => {
+      const [year] = await platform.db
+        .insert(academicYear)
+        .values({ schoolId: sid, name: `Jurnal ${run}`, startsOn: '2026-07-13', endsOn: '2027-06-30' })
+        .returning();
+      const [subj] = await platform.db
+        .insert(subject)
+        .values({ schoolId: sid, code: `JR${n}`, name: `Mapel ${n}` })
+        .returning();
+      const [tch] = await platform.db
+        .insert(teacher)
+        .values({ schoolId: sid, name: `Guru ${n}` })
+        .returning();
+      const [cls] = await platform.db
+        .insert(classRoom)
+        .values({ schoolId: sid, academicYearId: year!.id, name: `7${n}`, level: '7' })
+        .returning();
+      const [per] = await platform.db
+        .insert(lessonPeriod)
+        .values({ schoolId: sid, number: 1, startsAt: '07:00', endsAt: '07:40' })
+        .returning();
+      const [ent] = await platform.db
+        .insert(scheduleEntry)
+        .values({
+          schoolId: sid,
+          academicYearId: year!.id,
+          classId: cls!.id,
+          subjectId: subj!.id,
+          teacherId: tch!.id,
+          weekday: 1,
+          periodId: per!.id,
+        })
+        .returning();
+      const [cp] = await platform.db
+        .insert(learningOutcome)
+        .values({ schoolId: sid, subjectId: subj!.id, phase: 'D', description: 'CP' })
+        .returning();
+      const [tp] = await platform.db
+        .insert(learningObjective)
+        .values({ schoolId: sid, outcomeId: cp!.id, description: 'TP' })
+        .returning();
+      const [pl] = await platform.db
+        .insert(learningPlan)
+        .values({
+          schoolId: sid,
+          subjectId: subj!.id,
+          academicYearId: year!.id,
+          title: 'Rencana',
+          goals: 'g',
+          steps: 's',
+          assessmentPlan: 'a',
+        })
+        .returning();
+      const journal = (extra: Partial<typeof lessonJournal.$inferInsert> = {}) => ({
+        schoolId: sid,
+        scheduleEntryId: ent!.id,
+        date: '2026-10-12',
+        topic: 'Materi',
+        recordedBy: 'uji',
+        ...extra,
+      });
+      const [j] = await platform.db
+        .insert(lessonJournal)
+        .values(journal({ planId: pl!.id }))
+        .returning();
+      await platform.db
+        .insert(lessonJournalObjective)
+        .values({ schoolId: sid, journalId: j!.id, objectiveId: tp!.id });
+      return { ent: ent!.id, tch: tch!.id, tp: tp!.id, plan: pl!.id, j: j!.id, make: journal };
+    };
+    const a = await seed(schoolA1, 1);
+    const b = await seed(schoolB, 2);
+    try {
+      for (const t of [lessonJournal, lessonJournalObjective] as const) {
+        const rows = await withTenant(app.db, [schoolA1], (tx) => tx.select().from(t));
+        expect(rows.map((r) => r.schoolId)).toEqual([schoolA1]);
+        expect(await app.db.select().from(t)).toHaveLength(0);
+      }
+      // Tulis lintas sekolah ditolak RLS.
+      await expect(
+        withTenant(app.db, [schoolA1], (tx) =>
+          tx.insert(lessonJournal).values(b.make({ date: '2026-10-19' })),
+        ),
+      ).rejects.toThrow();
+      // FK komposit: sel, perencanaan, guru pengganti, dan TP sekolah B tidak boleh dipakai jurnal sekolah A walau id valid.
+      await expect(
+        platform.db.insert(lessonJournal).values(a.make({ date: '2026-10-19', scheduleEntryId: b.ent })),
+      ).rejects.toThrow();
+      await expect(
+        platform.db.insert(lessonJournal).values(a.make({ date: '2026-10-19', planId: b.plan })),
+      ).rejects.toThrow();
+      await expect(
+        platform.db.insert(lessonJournal).values(a.make({ date: '2026-10-19', actualTeacherId: b.tch })),
+      ).rejects.toThrow();
+      await expect(
+        platform.db
+          .insert(lessonJournalObjective)
+          .values({ schoolId: schoolA1, journalId: a.j, objectiveId: b.tp }),
+      ).rejects.toThrow();
+      // Unik per (sel, tanggal); CHECK topik kosong/terlalu panjang.
+      await expect(platform.db.insert(lessonJournal).values(a.make())).rejects.toThrow();
+      await expect(
+        platform.db.insert(lessonJournal).values(a.make({ date: '2026-10-19', topic: '' })),
+      ).rejects.toThrow();
+      await expect(
+        platform.db.insert(lessonJournal).values(a.make({ date: '2026-10-19', topic: 'x'.repeat(201) })),
+      ).rejects.toThrow();
+      // Perencanaan dihapus: jurnal tetap, hanya plan_id yang dikosongkan.
+      await platform.db.delete(learningPlan).where(eq(learningPlan.id, a.plan));
+      const [kept] = await platform.db.select().from(lessonJournal).where(eq(lessonJournal.id, a.j));
+      expect(kept).toMatchObject({ schoolId: schoolA1, planId: null });
+      // Sel jadwal dihapus: jurnal dan relasi TP ikut terhapus.
+      await platform.db.delete(scheduleEntry).where(eq(scheduleEntry.id, a.ent));
+      expect(
+        await platform.db.select().from(lessonJournal).where(eq(lessonJournal.schoolId, schoolA1)),
+      ).toHaveLength(0);
+      expect(
+        await platform.db
+          .select()
+          .from(lessonJournalObjective)
+          .where(eq(lessonJournalObjective.schoolId, schoolA1)),
+      ).toHaveLength(0);
+    } finally {
+      for (const sid of [schoolA1, schoolB]) {
+        await platform.db.delete(lessonJournalObjective).where(eq(lessonJournalObjective.schoolId, sid));
+        await platform.db.delete(lessonJournal).where(eq(lessonJournal.schoolId, sid));
+        await platform.db.delete(learningPlan).where(eq(learningPlan.schoolId, sid));
+        await platform.db.delete(scheduleEntry).where(eq(scheduleEntry.schoolId, sid));
+        await platform.db.delete(lessonPeriod).where(eq(lessonPeriod.schoolId, sid));
+        await platform.db.delete(learningObjective).where(eq(learningObjective.schoolId, sid));
+        await platform.db.delete(learningOutcome).where(eq(learningOutcome.schoolId, sid));
+        await platform.db.delete(classRoom).where(eq(classRoom.schoolId, sid));
+        await platform.db.delete(teacher).where(eq(teacher.schoolId, sid));
+        await platform.db.delete(subject).where(eq(subject.schoolId, sid));
+        await platform.db.delete(academicYear).where(eq(academicYear.schoolId, sid));
       }
     }
   });

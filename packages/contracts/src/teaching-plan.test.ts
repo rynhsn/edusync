@@ -6,6 +6,9 @@ import {
   isValidFlowQuantity,
   isValidPlanLink,
   MAX_FLOW_ITEMS,
+  MAX_JOURNAL_NOTE,
+  MAX_JOURNAL_OBJECTIVES,
+  MAX_JOURNAL_TOPIC,
   PHASES,
   phaseForGrade,
   phaseForLevelCode,
@@ -81,5 +84,11 @@ describe('tautan perencanaan', () => {
       expect(isValidPlanLink(bad)).toBe(false);
     }
     expect(isValidPlanLink(`https://a.com/${'x'.repeat(500)}`)).toBe(false);
+  });
+});
+
+describe('batas jurnal mengajar', () => {
+  it('topik 200, catatan 2000, TP 10 (sama dengan CHECK migrasi 0123 dan skema API)', () => {
+    expect([MAX_JOURNAL_TOPIC, MAX_JOURNAL_NOTE, MAX_JOURNAL_OBJECTIVES]).toEqual([200, 2000, 10]);
   });
 });

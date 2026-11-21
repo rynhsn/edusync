@@ -40,22 +40,23 @@ interface PlanRow {
   objectives: { id: string; code: string | null; description: string; active: boolean }[];
 }
 
-/** Sakelar perencanaan untuk admin dan kurikulum (`curriculum:manage`); tiga sakelar lainnya dipakai tahap berikutnya. */
-function PlanSwitch({ enabled }: { enabled: boolean }) {
+/** Satu sakelar fitur sekolah (`curriculum:manage`): perencanaan atau jurnal mengajar; sakelar penilaian proses dipakai tahap berikutnya. */
+function FeatureSwitch({ field, enabled }: { field: 'planEnabled' | 'journalEnabled'; enabled: boolean }) {
   const t = useTranslations('teachingPlan');
   const te = useTranslations();
   const { school } = useSchool();
   const queryClient = useQueryClient();
+  const key = field === 'planEnabled' ? 'plan' : 'journal';
   const save = useMutation({
-    mutationFn: async (planEnabled: boolean) =>
+    mutationFn: async (value: boolean) =>
       unwrap(
         await api.PUT('/v1/learning-plan/settings', {
           params: { header: schoolHeader(school.schoolId) },
-          body: { planEnabled },
+          body: { [field]: value },
         }),
       ),
     onSuccess: () => {
-      toast.success(t('planSwitchSaved'));
+      toast.success(t(`${key}SwitchSaved`));
       queryClient.invalidateQueries({ queryKey: ['learning-plan-settings'] });
       queryClient.invalidateQueries({ queryKey: ['learning-plans'] });
     },
@@ -63,19 +64,19 @@ function PlanSwitch({ enabled }: { enabled: boolean }) {
   });
   return (
     <label
-      htmlFor="tp-plan-switch"
+      htmlFor={`tp-${key}-switch`}
       className="bg-card flex min-h-11 cursor-pointer items-start gap-3 rounded-2xl border p-4"
     >
       <Checkbox
-        id="tp-plan-switch"
+        id={`tp-${key}-switch`}
         className="mt-0.5"
         checked={enabled}
         disabled={save.isPending}
         onCheckedChange={(v) => save.mutate(v === true)}
       />
       <span className="grid gap-1">
-        <span className="text-sm font-medium">{t('planSwitchLabel')}</span>
-        <span className="text-muted-foreground text-xs">{t('planSwitchHelp')}</span>
+        <span className="text-sm font-medium">{t(`${key}SwitchLabel`)}</span>
+        <span className="text-muted-foreground text-xs">{t(`${key}SwitchHelp`)}</span>
       </span>
     </label>
   );
@@ -167,7 +168,12 @@ export function PlansPanel({
         )}
       </div>
 
-      {manager && settings.data && <PlanSwitch enabled={enabled} />}
+      {manager && settings.data && (
+        <div className="grid gap-3">
+          <FeatureSwitch field="planEnabled" enabled={enabled} />
+          <FeatureSwitch field="journalEnabled" enabled={settings.data.journalEnabled} />
+        </div>
+      )}
       {settings.isPending && <ListSkeleton rows={1} stats={0} />}
       {!enabled && settings.data && !manager && (
         <EmptyPanel

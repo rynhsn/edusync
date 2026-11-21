@@ -38,7 +38,12 @@ const gate = [requirePermission('attendance:read'), requireModule('attendance')]
  * Siapa boleh mengisi absensi satu jam pelajaran: pengurus (`attendance:configure`), guru yang tertulis di jadwal itu,
  * atau guru piket hari itu (menggantikan). `substitute` menandai pengisian oleh bukan guru jadwal.
  */
-async function authorizeLesson(tx: Tx, ctx: TenantContext, entry: { teacherId: string }, date: string) {
+export async function authorizeLesson(
+  tx: Tx,
+  ctx: TenantContext,
+  entry: { teacherId: string },
+  date: string,
+) {
   const [mine] = await tx.select({ id: teacher.id }).from(teacher).where(eq(teacher.memberId, ctx.memberId));
   const isOwner = mine?.id === entry.teacherId;
   if (isOwner) return { allowed: true, substitute: false };
@@ -71,7 +76,7 @@ type CombinedCell = LessonCell & {
  * Sel-sel satu pertemuan gabungan pada satu tanggal. 404 bila kuncinya tidak punya sel; 400 `invalid_date` bila tidak ada sel yang
  * hari jadwalnya sama dengan tanggal itu atau berlaku pada tanggal itu. `head` = sel pertama (guru, mapel, jam sama di semua sel).
  */
-async function combinedCells(tx: Tx, combinedKey: string, date: string) {
+export async function combinedCells(tx: Tx, combinedKey: string, date: string) {
   const rows: CombinedCell[] = await tx
     .select({
       id: scheduleEntry.id,

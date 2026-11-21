@@ -67,6 +67,7 @@ import { invitationRoutes } from './routes/invitations';
 import { learningPlanRoutes } from './routes/learning-plan';
 import { learningSupportRoutes } from './routes/learning-support';
 import { lessonAttendanceRoutes } from './routes/lesson-attendance';
+import { lessonJournalRoutes } from './routes/lesson-journal';
 import { letterRoutes } from './routes/letters';
 import { liveRoutes } from './routes/live';
 import { meRoutes } from './routes/me';
@@ -358,6 +359,7 @@ export async function buildApp(env: Env, deps: { dns?: DomainDns } = {}) {
   await app.register(curriculumStructureRoutes);
   await app.register(teachingPlanRoutes);
   await app.register(learningPlanRoutes);
+  await app.register(lessonJournalRoutes);
   await app.register(achievementCriteriaRoutes);
   await app.register(guardianRoutes);
   await app.register(studentImportRoutes);

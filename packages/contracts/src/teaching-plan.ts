@@ -77,3 +77,8 @@ export const MAX_PLAN_LINK = 500;
 export function isValidPlanLink(value: string): boolean {
   return value.length <= MAX_PLAN_LINK && /^https:\/\/[^\s/?#]+[^\s]*$/.test(value);
 }
+
+/** Jurnal mengajar (tahap 3.6.2): batas topik, catatan, dan jumlah TP per jurnal. */
+export const MAX_JOURNAL_TOPIC = 200;
+export const MAX_JOURNAL_NOTE = 2000;
+export const MAX_JOURNAL_OBJECTIVES = 10;

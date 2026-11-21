@@ -17,6 +17,7 @@ import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
 import { nowHm as schoolNowHm, todayIso } from '@/lib/school-time';
 import { cn } from '@/lib/utils';
+import { JournalSection } from './journal-section';
 
 const STATUSES = ['present', 'excused', 'sick', 'absent'] as const;
 type Status = (typeof STATUSES)[number];
@@ -194,6 +195,7 @@ function LessonSheet({ entryId, date, onClose }: { entryId: string; date: string
         ))}
       </ul>
       {dirty && <p className="text-muted-foreground text-sm">{ta('unsaved')}</p>}
+      <JournalSection target={{ scheduleEntryId: entryId }} date={date} />
     </section>
   );
 }
@@ -340,6 +342,7 @@ function CombinedSheet({
         );
       })}
       {dirty && <p className="text-muted-foreground text-sm">{ta('unsaved')}</p>}
+      <JournalSection target={{ combinedKey }} date={date} />
     </section>
   );
 }

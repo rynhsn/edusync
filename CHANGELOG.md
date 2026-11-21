@@ -18,6 +18,14 @@ Cara merilis: tulis bagian baru di bawah "Belum dirilis" lalu ganti judulnya men
 
 ### Ditambahkan
 
+- **Jurnal mengajar (opsional, tahap 3.6.2)**: lembar Absensi per jam (satu jam dan pertemuan gabungan) memiliki bagian lipat Jurnal untuk
+  mencatat materi (wajib untuk menyimpan), catatan atau kendala, perencanaan terkait, dan maksimal 10 TP. Mati bawaan: dinyalakan
+  per sekolah lewat sakelar jurnal yang sudah ada di `learning_plan_setting` (kotak baru di tab Perencanaan, izin `curriculum:manage`).
+  Endpoint baru `GET/PUT/DELETE /v1/lesson-journals` (modul `attendance`, izin sama dengan absensi jam itu: guru jadwal, guru piket,
+  atau `attendance:configure`; guru pengganti dicatat) menjawab 403 `feature_disabled` selama sakelar mati. Tidak wajib, tanpa
+  pengingat, tidak diblokir rapor final, tidak terlihat portal murid/wali; pertemuan gabungan menulis jurnal yang sama ke tiap sel.
+  `GET /v1/lesson-attendance` dan sekolah tanpa sakelar tidak berubah. Tabel `lesson_journal` dan `lesson_journal_objective` (RLS,
+  FK komposit); migrasi 0123 (aditif, juga menambah `UNIQUE (school_id, id)` pada `schedule_entry`).
 - **Perencanaan pembelajaran (opsional, tahap 3.6.1)**: tab Perencanaan di Perangkat ajar saya untuk menyusun tujuan, langkah, dan
   asesmen per mata pelajaran dan tahun ajaran (boleh khusus satu semester atau tingkat), dengan tautan https ke berkas
   pendukung dan maksimal 20 TP terkait. Mati bawaan: admin sekolah atau kurikulum menyalakannya per sekolah lewat sakelar baru

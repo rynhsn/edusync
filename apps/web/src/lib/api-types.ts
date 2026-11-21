@@ -70675,6 +70675,363 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/lesson-journals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Jurnal mengajar satu jam pelajaran
+         * @description Izin: `attendance:read`. Sakelar jurnal sekolah harus hidup (403 `feature_disabled`); modul `attendance`. Sasaran: tepat satu dari `scheduleEntryId` (satu jam) atau `combinedKey` (pertemuan gabungan; satu jurnal per sel), selain itu 400 `invalid_target`. Mengembalikan jurnal tanggal itu (`null` bila belum ada; untuk pertemuan gabungan, jurnal sel pertama), pilihan perencanaan mapel itu pada tahun ajaran sel (kosong bila sakelar perencanaan mati) dan TP aktif mapel itu untuk dipilih. `canRecord` dan `substitute` seperti pada absensi satu jam. Tidak terlihat oleh portal murid/wali.
+         */
+        get: {
+            parameters: {
+                query: {
+                    scheduleEntryId?: string;
+                    /** @description Pertemuan gabungan: ditulis ke setiap sel */
+                    combinedKey?: string;
+                    date: string;
+                };
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            date: string;
+                            canRecord: boolean;
+                            substitute: boolean;
+                            subjectName: string;
+                            journal: {
+                                /** Format: uuid */
+                                id: string;
+                                topic: string;
+                                note: string | null;
+                                /** Format: uuid */
+                                planId: string | null;
+                                objectiveIds: string[];
+                                /** @description Guru pengganti yang mengisi; kosong bila guru jadwal */
+                                actualTeacherName: string | null;
+                                updatedAt: string;
+                            } | null;
+                            plans: {
+                                /** Format: uuid */
+                                id: string;
+                                title: string;
+                                objectiveIds: string[];
+                            }[];
+                            objectives: {
+                                /** Format: uuid */
+                                id: string;
+                                code: string | null;
+                                description: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        /**
+         * Simpan jurnal mengajar satu jam pelajaran
+         * @description Izin: `attendance:read` ditambah salah satu: guru jadwal itu, guru piket hari ini (menggantikan; guru pengganti dicatat sebagai `actualTeacherName`), atau `attendance:configure`; selain itu 403 `not_your_lesson`. Sakelar jurnal sekolah harus hidup (403 `feature_disabled`); modul `attendance`. Sasaran: tepat satu dari `scheduleEntryId` (satu jam) atau `combinedKey` (pertemuan gabungan; satu jurnal per sel), selain itu 400 `invalid_target`. Upsert per sel dan tanggal; pertemuan gabungan menulis jurnal yang sama ke setiap sel. Aturan tanggal sama dengan PUT absensi (400 `invalid_date`, 409 `future_date`, 409 `school_closed`). Hanya `topic` wajib; `planId` harus perencanaan mapel dan tahun ajaran sel itu (400 `invalid_reference`); `objectiveIds` maks 10 TP aktif milik mapel (400 `objective_subject_mismatch`, `objective_inactive`, `invalid_reference`) dan mengganti seluruh himpunan. Tidak diblokir rapor final dan tidak diwajibkan sebelum absensi. Audit `lesson_journal.save`.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        scheduleEntryId?: string;
+                        /**
+                         * Format: uuid
+                         * @description Pertemuan gabungan: ditulis ke setiap sel
+                         */
+                        combinedKey?: string;
+                        /** Format: date */
+                        date: string;
+                        topic: string;
+                        /** @default null */
+                        note?: string | null;
+                        /**
+                         * Format: uuid
+                         * @default null
+                         */
+                        planId?: string | null;
+                        /** @default [] */
+                        objectiveIds?: string[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            substitute: boolean;
+                            cells: number;
+                            journal: {
+                                /** Format: uuid */
+                                id: string;
+                                topic: string;
+                                note: string | null;
+                                /** Format: uuid */
+                                planId: string | null;
+                                objectiveIds: string[];
+                                /** @description Guru pengganti yang mengisi; kosong bila guru jadwal */
+                                actualTeacherName: string | null;
+                                updatedAt: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        /**
+         * Hapus jurnal mengajar satu jam pelajaran
+         * @description Izin: `attendance:read` ditambah aturan pengisi yang sama dengan PUT (403 `not_your_lesson`). Sakelar jurnal sekolah harus hidup (403 `feature_disabled`); modul `attendance`. Sasaran: tepat satu dari `scheduleEntryId` (satu jam) atau `combinedKey` (pertemuan gabungan; satu jurnal per sel), selain itu 400 `invalid_target`. Untuk pertemuan gabungan jurnal semua sel dihapus. Tidak ada jurnal: 404 `not_found`. Audit `lesson_journal.delete`.
+         */
+        delete: {
+            parameters: {
+                query: {
+                    scheduleEntryId?: string;
+                    /** @description Pertemuan gabungan: ditulis ke setiap sel */
+                    combinedKey?: string;
+                    date: string;
+                };
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: true;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/achievement-criteria": {
         parameters: {
             query?: never;

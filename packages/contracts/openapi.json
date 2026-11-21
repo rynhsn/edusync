@@ -162969,6 +162969,849 @@
         }
       }
     },
+    "/v1/lesson-journals": {
+      "get": {
+        "summary": "Jurnal mengajar satu jam pelajaran",
+        "tags": [
+          "Lesson attendance"
+        ],
+        "description": "Izin: `attendance:read`. Sakelar jurnal sekolah harus hidup (403 `feature_disabled`); modul `attendance`. Sasaran: tepat satu dari `scheduleEntryId` (satu jam) atau `combinedKey` (pertemuan gabungan; satu jurnal per sel), selain itu 400 `invalid_target`. Mengembalikan jurnal tanggal itu (`null` bila belum ada; untuk pertemuan gabungan, jurnal sel pertama), pilihan perencanaan mapel itu pada tahun ajaran sel (kosong bila sakelar perencanaan mati) dan TP aktif mapel itu untuk dipilih. `canRecord` dan `substitute` seperti pada absensi satu jam. Tidak terlihat oleh portal murid/wali.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "query",
+            "name": "scheduleEntryId",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "query",
+            "name": "combinedKey",
+            "required": false,
+            "description": "Pertemuan gabungan: ditulis ke setiap sel"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+            },
+            "in": "query",
+            "name": "date",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "header",
+            "name": "x-school-id",
+            "required": true,
+            "description": "Sekolah yang sedang dipakai"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "date": {
+                      "type": "string"
+                    },
+                    "canRecord": {
+                      "type": "boolean"
+                    },
+                    "substitute": {
+                      "type": "boolean"
+                    },
+                    "subjectName": {
+                      "type": "string"
+                    },
+                    "journal": {
+                      "nullable": true,
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        "topic": {
+                          "type": "string"
+                        },
+                        "note": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "planId": {
+                          "nullable": true,
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        "objectiveIds": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          }
+                        },
+                        "actualTeacherName": {
+                          "nullable": true,
+                          "description": "Guru pengganti yang mengisi; kosong bila guru jadwal",
+                          "type": "string"
+                        },
+                        "updatedAt": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "topic",
+                        "note",
+                        "planId",
+                        "objectiveIds",
+                        "actualTeacherName",
+                        "updatedAt"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "plans": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "title": {
+                            "type": "string"
+                          },
+                          "objectiveIds": {
+                            "type": "array",
+                            "items": {
+                              "type": "string",
+                              "format": "uuid",
+                              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                            }
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "title",
+                          "objectiveIds"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "objectives": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "code": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "description": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "code",
+                          "description"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "date",
+                    "canRecord",
+                    "substitute",
+                    "subjectName",
+                    "journal",
+                    "plans",
+                    "objectives"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Simpan jurnal mengajar satu jam pelajaran",
+        "tags": [
+          "Lesson attendance"
+        ],
+        "description": "Izin: `attendance:read` ditambah salah satu: guru jadwal itu, guru piket hari ini (menggantikan; guru pengganti dicatat sebagai `actualTeacherName`), atau `attendance:configure`; selain itu 403 `not_your_lesson`. Sakelar jurnal sekolah harus hidup (403 `feature_disabled`); modul `attendance`. Sasaran: tepat satu dari `scheduleEntryId` (satu jam) atau `combinedKey` (pertemuan gabungan; satu jurnal per sel), selain itu 400 `invalid_target`. Upsert per sel dan tanggal; pertemuan gabungan menulis jurnal yang sama ke setiap sel. Aturan tanggal sama dengan PUT absensi (400 `invalid_date`, 409 `future_date`, 409 `school_closed`). Hanya `topic` wajib; `planId` harus perencanaan mapel dan tahun ajaran sel itu (400 `invalid_reference`); `objectiveIds` maks 10 TP aktif milik mapel (400 `objective_subject_mismatch`, `objective_inactive`, `invalid_reference`) dan mengganti seluruh himpunan. Tidak diblokir rapor final dan tidak diwajibkan sebelum absensi. Audit `lesson_journal.save`.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "scheduleEntryId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "combinedKey": {
+                    "description": "Pertemuan gabungan: ditulis ke setiap sel",
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "date": {
+                    "type": "string",
+                    "format": "date",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                  },
+                  "topic": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  },
+                  "note": {
+                    "default": null,
+                    "nullable": true,
+                    "type": "string",
+                    "maxLength": 2000
+                  },
+                  "planId": {
+                    "default": null,
+                    "nullable": true,
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "objectiveIds": {
+                    "default": [],
+                    "maxItems": 10,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    }
+                  }
+                },
+                "required": [
+                  "date",
+                  "topic"
+                ]
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "header",
+            "name": "x-school-id",
+            "required": true,
+            "description": "Sekolah yang sedang dipakai"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "substitute": {
+                      "type": "boolean"
+                    },
+                    "cells": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "journal": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        "topic": {
+                          "type": "string"
+                        },
+                        "note": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "planId": {
+                          "nullable": true,
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        "objectiveIds": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          }
+                        },
+                        "actualTeacherName": {
+                          "nullable": true,
+                          "description": "Guru pengganti yang mengisi; kosong bila guru jadwal",
+                          "type": "string"
+                        },
+                        "updatedAt": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "topic",
+                        "note",
+                        "planId",
+                        "objectiveIds",
+                        "actualTeacherName",
+                        "updatedAt"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "substitute",
+                    "cells",
+                    "journal"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Hapus jurnal mengajar satu jam pelajaran",
+        "tags": [
+          "Lesson attendance"
+        ],
+        "description": "Izin: `attendance:read` ditambah aturan pengisi yang sama dengan PUT (403 `not_your_lesson`). Sakelar jurnal sekolah harus hidup (403 `feature_disabled`); modul `attendance`. Sasaran: tepat satu dari `scheduleEntryId` (satu jam) atau `combinedKey` (pertemuan gabungan; satu jurnal per sel), selain itu 400 `invalid_target`. Untuk pertemuan gabungan jurnal semua sel dihapus. Tidak ada jurnal: 404 `not_found`. Audit `lesson_journal.delete`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "query",
+            "name": "scheduleEntryId",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "query",
+            "name": "combinedKey",
+            "required": false,
+            "description": "Pertemuan gabungan: ditulis ke setiap sel"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+            },
+            "in": "query",
+            "name": "date",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "header",
+            "name": "x-school-id",
+            "required": true,
+            "description": "Sekolah yang sedang dipakai"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    }
+                  },
+                  "required": [
+                    "ok"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/achievement-criteria": {
       "get": {
         "summary": "Daftar KKTP (kriteria ketercapaian tujuan pembelajaran)",
