@@ -15,6 +15,8 @@ export class ApiError extends Error {
     message: string,
     readonly status: number,
     readonly code?: string,
+    /** Rincian tambahan dari badan galat (mis. `blocked` pada `twin_blocked`). */
+    readonly details?: Record<string, unknown>,
   ) {
     super(message);
   }
@@ -24,5 +26,10 @@ export class ApiError extends Error {
 export function unwrap<T>(result: { data?: T; error?: unknown; response: Response }): T {
   if (result.data !== undefined) return result.data;
   const err = (result.error as { error?: { code?: string; message?: string } } | undefined)?.error;
-  throw new ApiError(err?.message ?? 'Permintaan tidak dapat diproses.', result.response.status, err?.code);
+  throw new ApiError(
+    err?.message ?? 'Permintaan tidak dapat diproses.',
+    result.response.status,
+    err?.code,
+    err,
+  );
 }

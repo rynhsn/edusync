@@ -149,6 +149,32 @@ export function validateAssessmentTags(
   return null;
 }
 
+/** Penilaian kembar (3B.5): maksimal rombel dalam satu penciptaan serentak, rombel utama ikut dihitung. */
+export const MAX_ASSESSMENT_TWINS = 12;
+
+/**
+ * Periksa daftar rombel tambahan penilaian serentak. `too_many_twins`: total rombel (utama + tambahan) melebihi
+ * `MAX_ASSESSMENT_TWINS`; `invalid_twin_classes`: ada duplikat atau memuat rombel utama. Null bila sah (daftar kosong = sah).
+ */
+export function validateTwinClassIds(
+  classId: string,
+  alsoClassIds: readonly string[],
+): { code: 'too_many_twins' | 'invalid_twin_classes'; message: string } | null {
+  if (alsoClassIds.length + 1 > MAX_ASSESSMENT_TWINS) {
+    return {
+      code: 'too_many_twins',
+      message: `Penilaian serentak maksimal ${MAX_ASSESSMENT_TWINS} rombel.`,
+    };
+  }
+  if (new Set(alsoClassIds).size !== alsoClassIds.length || alsoClassIds.includes(classId)) {
+    return {
+      code: 'invalid_twin_classes',
+      message: 'Daftar rombel tambahan tidak boleh berisi duplikat atau rombel utama.',
+    };
+  }
+  return null;
+}
+
 /** Sebuah penilaian ikut nilai akhir bila komponennya dihitung dan tujuannya bukan asesmen awal (sabuk pengaman). */
 export function assessmentCounts(
   a: { purpose?: string | null | undefined },

@@ -1,7 +1,19 @@
 'use client';
 
+import { MAX_ASSESSMENT_TWINS } from '@edusync/contracts';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ClipboardList, Eye, Layers, ListChecks, Pencil, PenLine, Plus, Target, Trash2 } from 'lucide-react';
+import {
+  ClipboardList,
+  Copy,
+  Eye,
+  Layers,
+  ListChecks,
+  Pencil,
+  PenLine,
+  Plus,
+  Target,
+  Trash2,
+} from 'lucide-react';
 import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
@@ -54,6 +66,7 @@ import { ScoreSheet } from './score-sheet';
 
 interface Props {
   semesterId: string;
+  academicYearId: string;
   classId: string;
   subjectId: string;
 }
@@ -72,6 +85,12 @@ interface Form {
   objectiveIds: string[];
   /** TP yang sudah terkait saat formulir dibuka (untuk menampilkan versi lama). */
   linked: ObjectiveLite[];
+  /** Rombel lain yang ikut dibuatkan penilaian kembar (hanya saat membuat). */
+  alsoClassIds: string[];
+  /** Saat mengubah penilaian berkembar: sebarkan ke semua kembar. */
+  applyToTwins: boolean;
+  /** Jumlah anggota grup kembar penilaian yang diubah (0/1 = tanpa kembar). */
+  twinCount: number;
 }
 
 const emptyForm = (componentId = ''): Form => ({
@@ -84,10 +103,16 @@ const emptyForm = (componentId = ''): Form => ({
   technique: '',
   objectiveIds: [],
   linked: [],
+  alsoClassIds: [],
+  applyToTwins: false,
+  twinCount: 0,
 });
 
+/** Batas rombel per penilaian serentak (sama dengan `MAX_ASSESSMENT_TWINS` di kontrak), rombel utama ikut dihitung. */
+const MAX_TWIN_CLASSES = MAX_ASSESSMENT_TWINS;
+
 /** Daftar penilaian untuk satu semester, kelas, dan mata pelajaran; membuka lembar input nilai. */
-export function AssessmentsPanel({ semesterId, classId, subjectId }: Props) {
+export function AssessmentsPanel({ semesterId, academicYearId, classId, subjectId }: Props) {
   const t = useTranslations('grades');
   const tc = useTranslations('common');
   const te = useTranslations();
@@ -121,6 +146,27 @@ export function AssessmentsPanel({ semesterId, classId, subjectId }: Props) {
     queryKey: ['grading-components', school.schoolId],
     queryFn: async () => unwrap(await api.GET('/v1/grading/components', { params: header })),
   });
+  // Rombel lain pada tahun yang sama yang boleh ikut dibuatkan penilaian kembar (hanya saat membuat).
+  const wide = can('grade:configure');
+  const creating = editing === '';
+  const otherClasses = useQuery({
+    queryKey: ['classes', school.schoolId, academicYearId],
+    enabled: creating && canInput && can('class:read') && !!academicYearId,
+    queryFn: async () =>
+      unwrap(await api.GET('/v1/classes', { params: { ...header, query: { academicYearId } } })),
+  });
+  const myPairs = useQuery({
+    queryKey: ['grading-my-assignments', school.schoolId],
+    enabled: creating && canInput && !wide,
+    queryFn: async () => unwrap(await api.GET('/v1/grading/my-assignments', { params: header })),
+  });
+  const twinCandidates = (otherClasses.data ?? []).filter(
+    (c) =>
+      c.id !== classId &&
+      (wide ||
+        myPairs.data?.all ||
+        myPairs.data?.items.some((a) => a.classId === c.id && a.subjectId === subjectId)),
+  );
   const componentName = (id: string) => components.data?.find((c) => c.id === id)?.name ?? '';
   const componentTone = (id: string): Tone => {
     const i = components.data?.findIndex((c) => c.id === id) ?? -1;
@@ -155,23 +201,47 @@ export function AssessmentsPanel({ semesterId, classId, subjectId }: Props) {
       };
       if (editing) {
         return unwrap(
-          await api.PUT('/v1/assessments/{id}', { params: { ...header, path: { id: editing } }, body }),
+          await api.PUT('/v1/assessments/{id}', {
+            params: { ...header, path: { id: editing } },
+            body: { ...body, ...(form.applyToTwins ? { applyToTwins: true } : {}) },
+          }),
         );
       }
       return unwrap(
         await api.POST('/v1/assessments', {
           params: header,
-          body: { semesterId, classId, subjectId, ...body },
+          body: {
+            semesterId,
+            classId,
+            subjectId,
+            ...body,
+            ...(form.alsoClassIds.length > 0 ? { alsoClassIds: form.alsoClassIds } : {}),
+          },
         }),
       );
     },
     onSuccess: () => {
-      toast.success(editing ? t('assessmentUpdated') : t('assessmentCreated'));
+      toast.success(
+        editing
+          ? t('assessmentUpdated')
+          : form.alsoClassIds.length > 0
+            ? t('assessmentCreatedTwins', { count: form.alsoClassIds.length + 1 })
+            : t('assessmentCreated'),
+      );
       invalidate();
     },
     onError: (e) =>
       setFormError(
-        // Komponen dibuat setelah semester dibekukan: jelaskan jalan keluarnya dan tautkan ke Pengaturan penilaian.
+        e instanceof ApiError && e.code === 'twin_blocked' ? (
+          <>
+            {te(errorKey(e))}{' '}
+            {t('twinBlockedList', {
+              classes: ((e.details?.blocked ?? []) as { className: string }[])
+                .map((b) => b.className)
+                .join(', '),
+            })}
+          </>
+        ) : // Komponen dibuat setelah semester dibekukan: jelaskan jalan keluarnya dan tautkan ke Pengaturan penilaian.
         e instanceof ApiError && e.code === 'component_not_in_semester' ? (
           <>
             {te(errorKey(e))}{' '}
@@ -348,6 +418,14 @@ export function AssessmentsPanel({ semesterId, classId, subjectId }: Props) {
                       {a.technique && (
                         <span className="text-muted-foreground text-xs">{t(techniqueKey(a.technique))}</span>
                       )}
+                      {a.twinKey && (a.twinCount ?? 0) > 1 && (
+                        <span title={t('twinBadgeHint')}>
+                          <ToneBadge tone="amber" dot={false}>
+                            <Copy className="size-3" aria-hidden />
+                            {t('twinBadge', { count: a.twinCount ?? 0 })}
+                          </ToneBadge>
+                        </span>
+                      )}
                       {a.objectives.length > 0 && (
                         <span title={a.objectives.map(objectiveLabel).join('\n')}>
                           <ToneBadge tone="teal" dot={false}>
@@ -411,6 +489,9 @@ export function AssessmentsPanel({ semesterId, classId, subjectId }: Props) {
                                 technique: techniqueValue(a.technique),
                                 objectiveIds: a.objectives.map((x) => x.id),
                                 linked: a.objectives,
+                                alsoClassIds: [],
+                                applyToTwins: false,
+                                twinCount: a.twinKey ? (a.twinCount ?? 0) : 0,
                               }),
                           },
                           {
@@ -576,6 +657,64 @@ export function AssessmentsPanel({ semesterId, classId, subjectId }: Props) {
             ))}
           </SelectField>
         </div>
+        {creating && twinCandidates.length > 0 && (
+          <fieldset className="grid content-start gap-2">
+            <legend className="text-sm font-medium">{t('twinsTitle')}</legend>
+            <p className="text-muted-foreground text-xs">{t('twinsHint')}</p>
+            <div className="flex flex-wrap gap-2">
+              {twinCandidates.map((c) => {
+                const on = form.alsoClassIds.includes(c.id);
+                const full = !on && form.alsoClassIds.length + 1 >= MAX_TWIN_CLASSES;
+                return (
+                  <button
+                    key={c.id}
+                    type="button"
+                    aria-pressed={on}
+                    disabled={full}
+                    onClick={() =>
+                      setForm((f) => ({
+                        ...f,
+                        alsoClassIds: on
+                          ? f.alsoClassIds.filter((x) => x !== c.id)
+                          : [...f.alsoClassIds, c.id],
+                      }))
+                    }
+                    className={cn(
+                      'focus-visible:ring-ring/60 min-h-11 rounded-full border px-4 text-sm outline-none focus-visible:ring-2 disabled:opacity-50',
+                      on ? cn(TONES.teal.soft, 'border-transparent font-medium') : 'hover:bg-muted/50',
+                    )}
+                  >
+                    {c.name}
+                  </button>
+                );
+              })}
+            </div>
+            {form.alsoClassIds.length > 0 && (
+              <p className="text-xs font-medium">
+                {t('twinsSummary', { count: form.alsoClassIds.length + 1 })}
+              </p>
+            )}
+          </fieldset>
+        )}
+        {editing && form.twinCount > 1 && (
+          <label
+            htmlFor="assessment-apply-twins"
+            className="flex min-h-11 cursor-pointer items-start gap-3 rounded-xl border p-3"
+          >
+            <Checkbox
+              id="assessment-apply-twins"
+              className="mt-0.5"
+              checked={form.applyToTwins}
+              onCheckedChange={(v) => setForm((f) => ({ ...f, applyToTwins: v === true }))}
+            />
+            <span className="grid gap-0.5">
+              <span className="text-sm font-medium">{t('applyToTwins')}</span>
+              <span className="text-muted-foreground text-xs">
+                {t('applyToTwinsHint', { count: form.twinCount - 1 })}
+              </span>
+            </span>
+          </label>
+        )}
         <ObjectivePicker
           subjectId={subjectId}
           value={form.objectiveIds}

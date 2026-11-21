@@ -5,9 +5,11 @@ import {
   assessmentCounts,
   componentCounts,
   countedWeightSum,
+  MAX_ASSESSMENT_TWINS,
   normalizeComponentInput,
   SUMMATIVE_SCOPES,
   validateAssessmentTags,
+  validateTwinClassIds,
 } from './assessment-category';
 import { finalGrade } from './grading';
 import { gradingConfigVersionOf, sparseFrozenComponent } from './grading-config';
@@ -162,5 +164,17 @@ describe('salinan beku sparse dan versi', () => {
     expect(gradingConfigVersionOf([base])).toBe(1);
     expect(gradingConfigVersionOf([base, f])).toBe(2);
     expect(gradingConfigVersionOf([])).toBe(1);
+  });
+});
+
+describe('validateTwinClassIds (3B.5)', () => {
+  it('kosong dan batas sah; lebih dari batas, duplikat, dan rombel utama ditolak', () => {
+    expect(MAX_ASSESSMENT_TWINS).toBe(12);
+    expect(validateTwinClassIds('a', [])).toBeNull();
+    const ok = Array.from({ length: 11 }, (_, i) => `c${i}`);
+    expect(validateTwinClassIds('a', ok)).toBeNull();
+    expect(validateTwinClassIds('a', [...ok, 'x'])?.code).toBe('too_many_twins');
+    expect(validateTwinClassIds('a', ['b', 'b'])?.code).toBe('invalid_twin_classes');
+    expect(validateTwinClassIds('a', ['a'])?.code).toBe('invalid_twin_classes');
   });
 });

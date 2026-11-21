@@ -17,6 +17,7 @@ import { z } from 'zod';
 import { type Auth, createAuth, dynamicOriginCheckerFor, originMatcherFor } from './auth';
 import { type DomainDns, systemDns } from './domain-dns';
 import type { Env } from './env';
+import { HttpError } from './http-error';
 import { createHostResolver, type HostResolver } from './origins';
 import { paymentConfig } from './payment-config';
 import { trustProxyFor } from './proxy-trust';
@@ -143,7 +144,10 @@ export async function buildApp(env: Env, deps: { dns?: DomainDns } = {}) {
 
   app.setErrorHandler((error, request, reply) => {
     if (error instanceof DomainError) {
-      return reply.code(error.status).send({ error: { code: error.code, message: error.message } });
+      const details = error instanceof HttpError ? error.details : undefined;
+      return reply
+        .code(error.status)
+        .send({ error: { code: error.code, message: error.message, ...details } });
     }
     if (hasZodFastifySchemaValidationErrors(error)) {
       return reply

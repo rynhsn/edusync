@@ -2127,10 +2127,13 @@ export const assessment = pgTable(
     summativeScope: text('summative_scope'),
     /** Teknik asesmen dari daftar kontrak; tanpa CHECK di DB (daftar acuan bisa berubah). */
     technique: text('technique'),
+    /** Penanda grup penilaian kembar lintas rombel (3B.5); NULL = penilaian biasa. Tanpa FK, kesesuaian dijaga API. */
+    twinKey: uuid('twin_key'),
     createdAt: createdAt(),
   },
   (t) => [
     index('assessment_scope_idx').on(t.classId, t.subjectId, t.semesterId),
+    index('assessment_twin_idx').on(t.schoolId, t.twinKey).where(sql`${t.twinKey} is not null`),
     uniqueIndex('assessment_exam_class_uq').on(t.examId, t.classId).where(sql`${t.examId} is not null`),
     unique('assessment_school_id_uq').on(t.schoolId, t.id),
     check('assessment_purpose_ck', sql`${t.purpose} is null or ${t.purpose} = 'initial'`),

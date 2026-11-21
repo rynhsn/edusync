@@ -36147,6 +36147,13 @@ export interface paths {
                             title: string;
                             date: string;
                             maxScore: number;
+                            /**
+                             * Format: uuid
+                             * @description Penanda grup penilaian kembar lintas rombel (3B.5): penilaian dengan `twinKey` sama dibuat serentak, satu per rombel. Ada hanya pada penilaian yang punya grup; dihilangkan = penilaian biasa.
+                             */
+                            twinKey?: string;
+                            /** @description Jumlah anggota grup kembar (termasuk penilaian ini); ada bersama `twinKey`. 1 = grup sudah menyusut. */
+                            twinCount?: number;
                             /** @description Jumlah murid aktif atau lulusan kelas yang sudah punya skor */
                             filled: number;
                             /** @description Jumlah murid aktif dan lulusan yang terdaftar di kelas (tahun ajaran kelas itu) */
@@ -36189,7 +36196,7 @@ export interface paths {
         put?: never;
         /**
          * Buat penilaian
-         * @description Izin: `grade:input`; modul `grades`. Boleh bagi pemegang `grade:configure` atau guru yang mengampu kelas dan mapel itu (selain itu 403). Semester, kelas, mapel, dan komponen harus milik sekolah ini dan semester sama tahun ajarannya dengan kelas (400 `invalid_reference`). `maxScore` 1..1000 (bawaan 100). Ditolak 409 `report_final` bila rapor kelas pada semester itu sudah final. Ditolak 409 `component_not_in_semester` bila konfigurasi nilai semester itu sudah dibekukan dan komponennya tidak ada di salinan beku (mis. komponen yang dibuat sesudah pembekuan); semester yang belum beku menerima komponen apa pun milik sekolah. Tanda opsional: `purpose` `initial` (asesmen awal) hanya pada komponen formatif (400 `initial_requires_formative`), `summativeScope` hanya pada komponen sumatif (400 `scope_requires_summative`), `technique` dari daftar teknik. Penilaian pada komponen formatif tidak masuk nilai akhir; respons membawa `category` turunan dari komponennya. `objectiveIds` opsional mengaitkan penilaian ke tujuan pembelajaran (TP): maksimal 20 (400 `too_many_objectives`), milik mapel yang sama (400 `objective_subject_mismatch`), aktif (400 `objective_inactive`); satu skor berlaku untuk semua TP itu.
+         * @description Izin: `grade:input`; modul `grades`. Boleh bagi pemegang `grade:configure` atau guru yang mengampu kelas dan mapel itu (selain itu 403). Semester, kelas, mapel, dan komponen harus milik sekolah ini dan semester sama tahun ajarannya dengan kelas (400 `invalid_reference`). `maxScore` 1..1000 (bawaan 100). Ditolak 409 `report_final` bila rapor kelas pada semester itu sudah final. Ditolak 409 `component_not_in_semester` bila konfigurasi nilai semester itu sudah dibekukan dan komponennya tidak ada di salinan beku (mis. komponen yang dibuat sesudah pembekuan); semester yang belum beku menerima komponen apa pun milik sekolah. Tanda opsional: `purpose` `initial` (asesmen awal) hanya pada komponen formatif (400 `initial_requires_formative`), `summativeScope` hanya pada komponen sumatif (400 `scope_requires_summative`), `technique` dari daftar teknik. Penilaian pada komponen formatif tidak masuk nilai akhir; respons membawa `category` turunan dari komponennya. `objectiveIds` opsional mengaitkan penilaian ke tujuan pembelajaran (TP): maksimal 20 (400 `too_many_objectives`), milik mapel yang sama (400 `objective_subject_mismatch`), aktif (400 `objective_inactive`); satu skor berlaku untuk semua TP itu. `alsoClassIds` (opsional, maksimal 11; 400 `too_many_twins`/`invalid_twin_classes`) membuat penilaian kembar serentak untuk rombel lain (mapel pilihan satu guru banyak rombel): dalam SATU transaksi (semua atau tidak sama sekali) tiap rombel melewati pemeriksaan yang sama dengan pembuatan tunggal (izin `grade:input` dan pengampu PER rombel, 403; `report_final`; komponen; tanda; TP; tahun ajaran, 400 `invalid_reference`), dan rombel tanpa satu pun pengambil mapel itu ditolak 400 `twin_class_no_takers`. Tiap rombel mendapat `assessment` biasa (skor, KKM, rapor tetap per rombel) dengan `twinKey` sama; respons 201 = penilaian rombel utama + `twins` (rombel tambahan). Tanpa `alsoClassIds` perilaku persis seperti biasa.
          */
         post: {
             parameters: {
@@ -36234,6 +36241,8 @@ export interface paths {
                         technique?: "test" | "observation" | "performance" | "practice" | "product" | "project" | "portfolio" | "assignment" | "other" | null;
                         /** @description Tujuan pembelajaran (TP) yang dikaitkan, maksimal 20 (400 `too_many_objectives`); harus milik mapel penilaian (400 `objective_subject_mismatch`) dan aktif (400 `objective_inactive`). Pada PUT: dihilangkan = tetap, larik = ganti himpunan. */
                         objectiveIds?: string[];
+                        /** @description Hanya POST. Rombel lain yang ikut dibuatkan penilaian kembar serentak (mapel pilihan yang diajar satu guru untuk beberapa rombel). Maksimal 11 tambahan (total 12 rombel; 400 `too_many_twins`), tanpa duplikat dan tanpa `classId` (400 `invalid_twin_classes`). Dihilangkan atau kosong = perilaku biasa. */
+                        alsoClassIds?: string[];
                     };
                 };
             };
@@ -36292,12 +36301,27 @@ export interface paths {
                             title: string;
                             date: string;
                             maxScore: number;
+                            /**
+                             * Format: uuid
+                             * @description Penanda grup penilaian kembar lintas rombel (3B.5): penilaian dengan `twinKey` sama dibuat serentak, satu per rombel. Ada hanya pada penilaian yang punya grup; dihilangkan = penilaian biasa.
+                             */
+                            twinKey?: string;
+                            /** @description Jumlah anggota grup kembar (termasuk penilaian ini); ada bersama `twinKey`. 1 = grup sudah menyusut. */
+                            twinCount?: number;
                             /** @description Jumlah murid aktif atau lulusan kelas yang sudah punya skor */
                             filled: number;
                             /** @description Jumlah murid aktif dan lulusan yang terdaftar di kelas (tahun ajaran kelas itu) */
                             total: number;
                             /** @description Pengguna ini boleh mengubah penilaian dan skornya */
                             canInput: boolean;
+                            /** @description Penilaian kembar di rombel tambahan (urut `alsoClassIds`); ada hanya bila `alsoClassIds` dikirim. */
+                            twins?: {
+                                /** Format: uuid */
+                                id: string;
+                                /** Format: uuid */
+                                classId: string;
+                                className: string;
+                            }[];
                         };
                     };
                 };
@@ -36375,7 +36399,7 @@ export interface paths {
         get?: never;
         /**
          * Ubah penilaian
-         * @description Izin: `grade:input`, dan pemegang `grade:configure` atau guru pengampu kelas+mapel penilaian itu (selain itu 403). Yang bisa diubah: komponen, judul, tanggal, skor maksimum, dan tanda (`purpose`, `summativeScope`, `technique`; dihilangkan = tetap, null = kosongkan; tanda diperiksa terhadap kategori komponen: 400 `initial_requires_formative`, `scope_requires_summative`). Skor maksimum tidak boleh di bawah skor yang sudah diisi (409 `score_exceeds_max`). Komponen harus milik sekolah ini (400 `invalid_reference`). Ditolak 409 `report_final` bila rapor kelas pada semester itu sudah final. Mengganti komponen ditolak 409 `component_not_in_semester` bila semester itu beku dan komponen baru tidak ada di salinan beku (komponen yang tidak diganti tidak diperiksa ulang). `objectiveIds` (TP yang dikaitkan): dihilangkan = tetap, larik = ganti himpunan (aturan dan galat sama dengan membuat penilaian; TP yang sudah terkait boleh tetap walau sudah nonaktif).
+         * @description Izin: `grade:input`, dan pemegang `grade:configure` atau guru pengampu kelas+mapel penilaian itu (selain itu 403). Yang bisa diubah: komponen, judul, tanggal, skor maksimum, dan tanda (`purpose`, `summativeScope`, `technique`; dihilangkan = tetap, null = kosongkan; tanda diperiksa terhadap kategori komponen: 400 `initial_requires_formative`, `scope_requires_summative`). Skor maksimum tidak boleh di bawah skor yang sudah diisi (409 `score_exceeds_max`). Komponen harus milik sekolah ini (400 `invalid_reference`). Ditolak 409 `report_final` bila rapor kelas pada semester itu sudah final. Mengganti komponen ditolak 409 `component_not_in_semester` bila semester itu beku dan komponen baru tidak ada di salinan beku (komponen yang tidak diganti tidak diperiksa ulang). `objectiveIds` (TP yang dikaitkan): dihilangkan = tetap, larik = ganti himpunan (aturan dan galat sama dengan membuat penilaian; TP yang sudah terkait boleh tetap walau sudah nonaktif). `applyToTwins` (bawaan false) menyebarkan perubahan yang sama ke semua penilaian kembar (grup `twinKey`); tiap kembar diperiksa dengan aturan yang sama (izin dan pengampu rombelnya, `report_final`, komponen, skor maksimum, tanda, TP). Bila ada kembar yang diblokir, SELURUHNYA ditolak (tidak ada yang berubah) 409 `twin_blocked` dengan `error.blocked` (`classId`, `className`, `reason`); ubah satu per satu tanpa `applyToTwins`. Menghapus penilaian tidak pernah menyebar ke kembar.
          */
         put: {
             parameters: {
@@ -36416,6 +36440,8 @@ export interface paths {
                         technique?: "test" | "observation" | "performance" | "practice" | "product" | "project" | "portfolio" | "assignment" | "other" | null;
                         /** @description Tujuan pembelajaran (TP) yang dikaitkan, maksimal 20 (400 `too_many_objectives`); harus milik mapel penilaian (400 `objective_subject_mismatch`) dan aktif (400 `objective_inactive`). Pada PUT: dihilangkan = tetap, larik = ganti himpunan. */
                         objectiveIds?: string[];
+                        /** @description Bawaan false (hanya penilaian ini). true menyebarkan judul, tanggal, skor maksimum, komponen, tanda, dan TP ke semua penilaian kembar; bila ada kembar yang diblokir, seluruhnya ditolak 409 `twin_blocked`. */
+                        applyToTwins?: boolean;
                     };
                 };
             };
@@ -36474,6 +36500,13 @@ export interface paths {
                             title: string;
                             date: string;
                             maxScore: number;
+                            /**
+                             * Format: uuid
+                             * @description Penanda grup penilaian kembar lintas rombel (3B.5): penilaian dengan `twinKey` sama dibuat serentak, satu per rombel. Ada hanya pada penilaian yang punya grup; dihilangkan = penilaian biasa.
+                             */
+                            twinKey?: string;
+                            /** @description Jumlah anggota grup kembar (termasuk penilaian ini); ada bersama `twinKey`. 1 = grup sudah menyusut. */
+                            twinCount?: number;
                             /** @description Jumlah murid aktif atau lulusan kelas yang sudah punya skor */
                             filled: number;
                             /** @description Jumlah murid aktif dan lulusan yang terdaftar di kelas (tahun ajaran kelas itu) */
@@ -36549,6 +36582,14 @@ export interface paths {
                             error: {
                                 code: string;
                                 message: string;
+                                /** @description Hanya pada `twin_blocked`. */
+                                blocked?: {
+                                    /** Format: uuid */
+                                    classId: string;
+                                    className: string;
+                                    /** @description Kode galat penghalang: `report_final`, `not_assignee`, `score_exceeds_max`, dst. */
+                                    reason: string;
+                                }[];
                             };
                         };
                     };
@@ -36558,7 +36599,7 @@ export interface paths {
         post?: never;
         /**
          * Hapus penilaian
-         * @description Izin: `grade:input`, dan pemegang `grade:configure` atau guru pengampu kelas+mapel penilaian itu (selain itu 403). Seluruh skor, percobaan remedial, dan kaitan TP penilaian itu ikut terhapus. Ditolak 409 `report_final` bila rapor kelas pada semester itu sudah final.
+         * @description Izin: `grade:input`, dan pemegang `grade:configure` atau guru pengampu kelas+mapel penilaian itu (selain itu 403). Seluruh skor, percobaan remedial, dan kaitan TP penilaian itu ikut terhapus. Ditolak 409 `report_final` bila rapor kelas pada semester itu sudah final. Tidak menyebar: penilaian kembar di rombel lain tidak ikut terhapus (grup menyusut).
          */
         delete: {
             parameters: {
@@ -36729,6 +36770,13 @@ export interface paths {
                                 title: string;
                                 date: string;
                                 maxScore: number;
+                                /**
+                                 * Format: uuid
+                                 * @description Penanda grup penilaian kembar lintas rombel (3B.5): penilaian dengan `twinKey` sama dibuat serentak, satu per rombel. Ada hanya pada penilaian yang punya grup; dihilangkan = penilaian biasa.
+                                 */
+                                twinKey?: string;
+                                /** @description Jumlah anggota grup kembar (termasuk penilaian ini); ada bersama `twinKey`. 1 = grup sudah menyusut. */
+                                twinCount?: number;
                                 /** @description Jumlah murid aktif atau lulusan kelas yang sudah punya skor */
                                 filled: number;
                                 /** @description Jumlah murid aktif dan lulusan yang terdaftar di kelas (tahun ajaran kelas itu) */
@@ -37303,6 +37351,13 @@ export interface paths {
                             title: string;
                             date: string;
                             maxScore: number;
+                            /**
+                             * Format: uuid
+                             * @description Penanda grup penilaian kembar lintas rombel (3B.5): penilaian dengan `twinKey` sama dibuat serentak, satu per rombel. Ada hanya pada penilaian yang punya grup; dihilangkan = penilaian biasa.
+                             */
+                            twinKey?: string;
+                            /** @description Jumlah anggota grup kembar (termasuk penilaian ini); ada bersama `twinKey`. 1 = grup sudah menyusut. */
+                            twinCount?: number;
                             /** @description Jumlah murid aktif atau lulusan kelas yang sudah punya skor */
                             filled: number;
                             /** @description Jumlah murid aktif dan lulusan yang terdaftar di kelas (tahun ajaran kelas itu) */

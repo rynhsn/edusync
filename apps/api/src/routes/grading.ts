@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import {
   ASSESSMENT_PURPOSES,
   ASSESSMENT_TECHNIQUES,
@@ -13,6 +14,7 @@ import {
   SUMMATIVE_SCOPES,
   summarizeObjective,
   validateAssessmentTags,
+  validateTwinClassIds,
 } from '@edusync/contracts';
 import {
   and,
@@ -28,6 +30,7 @@ import {
   gradingSetting,
   inArray,
   isNull,
+  ne,
   reportCard,
   score,
   scoreRemedialAttempt,
@@ -390,6 +393,20 @@ const assessmentSchema = z.object({
   title: z.string(),
   date: z.string(),
   maxScore: z.number().int(),
+  twinKey: z
+    .uuid()
+    .optional()
+    .describe(
+      'Penanda grup penilaian kembar lintas rombel (3B.5): penilaian dengan `twinKey` sama dibuat serentak, satu per rombel. ' +
+        'Ada hanya pada penilaian yang punya grup; dihilangkan = penilaian biasa.',
+    ),
+  twinCount: z
+    .number()
+    .int()
+    .optional()
+    .describe(
+      'Jumlah anggota grup kembar (termasuk penilaian ini); ada bersama `twinKey`. 1 = grup sudah menyusut.',
+    ),
   filled: z.number().int().describe('Jumlah murid aktif atau lulusan kelas yang sudah punya skor'),
   total: z
     .number()
@@ -433,19 +450,58 @@ const assessmentBody = z.object({
       'Tujuan pembelajaran (TP) yang dikaitkan, maksimal 20 (400 `too_many_objectives`); harus milik mapel penilaian ' +
         '(400 `objective_subject_mismatch`) dan aktif (400 `objective_inactive`). Pada PUT: dihilangkan = tetap, larik = ganti himpunan.',
     ),
+  alsoClassIds: z
+    .array(z.uuid())
+    .max(100)
+    .optional()
+    .describe(
+      'Hanya POST. Rombel lain yang ikut dibuatkan penilaian kembar serentak (mapel pilihan yang diajar satu guru untuk beberapa ' +
+        'rombel). Maksimal 11 tambahan (total 12 rombel; 400 `too_many_twins`), tanpa duplikat dan tanpa `classId` (400 ' +
+        '`invalid_twin_classes`). Dihilangkan atau kosong = perilaku biasa.',
+    ),
 });
 
 const objectiveIdsBody = z.object({ objectiveIds: assessmentBody.shape.objectiveIds.unwrap() });
 
-const assessmentUpdateBody = assessmentBody.pick({
-  componentId: true,
-  title: true,
-  date: true,
-  maxScore: true,
-  purpose: true,
-  summativeScope: true,
-  technique: true,
-  objectiveIds: true,
+const assessmentUpdateBody = assessmentBody
+  .pick({
+    componentId: true,
+    title: true,
+    date: true,
+    maxScore: true,
+    purpose: true,
+    summativeScope: true,
+    technique: true,
+    objectiveIds: true,
+  })
+  .extend({
+    applyToTwins: z
+      .boolean()
+      .optional()
+      .describe(
+        'Bawaan false (hanya penilaian ini). true menyebarkan judul, tanggal, skor maksimum, komponen, tanda, dan TP ke semua ' +
+          'penilaian kembar; bila ada kembar yang diblokir, seluruhnya ditolak 409 `twin_blocked`.',
+      ),
+  });
+
+/** 409 `twin_blocked` membawa daftar kembar yang menghalangi. */
+const twinBlockedSchema = z.object({
+  error: z.object({
+    code: z.string(),
+    message: z.string(),
+    blocked: z
+      .array(
+        z.object({
+          classId: z.uuid(),
+          className: z.string(),
+          reason: z
+            .string()
+            .describe('Kode galat penghalang: `report_final`, `not_assignee`, `score_exceeds_max`, dst.'),
+        }),
+      )
+      .optional()
+      .describe('Hanya pada `twin_blocked`.'),
+  }),
 });
 
 const scopeQuery = z.object({ semesterId: z.uuid(), classId: z.uuid(), subjectId: z.uuid() });
@@ -647,6 +703,19 @@ export async function gradingRoutes(instance: FastifyInstance) {
       tx,
       visible.map((r) => r.a.id),
     );
+    // Penilaian kembar (3B.5): `twinKey`/`twinCount` sparse, hanya pada penilaian yang punya grup.
+    const twinKeys = [...new Set(visible.flatMap((r) => (r.a.twinKey ? [r.a.twinKey] : [])))];
+    const twinCounts = twinKeys.length
+      ? new Map(
+          (
+            await tx
+              .select({ key: assessment.twinKey, n: count() })
+              .from(assessment)
+              .where(inArray(assessment.twinKey, twinKeys))
+              .groupBy(assessment.twinKey)
+          ).map((t) => [t.key, t.n]),
+        )
+      : new Map<string | null, number>();
     const configure = ctx.permissions.has('grade:configure');
     const input = ctx.permissions.has('grade:input');
     return visible.map((r) => ({
@@ -672,6 +741,7 @@ export async function gradingRoutes(instance: FastifyInstance) {
       title: r.a.title,
       date: r.a.date,
       maxScore: r.a.maxScore,
+      ...(r.a.twinKey ? { twinKey: r.a.twinKey, twinCount: twinCounts.get(r.a.twinKey) ?? 1 } : {}),
       filled: narrowed.get(r.a.id)?.filled ?? filled.find((f) => f.assessmentId === r.a.id)?.n ?? 0,
       total: narrowed.get(r.a.id)?.total ?? totals.find((t) => t.classId === r.a.classId)?.n ?? 0,
       canInput: configure || (input && teaches(mine, r.a.classId, r.a.subjectId)),
@@ -1189,45 +1259,96 @@ export async function gradingRoutes(instance: FastifyInstance) {
           'komponen sumatif (400 `scope_requires_summative`), `technique` dari daftar teknik. Penilaian pada komponen formatif ' +
           'tidak masuk nilai akhir; respons membawa `category` turunan dari komponennya. `objectiveIds` opsional mengaitkan ' +
           'penilaian ke tujuan pembelajaran (TP): maksimal 20 (400 `too_many_objectives`), milik mapel yang sama (400 ' +
-          '`objective_subject_mismatch`), aktif (400 `objective_inactive`); satu skor berlaku untuk semua TP itu.',
+          '`objective_subject_mismatch`), aktif (400 `objective_inactive`); satu skor berlaku untuk semua TP itu. ' +
+          '`alsoClassIds` (opsional, maksimal 11; 400 `too_many_twins`/`invalid_twin_classes`) membuat penilaian kembar serentak ' +
+          'untuk rombel lain (mapel pilihan satu guru banyak rombel): dalam SATU transaksi (semua atau tidak sama sekali) tiap rombel ' +
+          'melewati pemeriksaan yang sama dengan pembuatan tunggal (izin `grade:input` dan pengampu PER rombel, 403; `report_final`; ' +
+          'komponen; tanda; TP; tahun ajaran, 400 `invalid_reference`), dan rombel tanpa satu pun pengambil mapel itu ditolak 400 ' +
+          '`twin_class_no_takers`. Tiap rombel mendapat `assessment` biasa (skor, KKM, rapor tetap per rombel) dengan `twinKey` ' +
+          'sama; respons 201 = penilaian rombel utama + `twins` (rombel tambahan). Tanpa `alsoClassIds` perilaku persis seperti biasa.',
         headers: schoolHeader,
         body: assessmentBody,
-        response: { 201: assessmentSchema, 400: errorSchema, 409: errorSchema, ...guarded },
+        response: {
+          201: assessmentSchema.extend({
+            twins: z
+              .array(z.object({ id: z.uuid(), classId: z.uuid(), className: z.string() }))
+              .optional()
+              .describe(
+                'Penilaian kembar di rombel tambahan (urut `alsoClassIds`); ada hanya bila `alsoClassIds` dikirim.',
+              ),
+          }),
+          400: errorSchema,
+          409: errorSchema,
+          ...guarded,
+        },
       },
     },
     async (request, reply) => {
       const ctx = request.ctx as TenantContext;
-      const { objectiveIds, ...b } = request.body;
+      const { objectiveIds, alsoClassIds = [], ...b } = request.body;
+      const twinErr = validateTwinClassIds(b.classId, alsoClassIds);
+      if (twinErr) throw new HttpError(400, twinErr.code, twinErr.message);
+      // Satu transaksi: semua rombel berhasil atau tidak ada yang dibuat. Tiap rombel memakai pemeriksaan pembuatan tunggal.
+      const twinKey = alsoClassIds.length > 0 ? randomUUID() : null;
       const created = await tenant(request, async (tx) => {
-        await requireRefs(tx, b);
-        if (!(await canInputPair(tx, ctx, b.classId, b.subjectId))) throw notAllowed();
-        await assertClassReportNotFinal(tx, b.semesterId, b.classId);
-        await assertComponentInSemester(tx, b.semesterId, b.componentId);
-        await assertTags(tx, b.semesterId, b.componentId, b);
-        const links = await assertObjectivesForSubject(tx, b.subjectId, objectiveIds ?? []);
-        // Pengampu pasangan itu bila ada; selain itu pembuatnya bila ia guru.
-        const [assigned] = await tx
-          .select({ teacherId: teachingAssignment.teacherId })
-          .from(teachingAssignment)
-          .where(
-            and(eq(teachingAssignment.classId, b.classId), eq(teachingAssignment.subjectId, b.subjectId)),
-          );
-        const teacherId = assigned?.teacherId ?? (await myTeacherId(tx, ctx));
-        const [row] = await tx
-          .insert(assessment)
-          .values({ schoolId: ctx.schoolId, ...b, teacherId })
-          .returning({ id: assessment.id });
-        await replaceAssessmentObjectives(tx, ctx.schoolId, row!.id, links);
-        await audit(tx, ctx, 'assessment.create', 'assessment', row!.id, {
-          title: b.title,
-          classId: b.classId,
-          subjectId: b.subjectId,
-          ...(links.length > 0 ? { objectiveIds: links } : {}),
-          ...(b.purpose ? { purpose: b.purpose } : {}),
-          ...(b.summativeScope ? { summativeScope: b.summativeScope } : {}),
-          ...(b.technique ? { technique: b.technique } : {}),
-        });
-        return (await assessmentViews(tx, ctx, { id: row!.id }))[0]!;
+        const ids: string[] = [];
+        for (const classId of [b.classId, ...alsoClassIds]) {
+          const refs = { ...b, classId };
+          await requireRefs(tx, refs);
+          if (!(await canInputPair(tx, ctx, classId, b.subjectId))) throw notAllowed();
+          await assertClassReportNotFinal(tx, b.semesterId, classId);
+          await assertComponentInSemester(tx, b.semesterId, b.componentId);
+          await assertTags(tx, b.semesterId, b.componentId, b);
+          const links = await assertObjectivesForSubject(tx, b.subjectId, objectiveIds ?? []);
+          if (twinKey) {
+            const { rows } = await subjectRosterOf(tx, classId, b.subjectId, b.semesterId);
+            if (rows.length === 0) {
+              throw new HttpError(
+                400,
+                'twin_class_no_takers',
+                'Ada rombel yang tidak punya murid pengambil mata pelajaran ini.',
+              );
+            }
+          }
+          // Pengampu pasangan itu bila ada; selain itu pembuatnya bila ia guru.
+          const [assigned] = await tx
+            .select({ teacherId: teachingAssignment.teacherId })
+            .from(teachingAssignment)
+            .where(
+              and(eq(teachingAssignment.classId, classId), eq(teachingAssignment.subjectId, b.subjectId)),
+            );
+          const teacherId = assigned?.teacherId ?? (await myTeacherId(tx, ctx));
+          const [row] = await tx
+            .insert(assessment)
+            .values({ schoolId: ctx.schoolId, ...refs, teacherId, ...(twinKey ? { twinKey } : {}) })
+            .returning({ id: assessment.id });
+          await replaceAssessmentObjectives(tx, ctx.schoolId, row!.id, links);
+          await audit(tx, ctx, 'assessment.create', 'assessment', row!.id, {
+            title: b.title,
+            classId,
+            subjectId: b.subjectId,
+            ...(links.length > 0 ? { objectiveIds: links } : {}),
+            ...(b.purpose ? { purpose: b.purpose } : {}),
+            ...(b.summativeScope ? { summativeScope: b.summativeScope } : {}),
+            ...(b.technique ? { technique: b.technique } : {}),
+            ...(twinKey ? { twinCount: alsoClassIds.length + 1 } : {}),
+          });
+          ids.push(row!.id);
+        }
+        const view = (await assessmentViews(tx, ctx, { id: ids[0]! }))[0]!;
+        if (ids.length === 1) return view;
+        const names = await tx
+          .select({ id: classRoom.id, name: classRoom.name })
+          .from(classRoom)
+          .where(inArray(classRoom.id, alsoClassIds));
+        return {
+          ...view,
+          twins: ids.slice(1).map((id, n) => ({
+            id,
+            classId: alsoClassIds[n]!,
+            className: names.find((c) => c.id === alsoClassIds[n])?.name ?? '',
+          })),
+        };
       });
       return reply.code(201).send(created);
     },
@@ -1249,52 +1370,104 @@ export async function gradingRoutes(instance: FastifyInstance) {
           'Ditolak 409 `report_final` bila rapor kelas pada semester itu sudah final. Mengganti komponen ditolak 409 ' +
           '`component_not_in_semester` bila semester itu beku dan komponen baru tidak ada di salinan beku (komponen yang tidak ' +
           'diganti tidak diperiksa ulang). `objectiveIds` (TP yang dikaitkan): dihilangkan = tetap, larik = ganti himpunan ' +
-          '(aturan dan galat sama dengan membuat penilaian; TP yang sudah terkait boleh tetap walau sudah nonaktif).',
+          '(aturan dan galat sama dengan membuat penilaian; TP yang sudah terkait boleh tetap walau sudah nonaktif). ' +
+          '`applyToTwins` (bawaan false) menyebarkan perubahan yang sama ke semua penilaian kembar (grup `twinKey`); tiap kembar ' +
+          'diperiksa dengan aturan yang sama (izin dan pengampu rombelnya, `report_final`, komponen, skor maksimum, tanda, TP). Bila ' +
+          'ada kembar yang diblokir, SELURUHNYA ditolak (tidak ada yang berubah) 409 `twin_blocked` dengan `error.blocked` ' +
+          '(`classId`, `className`, `reason`); ubah satu per satu tanpa `applyToTwins`. Menghapus penilaian tidak pernah menyebar ke kembar.',
         headers: schoolHeader,
         params: idParams,
         body: assessmentUpdateBody,
-        response: { 200: assessmentSchema, 400: errorSchema, 404: errorSchema, 409: errorSchema, ...guarded },
+        response: {
+          200: assessmentSchema,
+          400: errorSchema,
+          404: errorSchema,
+          409: twinBlockedSchema,
+          ...guarded,
+        },
       },
     },
     async (request) => {
       const ctx = request.ctx as TenantContext;
-      const { objectiveIds, ...b } = request.body;
+      const { objectiveIds, applyToTwins, ...b } = request.body;
       return tenant(request, async (tx) => {
-        const current = await loadAssessment(tx, request.params.id);
-        if (!(await canInputPair(tx, ctx, current.classId, current.subjectId))) throw notAllowed();
-        await assertClassReportNotFinal(tx, current.semesterId, current.classId);
-        await requireComponent(tx, b.componentId);
-        const links =
-          objectiveIds === undefined
-            ? undefined
-            : await assertObjectivesForSubject(tx, current.subjectId, objectiveIds, {
-                keep: await linkedObjectiveIds(tx, current.id),
+        const first = await loadAssessment(tx, request.params.id);
+        // Satu penilaian: semua pemeriksaan lalu tulis. Galat penilaian yang dituju dilempar apa adanya; galat kembar dikumpulkan.
+        const applyOne = async (current: typeof first, via?: string) => {
+          if (!(await canInputPair(tx, ctx, current.classId, current.subjectId))) throw notAllowed();
+          await assertClassReportNotFinal(tx, current.semesterId, current.classId);
+          await requireComponent(tx, b.componentId);
+          const links =
+            objectiveIds === undefined
+              ? undefined
+              : await assertObjectivesForSubject(tx, current.subjectId, objectiveIds, {
+                  keep: await linkedObjectiveIds(tx, current.id),
+                });
+          if (b.componentId !== current.componentId) {
+            await assertComponentInSemester(tx, current.semesterId, b.componentId);
+          }
+          // Tanda efektif = yang dikirim, atau yang sekarang bila dihilangkan (null mengosongkan).
+          await assertTags(tx, current.semesterId, b.componentId, {
+            purpose: b.purpose === undefined ? current.purpose : b.purpose,
+            summativeScope: b.summativeScope === undefined ? current.summativeScope : b.summativeScope,
+          });
+          const [over] = await tx
+            .select({ n: count() })
+            .from(score)
+            .where(and(eq(score.assessmentId, current.id), sql`${score.value} > ${b.maxScore}`));
+          if ((over?.n ?? 0) > 0) {
+            throw new HttpError(
+              409,
+              'score_exceeds_max',
+              'Ada skor yang lebih besar dari skor maksimum baru.',
+            );
+          }
+          await tx.update(assessment).set(b).where(eq(assessment.id, current.id));
+          if (links) await replaceAssessmentObjectives(tx, ctx.schoolId, current.id, links);
+          await audit(tx, ctx, 'assessment.update', 'assessment', current.id, {
+            title: b.title,
+            ...(links ? { objectiveIds: links } : {}),
+            ...(b.purpose !== undefined ? { purpose: b.purpose } : {}),
+            ...(b.summativeScope !== undefined ? { summativeScope: b.summativeScope } : {}),
+            ...(b.technique !== undefined ? { technique: b.technique } : {}),
+            ...(via ? { viaTwin: via } : {}),
+          });
+        };
+        await applyOne(first);
+        if (applyToTwins && first.twinKey) {
+          const twins = await tx
+            .select()
+            .from(assessment)
+            .where(and(eq(assessment.twinKey, first.twinKey), ne(assessment.id, first.id)));
+          const blocked: { classId: string; className: string; reason: string }[] = [];
+          for (const t of twins) {
+            try {
+              await applyOne(t, first.id);
+            } catch (e) {
+              if (!(e instanceof HttpError)) throw e;
+              const [c] = await tx
+                .select({ name: classRoom.name })
+                .from(classRoom)
+                .where(eq(classRoom.id, t.classId));
+              blocked.push({
+                classId: t.classId,
+                className: c?.name ?? '',
+                reason: e.code === 'forbidden' ? 'not_assignee' : e.code,
               });
-        if (b.componentId !== current.componentId) {
-          await assertComponentInSemester(tx, current.semesterId, b.componentId);
+            }
+          }
+          if (blocked.length > 0) {
+            // Melempar membatalkan transaksi: penilaian utama dan kembar yang sudah lolos ikut dibatalkan (semua atau tidak).
+            const err = new HttpError(
+              409,
+              'twin_blocked',
+              `Perubahan serentak ditolak: ${blocked.map((x) => x.className).join(', ')} tidak bisa diubah. Ubah satu per satu tanpa "terapkan ke semua kembar".`,
+            );
+            err.details = { blocked };
+            throw err;
+          }
         }
-        // Tanda efektif = yang dikirim, atau yang sekarang bila dihilangkan (null mengosongkan).
-        await assertTags(tx, current.semesterId, b.componentId, {
-          purpose: b.purpose === undefined ? current.purpose : b.purpose,
-          summativeScope: b.summativeScope === undefined ? current.summativeScope : b.summativeScope,
-        });
-        const [over] = await tx
-          .select({ n: count() })
-          .from(score)
-          .where(and(eq(score.assessmentId, current.id), sql`${score.value} > ${b.maxScore}`));
-        if ((over?.n ?? 0) > 0) {
-          throw new HttpError(409, 'score_exceeds_max', 'Ada skor yang lebih besar dari skor maksimum baru.');
-        }
-        await tx.update(assessment).set(b).where(eq(assessment.id, current.id));
-        if (links) await replaceAssessmentObjectives(tx, ctx.schoolId, current.id, links);
-        await audit(tx, ctx, 'assessment.update', 'assessment', current.id, {
-          title: b.title,
-          ...(links ? { objectiveIds: links } : {}),
-          ...(b.purpose !== undefined ? { purpose: b.purpose } : {}),
-          ...(b.summativeScope !== undefined ? { summativeScope: b.summativeScope } : {}),
-          ...(b.technique !== undefined ? { technique: b.technique } : {}),
-        });
-        return (await assessmentViews(tx, ctx, { id: current.id }))[0]!;
+        return (await assessmentViews(tx, ctx, { id: first.id }))[0]!;
       });
     },
   );
@@ -1309,7 +1482,7 @@ export async function gradingRoutes(instance: FastifyInstance) {
         description:
           'Izin: `grade:input`, dan pemegang `grade:configure` atau guru pengampu kelas+mapel penilaian itu (selain ' +
           'itu 403). Seluruh skor, percobaan remedial, dan kaitan TP penilaian itu ikut terhapus. Ditolak 409 `report_final` bila rapor kelas pada ' +
-          'semester itu sudah final.',
+          'semester itu sudah final. Tidak menyebar: penilaian kembar di rombel lain tidak ikut terhapus (grup menyusut).',
         headers: schoolHeader,
         params: idParams,
         response: { 200: ok, 404: errorSchema, 409: errorSchema, ...guarded },

@@ -201,7 +201,12 @@ export function GradesView() {
       ) : (
         <div role="tabpanel" id="grades-panel" aria-labelledby={`grades-tab-${mode}`}>
           {mode === 'assessments' ? (
-            <AssessmentsPanel semesterId={semesterId} classId={classId} subjectId={subjectId} />
+            <AssessmentsPanel
+              semesterId={semesterId}
+              academicYearId={semester?.academicYearId ?? ''}
+              classId={classId}
+              subjectId={subjectId}
+            />
           ) : mode === 'recap' ? (
             <RecapPanel semesterId={semesterId} classId={classId} subjectId={subjectId} />
           ) : mode === 'remedial' ? (

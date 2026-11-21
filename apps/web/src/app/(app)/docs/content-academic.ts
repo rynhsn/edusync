@@ -45,6 +45,21 @@ export const ACADEMIC_DOCS: DocArticle[] = [
               'Menghapus sebuah penilaian ikut menghapus semua nilai di dalamnya. Nilai maksimal juga tidak bisa diturunkan sampai di bawah nilai yang sudah terisi.',
           },
           {
+            heading: 'Penilaian serentak untuk beberapa rombel (mapel pilihan)',
+            body: 'Bila satu guru mengajar mapel pilihan untuk murid dari beberapa rombel, penilaian yang sama bisa dibuat sekaligus. Saat membuat penilaian, bagian Berlaku juga untuk rombel lain menampilkan rombel lain yang Anda ampu pada mapel itu; centang yang diinginkan (paling banyak 12 rombel semuanya). Sistem membuat satu penilaian biasa per rombel dalam satu langkah: semuanya berhasil atau tidak ada yang dibuat. Penilaian kembar ditandai lencana Kembar N rombel. Skor, KKM, rekap, dan rapor tetap per rombel, jadi KKM tiap rombel bisa berbeda bila dikonfigurasi berbeda, dan setiap rombel hanya menampilkan murid yang mengambil mapel itu.',
+            steps: [
+              'Buka menu Penilaian, pilih semester, kelas, dan mata pelajaran, lalu klik Penilaian baru.',
+              'Isi judul, komponen, tanggal, dan nilai maksimal seperti biasa.',
+              'Di Berlaku juga untuk rombel lain, centang rombel yang ikut, lalu Simpan.',
+              'Isi nilai di tiap penilaian kembar seperti biasa, satu rombel pada satu waktu.',
+              'Untuk mengubah semua kembar sekaligus, pilih Ubah pada salah satunya lalu centang Terapkan ke semua kembar.',
+            ],
+            href: '/grades',
+            tip: 'Menghapus sebuah penilaian tidak ikut menghapus kembarnya; grup kembar hanya menyusut.',
+            warning:
+              'Pembuatan atau perubahan serentak ditolak seluruhnya bila satu rombel tidak bisa, misalnya rapornya sudah final, Anda bukan pengampunya, atau tidak ada murid yang mengambil mapel itu. Layar menyebut rombel penyebabnya; ubah penilaian itu satu per satu.',
+          },
+          {
             heading: 'Formatif dan sumatif: mana yang masuk nilai rapor',
             body: 'Setiap komponen nilai punya kategori. Sumatif adalah penilaian yang masuk nilai akhir, rapor, kenaikan kelas, dan kelulusan sesuai bobotnya (misalnya UTS atau UAS). Formatif adalah umpan balik belajar, misalnya kuis singkat atau latihan: nilainya tampil di rekap tetapi tidak masuk nilai akhir, rapor, kenaikan, atau kelulusan, dan tidak punya bobot. Komponen yang sudah ada tetap sumatif sampai Anda mengubahnya. Pada komponen formatif, sebuah penilaian boleh ditandai Asesmen awal (diagnostik) untuk melihat kemampuan awal murid. Pada komponen sumatif, penilaian boleh ditandai lingkupnya: Lingkup materi atau Akhir semester. Anda juga bisa mencatat teknik penilaiannya, misalnya tes, observasi, atau proyek.',
             steps: [
@@ -187,6 +202,21 @@ export const ACADEMIC_DOCS: DocArticle[] = [
               'Deleting an assessment also deletes all the scores inside it. The maximum score also cannot be lowered below a score already entered.',
           },
           {
+            heading: 'Simultaneous assessments for several classes (elective subjects)',
+            body: 'When one teacher teaches an elective subject to students from several classes, the same assessment can be created in one go. When creating an assessment, the Also apply to other classes section lists the other classes you teach that subject in; tick the ones you want (at most 12 classes in total). The system creates one ordinary assessment per class in a single step: either all succeed or none is created. Twin assessments carry a Twin in N classes badge. Scores, the passing mark, the recap, and the report card stay per class, so each class can have a different passing mark if configured differently, and each class only shows the students who take that subject.',
+            steps: [
+              'Open the Grading menu, pick the semester, class, and subject, then click New assessment.',
+              'Fill in the title, component, date, and maximum score as usual.',
+              'Under Also apply to other classes, tick the classes to include, then Save.',
+              'Enter scores on each twin assessment as usual, one class at a time.',
+              'To change all twins at once, choose Edit on one of them and tick Apply to all twins.',
+            ],
+            href: '/grades',
+            tip: 'Deleting one assessment does not delete its twins; the twin group just gets smaller.',
+            warning:
+              'A simultaneous create or change is rejected entirely if one class cannot take it, for example its report card is final, you are not its teacher, or no student takes the subject. The screen names the class; edit that assessment on its own.',
+          },
+          {
             heading: 'Formative and summative: which count toward the report grade',
             body: 'Every score component has a category. Summative means the score counts toward the final grade, the report card, promotion, and graduation according to its weight (for example Midterm or Final Exam). Formative means learning feedback, such as a short quiz or practice: the score shows in the recap but does not count toward the final grade, report card, promotion, or graduation, and it has no weight. Existing components stay summative until you change them. On a formative component, an assessment can be marked Initial assessment (diagnostic) to see where students start. On a summative component, an assessment can be marked with its scope: Material scope or End of semester. You can also record the assessment technique, such as a test, observation, or project.',
             steps: [
@@ -327,6 +357,21 @@ export const ACADEMIC_DOCS: DocArticle[] = [
             tip: 'Nilai tiasa disimpen sakedik-sakedik. Anjeun tiasa ngeusian sawaréh siswa heula, sésana engké.',
             warning:
               'Mupus panilaian ogé mupus sadaya nilai di jerona. Nilai maksimal oge teu tiasa diturunkeun ka handap nilai nu tos kaeusi.',
+          },
+          {
+            heading: 'Penilaian sakaligus pikeun sababaraha rombel (mapel pilihan)',
+            body: 'Upami hiji guru ngajar mapel pilihan pikeun murid ti sababaraha rombel, penilaian nu sarua tiasa dijieun sakaligus. Nalika nyieun penilaian, bagian Lumaku ogé pikeun rombel séjén nembongkeun rombel séjén nu Anjeun ngajar mapel éta; centang nu dipikahoyong (paling seueur 12 rombel sadayana). Sistem nyieun hiji penilaian biasa per rombel dina hiji léngkah: sadayana hasil atanapi teu aya nu dijieun. Penilaian kembar ditandaan lencana Kembar N rombel. Skor, KKM, rekap, jeung rapor tetep per rombel, jadi KKM unggal rombel tiasa béda upami dikonfigurasi béda, jeung unggal rombel ngan nembongkeun murid nu nyandak mapel éta.',
+            steps: [
+              'Buka menu Penilaian, pilih semester, kelas, jeung mata pelajaran, tuluy klik Penilaian baru.',
+              'Eusian judul, komponén, tanggal, jeung nilai maksimal saperti biasa.',
+              'Dina Lumaku ogé pikeun rombel séjén, centang rombel nu milu, tuluy Simpan.',
+              'Eusian nilai dina unggal penilaian kembar saperti biasa, hiji rombel hiji waktos.',
+              'Pikeun ngarobah sadaya kembar sakaligus, pilih Robah dina salah sahijina tuluy centang Larapkeun ka sadaya kembar.',
+            ],
+            href: '/grades',
+            tip: 'Mupus hiji penilaian teu milu mupus kembarna; grup kembar ngan nyusut.',
+            warning:
+              'Nyieun atawa ngarobah sakaligus ditolak sakabéhna upami hiji rombel teu tiasa, upamana raporna geus final, Anjeun lain gurunya, atawa euweuh murid nu nyandak mapel éta. Layar nyebutkeun rombel panyababna; robah penilaian éta nyalira.',
           },
           {
             heading: 'Formatif jeung sumatif: nu mana anu asup kana nilai rapor',

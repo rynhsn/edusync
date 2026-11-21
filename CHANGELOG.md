@@ -23,6 +23,16 @@ Cara merilis: tulis bagian baru di bawah "Belum dirilis" lalu ganti judulnya men
 - **Tanda peserta ujian A4** sebagai titik awal opsional ("tambah dari bawaan"): kop sekolah, identitas, kotak ruang, tabel
   jadwal, dan tanda tangan kepala sekolah dengan QR nomor peserta. Kartu ujian 100 x 60 mm tetap menjadi bawaan. Kartu
   yang tidak muat di lembar dicetak satu per halaman seukuran kartu (A4 tegak untuk 210 x 297 mm).
+- **Penilaian serentak untuk beberapa rombel (opsional, tahap 3B.5.1-3B.5.2)**: guru mapel pilihan dapat membuat penilaian yang sama
+  untuk rombel lain sekaligus (`alsoClassIds` pada `POST /v1/assessments`, maksimal 12 rombel). Semua rombel dibuat dalam satu
+  transaksi (semua atau tidak sama sekali); tiap rombel mendapat penilaian biasa dengan penanda `twin_key` sama, sehingga skor,
+  KKM, rekap, rapor, dan snapshot tetap per rombel dan tidak berubah. Izin pengampu, penjaga `report_final`, dan roster pengambil
+  diperiksa per rombel (rombel tanpa pengambil ditolak `twin_class_no_takers`). `PUT /v1/assessments/:id` menerima `applyToTwins`
+  untuk menyebarkan judul, tanggal, skor maksimum, komponen, tanda, dan TP ke semua kembar; bila ada yang diblokir seluruhnya
+  ditolak 409 `twin_blocked` (dengan daftar rombel penghalang). Menghapus tidak menyebar. Daftar penilaian membawa `twinKey` dan
+  `twinCount` hanya pada penilaian berkembar. Di layar Penilaian: pilihan rombel (chip) pada formulir, lencana "Kembar N rombel",
+  dan kotak "Terapkan ke semua kembar" saat mengubah. Sekolah dan penilaian tanpa kembar berperilaku persis seperti sebelumnya.
+  Migrasi 0121 (kolom `assessment.twin_key` nullable). Input skor gabungan satu lembar (3B.5.3) ditunda.
 
 ### Diubah
 
