@@ -7,6 +7,23 @@ memutus kompatibilitas. Produksi hanya berubah saat tag `vX.Y.Z` dikirim; tulis 
 Cara merilis: tulis bagian baru di bawah "Belum dirilis" lalu ganti judulnya menjadi `## [x.y.z] - tanggal`, kemudian
 `pnpm release x.y.z` dan `git push edusync HEAD:main vx.y.z`.
 
+## [0.8.0] - 2026-11-21
+
+### Ditambahkan
+
+- **SKL dan sertifikat PKL bertemplat dinamis**: sekolah dapat menyesuaikan judul, kalimat pembuka, kalimat utama (dengan variabel
+  `{{nama_murid}}`, `{{nisn}}`, `{{kelas}}`, `{{tahun_ajaran}}`, `{{nomor_skl}}`, `{{status_lulus}}`, `{{nilai_rata}}`, `{{mitra}}`,
+  `{{periode}}`, `{{nilai_akhir}}`, `{{predikat}}`, `{{kepala_sekolah}}`, `{{nip_kepala_sekolah}}`, `{{tempat}}`, `{{tanggal}}`, dll.),
+  bagian yang dicetak (kop, nomor, tabel identitas, kriteria; nama sekolah, kelas, nilai akhir, ringkasan aspek), dan susunan
+  kolom tanda tangan (sampai 4 slot: jabatan, nama dari variabel atau kosong, baris catatan, tempat-tanggal) yang hanya
+  menyediakan ruang kosong untuk tanda tangan basah. Kepala sekolah tetap dari penandatangan aktif (`resolvePrincipal`).
+  Tabel baru `document_template` (migrasi 0126, aditif, RLS) satu baris per (sekolah, jenis); tanpa baris = templat bawaan yang
+  mencetak dokumen persis seperti sebelumnya, jadi tidak ada data awal dan tidak ada perubahan bagi sekolah yang tidak
+  menyesuaikan. API `GET/PUT/DELETE /v1/document-templates/skl` (izin `graduation:read`/`graduation:manage`, modul `grades`) dan
+  `/v1/document-templates/pkl_certificate` (izin `pkl:read`/`pkl:manage`, modul `internship`); variabel atau bagian tak dikenal
+  ditolak 400, perubahan masuk log audit. Editornya ada di tab Kebijakan Kelulusan dan Pengaturan PKL, lengkap dengan "Kembalikan
+  bawaan" dan pratinjau contoh. SKL kini berupa PDF yang digenerate (sebelumnya cetak HTML), seperti sertifikat PKL.
+
 ## [0.7.0] - 2026-11-21
 
 ### Diubah

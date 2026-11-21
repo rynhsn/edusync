@@ -258,6 +258,65 @@
       "templateInvalid": "Citakan kudu ngandung '{seq}' jeung ngan maké '{seq}', '{seq:3}', jeung '{year}'."
     }
   },
+  "documentTemplate": {
+    "title": "Citakan dokumén: {kind}",
+    "kind": {
+      "skl": "SKL",
+      "pkl_certificate": "Sertifikat PKL"
+    },
+    "description": {
+      "skl": "Saluyukeun judul, kalimah, bagian anu dicitak, jeung kolom tanda tangan dina surat katerangan lulus (SKL). Lamun teu diowahan, SKL dicitak saperti bawaan sistem.",
+      "pkl_certificate": "Saluyukeun judul, kalimah, bagian anu dicitak, jeung kolom tanda tangan dina sertifikat PKL. Lamun teu diowahan, sertifikat dicitak saperti bawaan sistem."
+    },
+    "loadError": "Citakan teu bisa dimuat. Dokumén tetep dicitak maké citakan bawaan.",
+    "statusDefault": "Bawaan",
+    "statusCustom": "Disaluyukeun",
+    "preview": "Pratayang conto",
+    "previewDraft": "Pratayang conto maké eusi ieu",
+    "customize": "Saluyukeun citakan",
+    "reset": "Balikeun ka bawaan",
+    "resetTitle": "Balikeun citakan {kind} ka bawaan?",
+    "resetBody": "Citakan anu disaluyukeun dipupus tur dokumén dicitak deui saperti bawaan sistem. Dokumén anu geus dicitak teu robah.",
+    "resetDone": "Citakan dibalikeun ka bawaan.",
+    "saved": "Citakan disimpen.",
+    "save": "Simpen citakan",
+    "editorTitle": "Saluyukeun citakan {kind}",
+    "editorDescription": "Kolom anu dikosongkeun maké téks bawaan. Variabel diganti ku data murid basa dokumén dicitak.",
+    "issue": {
+      "unknown_variable": "Variabel teu dikenal: {list}.",
+      "unknown_section": "Bagian teu dikenal: {list}."
+    },
+    "variables": "Variabel",
+    "variablesHint": "Klik variabel pikeun nyelapkeunana kana kolom anu panungtung diisi (téks eusi atawa kolom tanda tangan).",
+    "field": {
+      "title": "Judul",
+      "subtitle": "Subjudul",
+      "intro": "Kalimah bubuka",
+      "body": "Eusi (kalimah utama)"
+    },
+    "emptyIsDefault": "Kolom kosong = maké téks bawaan (ditingalikeun minangka conto dina kolom).",
+    "sectionsTitle": "Bagian anu dicitak",
+    "section": {
+      "letterhead": "Kop sakola",
+      "number": "Nomer dokumén",
+      "identity": "Tabél identitas murid",
+      "criteria": "Kriteria kalulusan",
+      "schoolName": "Ngaran sakola",
+      "className": "Kelas murid",
+      "score": "Nilai akhir jeung predikat",
+      "aspects": "Ringkesan nilai per aspék"
+    },
+    "signaturesTitle": "Tanda tangan",
+    "signaturesHint": "Unggal slot nyadiakeun rohangan kosong pikeun tanda tangan baseuh; sistem teu nambahan gambar tanda tangan. Kepala sakola dicokot tina panandatangan aktif anu ditandaan kepala sakola.",
+    "signaturesCustom": "Atur susunan tanda tangan sorangan",
+    "signaturesNone": "Can aya slot: dokumén dicitak tanpa kolom tanda tangan.",
+    "slotLabel": "Jabatan",
+    "slotName": "Ngaran (variabel meunang, kosong = garis kosong)",
+    "slotNote": "Baris handapeun ngaran (upamana NIP)",
+    "slotPlaceDate": "Citak tempat jeung tanggal di luhureun jabatan",
+    "slotRemove": "Pupus slot",
+    "slotAdd": "Tambah slot tanda tangan"
+  },
   "schoolSuspended": {
     "title": "Sakola ieu keur ditangguhkeun",
     "schoolName": "Sakola: {name}",

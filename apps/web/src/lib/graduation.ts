@@ -483,6 +483,32 @@ export interface SklLabels {
   draftNote: string;
   numberMissing: string;
   signPlace: string;
+  /** Kota dan tanggal terformat untuk variabel templat {{tempat}} dan {{tanggal}} (templat dokumen). */
+  placeText?: string;
+  dateText?: string;
+  /** Kata hasil kelulusan per status, untuk {{status_lulus}}. */
+  results?: Record<GraduationResult, string>;
+}
+
+/** Variabel templat SKL ({{nama_murid}}, dst.) dari data murid dan label cetak. */
+export function sklVars(s: GraduationStudent, l: SklLabels, m: PrintMeta): Record<string, string> {
+  const avg = s.transcript?.average;
+  return {
+    nama_murid: s.name,
+    nis: s.nis ?? '',
+    nisn: s.nisn ?? '',
+    kelas: s.className,
+    tahun_ajaran: m.yearName,
+    nomor_skl: s.decision?.sklNumber ?? '',
+    status_lulus: (s.decision?.result && l.results?.[s.decision.result]) || '',
+    nilai_rata: avg === null || avg === undefined ? '' : String(avg),
+    tanggal_lulus: m.graduatedOnText,
+    sekolah: m.school.name,
+    kepala_sekolah: m.school.principal?.name ?? '',
+    nip_kepala_sekolah: m.school.principal?.nip ?? '',
+    tempat: l.placeText ?? '',
+    tanggal: l.dateText ?? '',
+  };
 }
 
 const STYLE =
@@ -496,34 +522,6 @@ const STYLE =
 
 const dash = '-';
 const fmt = (n: number | null) => (n === null ? dash : String(n));
-
-/** Surat Keterangan Lulus satu murid (HTML mandiri, potret A4). Hanya untuk murid yang ditetapkan lulus. */
-export function sklHtml(s: GraduationStudent, l: SklLabels, m: PrintMeta): string {
-  const e = escapeHtml;
-  const sch = m.school;
-  const draft = s.decision?.status !== 'final';
-  const criteria = s.transcript?.policy.criteriaText;
-  return (
-    `<!doctype html><html lang="${e(m.locale)}"><head><meta charset="utf-8"><title>${e(`${l.title} - ${s.name}`)}</title><style>${STYLE}</style></head><body>` +
-    `<h1>${e(sch.name)}</h1>` +
-    `<p class="center sub">${e([sch.address, sch.city].filter(Boolean).join(', ') || dash)}${sch.npsn ? ` | ${e(l.npsn)} ${e(sch.npsn)}` : ''}</p>` +
-    `<h1 style="margin-top:18px">${e(l.title)}</h1>` +
-    `<p class="center">${e(l.number)}: ${e(s.decision?.sklNumber ?? l.numberMissing)}</p>` +
-    `<p style="margin-top:14px">${e(l.intro)}</p>` +
-    '<dl>' +
-    `<dt>${e(l.name)}</dt><dd>${e(s.name)}</dd>` +
-    `<dt>${e(l.nis)}</dt><dd>${e(s.nis ?? dash)}</dd>` +
-    `<dt>${e(l.nisn)}</dt><dd>${e(s.nisn ?? dash)}</dd>` +
-    `<dt>${e(l.className)}</dt><dd>${e(s.className)}</dd>` +
-    `<dt>${e(l.year)}</dt><dd>${e(m.yearName)}</dd></dl>` +
-    `<p>${e(l.statement)}</p>` +
-    (criteria ? `<h2>${e(l.criteria)}</h2><p>${e(criteria).replace(/\n/g, '<br>')}</p>` : '') +
-    `<div class="sign"><p>${e(l.signPlace)}</p><p>${e(l.principal)}</p><div class="line">${e(sch.principal?.name ?? dash)}</div>` +
-    `${sch.principal?.nip ? `<p>${e(l.nip)} ${e(sch.principal.nip)}</p>` : ''}</div>` +
-    (draft ? `<p class="note">${e(l.draftNote)}</p>` : '') +
-    `<p class="note">${e(m.printedOnText)}</p></body></html>`
-  );
-}
 
 export interface TranscriptLabels {
   title: string;

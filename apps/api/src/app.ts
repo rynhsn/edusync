@@ -41,6 +41,7 @@ import { cocurricularProgramRoutes } from './routes/cocurricular-programs';
 import { councilMeetingRoutes } from './routes/council-meetings';
 import { curriculumRoutes } from './routes/curriculum';
 import { curriculumStructureRoutes } from './routes/curriculum-structure';
+import { documentTemplateRoutes } from './routes/document-templates';
 import { examBankRoutes } from './routes/exam-bank';
 import { examParticipantNumberRoutes } from './routes/exam-participant-numbers';
 import { portalExamsRoutes } from './routes/exam-portal';
@@ -351,6 +352,7 @@ export async function buildApp(env: Env, deps: { dns?: DomainDns } = {}) {
   await app.register(examBankRoutes);
   await app.register(examRoomRoutes);
   await app.register(examParticipantNumberRoutes);
+  await app.register(documentTemplateRoutes);
   await app.register(examRoutes);
   await app.register(examScoreRoutes);
   await app.register(portalExamsRoutes);

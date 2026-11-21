@@ -7,9 +7,11 @@ import { ONBOARDING_DOCS } from './content-onboarding';
 import { ROLE_DOCS } from './content-roles';
 import { SERVICE_DOCS } from './content-services';
 import { SUPPORT_DOCS } from './content-support';
+import { WORKFLOW_DOCS } from './content-workflows';
 
 /** Dokumentasi panel sekolah, satu artikel per modul, berurutan seperti menu samping. */
 export const SCHOOL_DOCS: DocArticle[] = [
+  ...WORKFLOW_DOCS,
   ...ONBOARDING_DOCS,
   ...CORE_DOCS,
   ...CARD_DOCS,

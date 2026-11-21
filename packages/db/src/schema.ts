@@ -3834,6 +3834,29 @@ export const examParticipantNumber = pgTable(
   ],
 );
 
+/**
+ * Templat dokumen yang dapat disesuaikan sekolah (SKL, sertifikat PKL): satu baris per (sekolah, jenis); tanpa baris =
+ * templat bawaan (keluaran sama seperti sebelum fitur ini). `config` divalidasi zod di API (packages/contracts).
+ * RLS, GRANT, dan CHECK ada di SQL tangan 0126.
+ */
+export const documentTemplate = pgTable(
+  'document_template',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    kind: text('kind', { enum: ['skl', 'pkl_certificate'] }).notNull(),
+    config: jsonb('config').notNull(),
+    createdAt: createdAt(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique('document_template_kind_uq').on(t.schoolId, t.kind),
+    unique('document_template_school_id_uq').on(t.schoolId, t.id),
+  ],
+);
+
 export interface QuestionOption {
   key: string;
   text: string;

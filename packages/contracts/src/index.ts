@@ -9,6 +9,7 @@ export * from './catalog';
 export * from './cocurricular';
 export * from './council-meeting';
 export * from './curriculum';
+export * from './document-template';
 export * from './education-ids';
 export * from './education-profile';
 export * from './exam-paper';

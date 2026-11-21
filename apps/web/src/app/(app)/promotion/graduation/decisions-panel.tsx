@@ -41,7 +41,6 @@ import {
   type DecisionField,
   type DecisionForm,
   decisionFormOf,
-  documentFileName,
   type GraduationList,
   type GraduationResult,
   type GraduationStudent,
@@ -53,12 +52,12 @@ import {
   RESULTS,
   readyToFinalize,
   type SklLabels,
-  sklHtml,
   type TranscriptLabels,
   transcriptHtml,
   validateDecision,
 } from '@/lib/graduation';
 import { printHtml } from '@/lib/print-frame';
+import { useDocumentTemplate } from '@/lib/use-document-template';
 import { cn } from '@/lib/utils';
 import { useGraduationError, useRefreshGraduation } from './graduation-shared';
 
@@ -73,6 +72,7 @@ function usePrintDocs(list: GraduationList | undefined, yearName: string, announ
   const t = useTranslations('graduation.print');
   const tr = useTranslations('graduation.results');
   const locale = useLocale() as Locale;
+  const template = useDocumentTemplate('skl').data?.config ?? null;
   return useMemo(() => {
     const show = (iso: string) => formatCalendarDate(locale, iso);
     const meta = (s: GraduationStudent): PrintMeta | null =>
@@ -103,6 +103,9 @@ function usePrintDocs(list: GraduationList | undefined, yearName: string, announ
       draftNote: t('draftNote'),
       numberMissing: t('numberMissing'),
       signPlace: place(),
+      placeText: list?.school.city ?? '',
+      dateText: show(announceOn ?? todayIso()),
+      results: { graduated: tr('graduated'), not_graduated: tr('not_graduated'), deferred: tr('deferred') },
     });
     const transcriptLabels = (): TranscriptLabels => ({
       title: t('transcriptTitle'),
@@ -133,12 +136,8 @@ function usePrintDocs(list: GraduationList | undefined, yearName: string, announ
       skl(s: GraduationStudent) {
         const m = meta(s);
         if (!m) return;
-        const doc = document.title;
-        document.title = documentFileName('skl', s.name, yearName);
-        printHtml(sklHtml(s, sklLabels(), m));
-        setTimeout(() => {
-          document.title = doc;
-        }, 1000);
+        const labels = sklLabels();
+        import('./pdf/download').then(({ downloadSklPdf }) => downloadSklPdf(s, labels, m, template));
       },
       transcript(s: GraduationStudent) {
         const m = meta(s);
@@ -146,8 +145,7 @@ function usePrintDocs(list: GraduationList | undefined, yearName: string, announ
         if (html) printHtml(html);
       },
     };
-    // biome-ignore lint/correctness/useExhaustiveDependencies: label dibuat ulang tiap daftar atau bahasa berganti
-  }, [list, yearName, announceOn, locale, t, tr]);
+  }, [list, yearName, announceOn, locale, t, tr, template]);
 }
 
 /** Dialog konfirmasi penetapan: ringkasan dan, bila ada murid dengan data belum lengkap, alasan tertulis (force). */

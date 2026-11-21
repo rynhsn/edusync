@@ -21,6 +21,7 @@ import { DecisionsPanel } from './decisions-panel';
 import { ExamsPanel } from './exams-panel';
 import { useGraduationError } from './graduation-shared';
 import { PolicyPanel } from './policy-panel';
+import { TemplateCard } from './template-card';
 
 type Tab = 'decisions' | 'exams' | 'policy';
 const TAB_ICONS = { decisions: ListChecks, exams: ClipboardList, policy: Scale } as const;
@@ -181,7 +182,10 @@ export function GraduationView() {
               </Alert>
             )}
             {policy.data && current === 'policy' && (
-              <PolicyPanel key={yearId} yearId={yearId} policy={policyView} />
+              <>
+                <PolicyPanel key={yearId} yearId={yearId} policy={policyView} />
+                <TemplateCard />
+              </>
             )}
             {policy.data && current === 'exams' && <ExamsPanel key={yearId} yearId={yearId} />}
             {policy.data && current === 'decisions' && (

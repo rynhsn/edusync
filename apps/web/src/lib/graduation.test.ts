@@ -19,7 +19,7 @@ import {
   parseScorePaste,
   readyToFinalize,
   type SklLabels,
-  sklHtml,
+  sklVars,
   suggestedResult,
   type TranscriptLabels,
   templatePreview,
@@ -455,21 +455,6 @@ describe('kebijakan: syarat UKK kompeten (5.6)', () => {
 });
 
 describe('cetak SKL dan transkrip', () => {
-  it('SKL memuat identitas, nomor, dan penandatangan; semua teks di-escape; draf diberi catatan', () => {
-    const html = sklHtml(finalStudent, sklLabels, meta);
-    expect(html).toContain('001/SKL/2027');
-    expect(html).toContain('SMK &lt;Maju&gt; &amp; Jaya');
-    expect(html).toContain('Ani &lt;b&gt;');
-    expect(html).toContain('Drs. Kepala');
-    expect(html).toContain('NPSN 12345678');
-    expect(html).toContain('Rata-rata minimal 75.<br>Baris dua');
-    expect(html).not.toContain('<b>');
-    expect(html).not.toContain('DRAF');
-    const draft = sklHtml(stu('2', { decision: decision({ result: 'graduated' }) }), sklLabels, meta);
-    expect(draft).toContain('DRAF');
-    expect(draft).toContain('belum ada nomor');
-  });
-
   it('transkrip dari transkrip beku: kolom ujian, rata-rata, bobot (porsi), catatan force; null bila belum beku', () => {
     expect(transcriptHtml(stu('2'), trLabels, meta)).toBeNull();
     const html = transcriptHtml(finalStudent, trLabels, meta) as string;
@@ -486,5 +471,29 @@ describe('cetak SKL dan transkrip', () => {
   it('nama berkas aman', () => {
     expect(documentFileName('skl', 'Ánî Lestari, S.', '2026/2027')).toBe('skl-ani-lestari-s-2026-2027');
     expect(documentFileName('transkrip', '###', '2026/2027')).toBe('transkrip-murid-2026-2027');
+  });
+});
+
+describe('variabel templat SKL', () => {
+  it('sklVars mengisi data murid, sekolah, dan label; yang tak ada menjadi kosong', () => {
+    const v = sklVars(
+      finalStudent,
+      { ...sklLabels, results: { graduated: 'Lulus', not_graduated: 'x', deferred: 'y' } },
+      meta,
+    );
+    expect(v).toMatchObject({
+      nama_murid: 'Ani <b>',
+      nomor_skl: '001/SKL/2027',
+      status_lulus: 'Lulus',
+      kepala_sekolah: 'Drs. Kepala',
+    });
+    const none = sklVars(stu('2'), sklLabels, { ...meta, school: { ...meta.school, principal: null } });
+    expect(none).toMatchObject({
+      nomor_skl: '',
+      status_lulus: '',
+      kepala_sekolah: '',
+      nip_kepala_sekolah: '',
+      nilai_rata: '',
+    });
   });
 });

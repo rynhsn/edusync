@@ -144290,6 +144290,1220 @@
         }
       }
     },
+    "/v1/document-templates/skl": {
+      "get": {
+        "summary": "Templat SKL (surat keterangan lulus)",
+        "tags": [
+          "Document templates"
+        ],
+        "description": "Izin: `graduation:read`; modul `grades`. Templat SKL (surat keterangan lulus) milik sekolah; bila belum pernah disimpan dikembalikan templat bawaan (`isDefault` true) yang menghasilkan dokumen seperti semula.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "header",
+            "name": "x-school-id",
+            "required": true,
+            "description": "Sekolah yang sedang dipakai"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "kind": {
+                      "type": "string",
+                      "enum": [
+                        "skl",
+                        "pkl_certificate"
+                      ]
+                    },
+                    "config": {
+                      "type": "object",
+                      "properties": {
+                        "title": {
+                          "nullable": true,
+                          "type": "string",
+                          "maxLength": 120
+                        },
+                        "subtitle": {
+                          "nullable": true,
+                          "type": "string",
+                          "maxLength": 120
+                        },
+                        "intro": {
+                          "nullable": true,
+                          "type": "string",
+                          "maxLength": 500
+                        },
+                        "body": {
+                          "nullable": true,
+                          "type": "string",
+                          "maxLength": 2000
+                        },
+                        "sections": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "boolean"
+                          }
+                        },
+                        "signatures": {
+                          "nullable": true,
+                          "maxItems": 4,
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "label": {
+                                "type": "string",
+                                "maxLength": 80
+                              },
+                              "name": {
+                                "type": "string",
+                                "maxLength": 120
+                              },
+                              "note": {
+                                "type": "string",
+                                "maxLength": 120
+                              },
+                              "placeDate": {
+                                "type": "boolean"
+                              }
+                            },
+                            "required": [
+                              "label",
+                              "name",
+                              "note",
+                              "placeDate"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "title",
+                        "subtitle",
+                        "intro",
+                        "body",
+                        "sections",
+                        "signatures"
+                      ],
+                      "additionalProperties": false,
+                      "description": "Teks `null` = bawaan. `sections`: bagian yang dimatikan bernilai false. `signatures` null = tanda tangan bawaan."
+                    },
+                    "isDefault": {
+                      "type": "boolean",
+                      "description": "true bila sekolah belum menyimpan templat (memakai bawaan)"
+                    },
+                    "updatedAt": {
+                      "nullable": true,
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "kind",
+                    "config",
+                    "isDefault",
+                    "updatedAt"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Simpan templat SKL (surat keterangan lulus)",
+        "tags": [
+          "Document templates"
+        ],
+        "description": "Izin: `graduation:manage`; modul `grades`. Menimpa seluruh templat. Variabel yang dikenal: `{{nama_murid}}`, `{{nis}}`, `{{nisn}}`, `{{kelas}}`, `{{tahun_ajaran}}`, `{{nomor_skl}}`, `{{status_lulus}}`, `{{nilai_rata}}`, `{{tanggal_lulus}}`, `{{sekolah}}`, `{{kepala_sekolah}}`, `{{nip_kepala_sekolah}}`, `{{tempat}}`, `{{tanggal}}`. Kunci `sections` yang dikenal: `letterhead`, `number`, `identity`, `criteria`. Tanda tangan hanya ruang kosong untuk tanda tangan basah (maksimal 4 slot). 400 `unknown_variable`: variabel tak dikenal; 400 `unknown_section`: kunci bagian tak dikenal. Dicatat di log audit.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "nullable": true,
+                    "type": "string",
+                    "maxLength": 120
+                  },
+                  "subtitle": {
+                    "nullable": true,
+                    "type": "string",
+                    "maxLength": 120
+                  },
+                  "intro": {
+                    "nullable": true,
+                    "type": "string",
+                    "maxLength": 500
+                  },
+                  "body": {
+                    "nullable": true,
+                    "type": "string",
+                    "maxLength": 2000
+                  },
+                  "sections": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "boolean"
+                    }
+                  },
+                  "signatures": {
+                    "nullable": true,
+                    "maxItems": 4,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "label": {
+                          "type": "string",
+                          "maxLength": 80
+                        },
+                        "name": {
+                          "type": "string",
+                          "maxLength": 120
+                        },
+                        "note": {
+                          "type": "string",
+                          "maxLength": 120
+                        },
+                        "placeDate": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "label",
+                        "name",
+                        "note",
+                        "placeDate"
+                      ]
+                    }
+                  }
+                },
+                "required": [
+                  "title",
+                  "subtitle",
+                  "intro",
+                  "body",
+                  "sections",
+                  "signatures"
+                ]
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "header",
+            "name": "x-school-id",
+            "required": true,
+            "description": "Sekolah yang sedang dipakai"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "kind": {
+                      "type": "string",
+                      "enum": [
+                        "skl",
+                        "pkl_certificate"
+                      ]
+                    },
+                    "config": {
+                      "type": "object",
+                      "properties": {
+                        "title": {
+                          "nullable": true,
+                          "type": "string",
+                          "maxLength": 120
+                        },
+                        "subtitle": {
+                          "nullable": true,
+                          "type": "string",
+                          "maxLength": 120
+                        },
+                        "intro": {
+                          "nullable": true,
+                          "type": "string",
+                          "maxLength": 500
+                        },
+                        "body": {
+                          "nullable": true,
+                          "type": "string",
+                          "maxLength": 2000
+                        },
+                        "sections": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "boolean"
+                          }
+                        },
+                        "signatures": {
+                          "nullable": true,
+                          "maxItems": 4,
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "label": {
+                                "type": "string",
+                                "maxLength": 80
+                              },
+                              "name": {
+                                "type": "string",
+                                "maxLength": 120
+                              },
+                              "note": {
+                                "type": "string",
+                                "maxLength": 120
+                              },
+                              "placeDate": {
+                                "type": "boolean"
+                              }
+                            },
+                            "required": [
+                              "label",
+                              "name",
+                              "note",
+                              "placeDate"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "title",
+                        "subtitle",
+                        "intro",
+                        "body",
+                        "sections",
+                        "signatures"
+                      ],
+                      "additionalProperties": false,
+                      "description": "Teks `null` = bawaan. `sections`: bagian yang dimatikan bernilai false. `signatures` null = tanda tangan bawaan."
+                    },
+                    "isDefault": {
+                      "type": "boolean",
+                      "description": "true bila sekolah belum menyimpan templat (memakai bawaan)"
+                    },
+                    "updatedAt": {
+                      "nullable": true,
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "kind",
+                    "config",
+                    "isDefault",
+                    "updatedAt"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Kembalikan templat SKL (surat keterangan lulus) ke bawaan",
+        "tags": [
+          "Document templates"
+        ],
+        "description": "Izin: `graduation:manage`; modul `grades`. Menghapus templat tersimpan; tanpa templat tersimpan tidak terjadi apa-apa. Dicatat di log audit.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "header",
+            "name": "x-school-id",
+            "required": true,
+            "description": "Sekolah yang sedang dipakai"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    }
+                  },
+                  "required": [
+                    "ok"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/document-templates/pkl_certificate": {
+      "get": {
+        "summary": "Templat sertifikat PKL",
+        "tags": [
+          "Document templates"
+        ],
+        "description": "Izin: `pkl:read`; modul `internship`. Templat sertifikat PKL milik sekolah; bila belum pernah disimpan dikembalikan templat bawaan (`isDefault` true) yang menghasilkan dokumen seperti semula.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "header",
+            "name": "x-school-id",
+            "required": true,
+            "description": "Sekolah yang sedang dipakai"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "kind": {
+                      "type": "string",
+                      "enum": [
+                        "skl",
+                        "pkl_certificate"
+                      ]
+                    },
+                    "config": {
+                      "type": "object",
+                      "properties": {
+                        "title": {
+                          "nullable": true,
+                          "type": "string",
+                          "maxLength": 120
+                        },
+                        "subtitle": {
+                          "nullable": true,
+                          "type": "string",
+                          "maxLength": 120
+                        },
+                        "intro": {
+                          "nullable": true,
+                          "type": "string",
+                          "maxLength": 500
+                        },
+                        "body": {
+                          "nullable": true,
+                          "type": "string",
+                          "maxLength": 2000
+                        },
+                        "sections": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "boolean"
+                          }
+                        },
+                        "signatures": {
+                          "nullable": true,
+                          "maxItems": 4,
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "label": {
+                                "type": "string",
+                                "maxLength": 80
+                              },
+                              "name": {
+                                "type": "string",
+                                "maxLength": 120
+                              },
+                              "note": {
+                                "type": "string",
+                                "maxLength": 120
+                              },
+                              "placeDate": {
+                                "type": "boolean"
+                              }
+                            },
+                            "required": [
+                              "label",
+                              "name",
+                              "note",
+                              "placeDate"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "title",
+                        "subtitle",
+                        "intro",
+                        "body",
+                        "sections",
+                        "signatures"
+                      ],
+                      "additionalProperties": false,
+                      "description": "Teks `null` = bawaan. `sections`: bagian yang dimatikan bernilai false. `signatures` null = tanda tangan bawaan."
+                    },
+                    "isDefault": {
+                      "type": "boolean",
+                      "description": "true bila sekolah belum menyimpan templat (memakai bawaan)"
+                    },
+                    "updatedAt": {
+                      "nullable": true,
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "kind",
+                    "config",
+                    "isDefault",
+                    "updatedAt"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Simpan templat sertifikat PKL",
+        "tags": [
+          "Document templates"
+        ],
+        "description": "Izin: `pkl:manage`; modul `internship`. Menimpa seluruh templat. Variabel yang dikenal: `{{nama_murid}}`, `{{kelas}}`, `{{sekolah}}`, `{{mitra}}`, `{{periode}}`, `{{nama_periode}}`, `{{nilai_akhir}}`, `{{predikat}}`, `{{kata_predikat}}`, `{{nomor_sertifikat}}`, `{{pembimbing_industri}}`, `{{kepala_sekolah}}`, `{{nip_kepala_sekolah}}`, `{{tempat}}`, `{{tanggal}}`. Kunci `sections` yang dikenal: `schoolName`, `number`, `className`, `score`, `aspects`. Tanda tangan hanya ruang kosong untuk tanda tangan basah (maksimal 4 slot). 400 `unknown_variable`: variabel tak dikenal; 400 `unknown_section`: kunci bagian tak dikenal. Dicatat di log audit.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "nullable": true,
+                    "type": "string",
+                    "maxLength": 120
+                  },
+                  "subtitle": {
+                    "nullable": true,
+                    "type": "string",
+                    "maxLength": 120
+                  },
+                  "intro": {
+                    "nullable": true,
+                    "type": "string",
+                    "maxLength": 500
+                  },
+                  "body": {
+                    "nullable": true,
+                    "type": "string",
+                    "maxLength": 2000
+                  },
+                  "sections": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "boolean"
+                    }
+                  },
+                  "signatures": {
+                    "nullable": true,
+                    "maxItems": 4,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "label": {
+                          "type": "string",
+                          "maxLength": 80
+                        },
+                        "name": {
+                          "type": "string",
+                          "maxLength": 120
+                        },
+                        "note": {
+                          "type": "string",
+                          "maxLength": 120
+                        },
+                        "placeDate": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "label",
+                        "name",
+                        "note",
+                        "placeDate"
+                      ]
+                    }
+                  }
+                },
+                "required": [
+                  "title",
+                  "subtitle",
+                  "intro",
+                  "body",
+                  "sections",
+                  "signatures"
+                ]
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "header",
+            "name": "x-school-id",
+            "required": true,
+            "description": "Sekolah yang sedang dipakai"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "kind": {
+                      "type": "string",
+                      "enum": [
+                        "skl",
+                        "pkl_certificate"
+                      ]
+                    },
+                    "config": {
+                      "type": "object",
+                      "properties": {
+                        "title": {
+                          "nullable": true,
+                          "type": "string",
+                          "maxLength": 120
+                        },
+                        "subtitle": {
+                          "nullable": true,
+                          "type": "string",
+                          "maxLength": 120
+                        },
+                        "intro": {
+                          "nullable": true,
+                          "type": "string",
+                          "maxLength": 500
+                        },
+                        "body": {
+                          "nullable": true,
+                          "type": "string",
+                          "maxLength": 2000
+                        },
+                        "sections": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "boolean"
+                          }
+                        },
+                        "signatures": {
+                          "nullable": true,
+                          "maxItems": 4,
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "label": {
+                                "type": "string",
+                                "maxLength": 80
+                              },
+                              "name": {
+                                "type": "string",
+                                "maxLength": 120
+                              },
+                              "note": {
+                                "type": "string",
+                                "maxLength": 120
+                              },
+                              "placeDate": {
+                                "type": "boolean"
+                              }
+                            },
+                            "required": [
+                              "label",
+                              "name",
+                              "note",
+                              "placeDate"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "title",
+                        "subtitle",
+                        "intro",
+                        "body",
+                        "sections",
+                        "signatures"
+                      ],
+                      "additionalProperties": false,
+                      "description": "Teks `null` = bawaan. `sections`: bagian yang dimatikan bernilai false. `signatures` null = tanda tangan bawaan."
+                    },
+                    "isDefault": {
+                      "type": "boolean",
+                      "description": "true bila sekolah belum menyimpan templat (memakai bawaan)"
+                    },
+                    "updatedAt": {
+                      "nullable": true,
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "kind",
+                    "config",
+                    "isDefault",
+                    "updatedAt"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Kembalikan templat sertifikat PKL ke bawaan",
+        "tags": [
+          "Document templates"
+        ],
+        "description": "Izin: `pkl:manage`; modul `internship`. Menghapus templat tersimpan; tanpa templat tersimpan tidak terjadi apa-apa. Dicatat di log audit.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "header",
+            "name": "x-school-id",
+            "required": true,
+            "description": "Sekolah yang sedang dipakai"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    }
+                  },
+                  "required": [
+                    "ok"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/exam/paper-settings": {
       "get": {
         "summary": "Pengaturan lembar ujian sekolah",

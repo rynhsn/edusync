@@ -62947,6 +62947,524 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/document-templates/skl": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Templat SKL (surat keterangan lulus)
+         * @description Izin: `graduation:read`; modul `grades`. Templat SKL (surat keterangan lulus) milik sekolah; bila belum pernah disimpan dikembalikan templat bawaan (`isDefault` true) yang menghasilkan dokumen seperti semula.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {string} */
+                            kind: "skl" | "pkl_certificate";
+                            /** @description Teks `null` = bawaan. `sections`: bagian yang dimatikan bernilai false. `signatures` null = tanda tangan bawaan. */
+                            config: {
+                                title: string | null;
+                                subtitle: string | null;
+                                intro: string | null;
+                                body: string | null;
+                                sections: {
+                                    [key: string]: boolean;
+                                };
+                                signatures: {
+                                    label: string;
+                                    name: string;
+                                    note: string;
+                                    placeDate: boolean;
+                                }[] | null;
+                            };
+                            /** @description true bila sekolah belum menyimpan templat (memakai bawaan) */
+                            isDefault: boolean;
+                            /** Format: date-time */
+                            updatedAt: string | null;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        /**
+         * Simpan templat SKL (surat keterangan lulus)
+         * @description Izin: `graduation:manage`; modul `grades`. Menimpa seluruh templat. Variabel yang dikenal: `{{nama_murid}}`, `{{nis}}`, `{{nisn}}`, `{{kelas}}`, `{{tahun_ajaran}}`, `{{nomor_skl}}`, `{{status_lulus}}`, `{{nilai_rata}}`, `{{tanggal_lulus}}`, `{{sekolah}}`, `{{kepala_sekolah}}`, `{{nip_kepala_sekolah}}`, `{{tempat}}`, `{{tanggal}}`. Kunci `sections` yang dikenal: `letterhead`, `number`, `identity`, `criteria`. Tanda tangan hanya ruang kosong untuk tanda tangan basah (maksimal 4 slot). 400 `unknown_variable`: variabel tak dikenal; 400 `unknown_section`: kunci bagian tak dikenal. Dicatat di log audit.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        title: string | null;
+                        subtitle: string | null;
+                        intro: string | null;
+                        body: string | null;
+                        sections: {
+                            [key: string]: boolean;
+                        };
+                        signatures: {
+                            label: string;
+                            name: string;
+                            note: string;
+                            placeDate: boolean;
+                        }[] | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {string} */
+                            kind: "skl" | "pkl_certificate";
+                            /** @description Teks `null` = bawaan. `sections`: bagian yang dimatikan bernilai false. `signatures` null = tanda tangan bawaan. */
+                            config: {
+                                title: string | null;
+                                subtitle: string | null;
+                                intro: string | null;
+                                body: string | null;
+                                sections: {
+                                    [key: string]: boolean;
+                                };
+                                signatures: {
+                                    label: string;
+                                    name: string;
+                                    note: string;
+                                    placeDate: boolean;
+                                }[] | null;
+                            };
+                            /** @description true bila sekolah belum menyimpan templat (memakai bawaan) */
+                            isDefault: boolean;
+                            /** Format: date-time */
+                            updatedAt: string | null;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        /**
+         * Kembalikan templat SKL (surat keterangan lulus) ke bawaan
+         * @description Izin: `graduation:manage`; modul `grades`. Menghapus templat tersimpan; tanpa templat tersimpan tidak terjadi apa-apa. Dicatat di log audit.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: true;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/document-templates/pkl_certificate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Templat sertifikat PKL
+         * @description Izin: `pkl:read`; modul `internship`. Templat sertifikat PKL milik sekolah; bila belum pernah disimpan dikembalikan templat bawaan (`isDefault` true) yang menghasilkan dokumen seperti semula.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {string} */
+                            kind: "skl" | "pkl_certificate";
+                            /** @description Teks `null` = bawaan. `sections`: bagian yang dimatikan bernilai false. `signatures` null = tanda tangan bawaan. */
+                            config: {
+                                title: string | null;
+                                subtitle: string | null;
+                                intro: string | null;
+                                body: string | null;
+                                sections: {
+                                    [key: string]: boolean;
+                                };
+                                signatures: {
+                                    label: string;
+                                    name: string;
+                                    note: string;
+                                    placeDate: boolean;
+                                }[] | null;
+                            };
+                            /** @description true bila sekolah belum menyimpan templat (memakai bawaan) */
+                            isDefault: boolean;
+                            /** Format: date-time */
+                            updatedAt: string | null;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        /**
+         * Simpan templat sertifikat PKL
+         * @description Izin: `pkl:manage`; modul `internship`. Menimpa seluruh templat. Variabel yang dikenal: `{{nama_murid}}`, `{{kelas}}`, `{{sekolah}}`, `{{mitra}}`, `{{periode}}`, `{{nama_periode}}`, `{{nilai_akhir}}`, `{{predikat}}`, `{{kata_predikat}}`, `{{nomor_sertifikat}}`, `{{pembimbing_industri}}`, `{{kepala_sekolah}}`, `{{nip_kepala_sekolah}}`, `{{tempat}}`, `{{tanggal}}`. Kunci `sections` yang dikenal: `schoolName`, `number`, `className`, `score`, `aspects`. Tanda tangan hanya ruang kosong untuk tanda tangan basah (maksimal 4 slot). 400 `unknown_variable`: variabel tak dikenal; 400 `unknown_section`: kunci bagian tak dikenal. Dicatat di log audit.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        title: string | null;
+                        subtitle: string | null;
+                        intro: string | null;
+                        body: string | null;
+                        sections: {
+                            [key: string]: boolean;
+                        };
+                        signatures: {
+                            label: string;
+                            name: string;
+                            note: string;
+                            placeDate: boolean;
+                        }[] | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {string} */
+                            kind: "skl" | "pkl_certificate";
+                            /** @description Teks `null` = bawaan. `sections`: bagian yang dimatikan bernilai false. `signatures` null = tanda tangan bawaan. */
+                            config: {
+                                title: string | null;
+                                subtitle: string | null;
+                                intro: string | null;
+                                body: string | null;
+                                sections: {
+                                    [key: string]: boolean;
+                                };
+                                signatures: {
+                                    label: string;
+                                    name: string;
+                                    note: string;
+                                    placeDate: boolean;
+                                }[] | null;
+                            };
+                            /** @description true bila sekolah belum menyimpan templat (memakai bawaan) */
+                            isDefault: boolean;
+                            /** Format: date-time */
+                            updatedAt: string | null;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        /**
+         * Kembalikan templat sertifikat PKL ke bawaan
+         * @description Izin: `pkl:manage`; modul `internship`. Menghapus templat tersimpan; tanpa templat tersimpan tidak terjadi apa-apa. Dicatat di log audit.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: true;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/exam/paper-settings": {
         parameters: {
             query?: never;

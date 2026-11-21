@@ -44,6 +44,7 @@ import {
   validatePeriod,
 } from '../pkl-validation';
 import { pklKey, usePklPeriods } from '../shared';
+import { TemplateCard } from './template-card';
 import { ThresholdsCard } from './thresholds-card';
 import { WeightsCard } from './weights-card';
 
@@ -618,6 +619,7 @@ export function SettingsView() {
 
       <ThresholdsCard />
       <WeightsCard />
+      <TemplateCard />
     </PageBody>
   );
 }

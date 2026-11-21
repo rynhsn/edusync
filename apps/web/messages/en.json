@@ -258,6 +258,65 @@
       "templateInvalid": "The template must contain '{seq}' and only use '{seq}', '{seq:3}', and '{year}'."
     }
   },
+  "documentTemplate": {
+    "title": "Document template: {kind}",
+    "kind": {
+      "skl": "Graduation certificate (SKL)",
+      "pkl_certificate": "Internship certificate"
+    },
+    "description": {
+      "skl": "Adjust the title, wording, printed sections and signature blocks of the graduation certificate (SKL). Without changes, the SKL prints as the system default.",
+      "pkl_certificate": "Adjust the title, wording, printed sections and signature blocks of the internship (PKL) certificate. Without changes, it prints as the system default."
+    },
+    "loadError": "The template could not be loaded. Documents still print with the default template.",
+    "statusDefault": "Default",
+    "statusCustom": "Customized",
+    "preview": "Sample preview",
+    "previewDraft": "Sample preview with these entries",
+    "customize": "Customize template",
+    "reset": "Restore default",
+    "resetTitle": "Restore the {kind} template to default?",
+    "resetBody": "Your customized template is removed and documents print as the system default again. Documents already printed do not change.",
+    "resetDone": "Template restored to default.",
+    "saved": "Template saved.",
+    "save": "Save template",
+    "editorTitle": "Customize the {kind} template",
+    "editorDescription": "Empty fields use the default text. Variables are replaced with the student's data when the document is printed.",
+    "issue": {
+      "unknown_variable": "Unknown variables: {list}.",
+      "unknown_section": "Unknown sections: {list}."
+    },
+    "variables": "Variables",
+    "variablesHint": "Click a variable to insert it into the field you edited last (body text or a signature field).",
+    "field": {
+      "title": "Title",
+      "subtitle": "Subtitle",
+      "intro": "Opening line",
+      "body": "Body (main sentence)"
+    },
+    "emptyIsDefault": "An empty field uses the default text (shown as an example inside the field).",
+    "sectionsTitle": "Printed sections",
+    "section": {
+      "letterhead": "School letterhead",
+      "number": "Document number",
+      "identity": "Student identity table",
+      "criteria": "Graduation criteria",
+      "schoolName": "School name",
+      "className": "Student class",
+      "score": "Final score and predicate",
+      "aspects": "Score summary per aspect"
+    },
+    "signaturesTitle": "Signatures",
+    "signaturesHint": "Each slot leaves blank space for a handwritten signature; the system never adds a signature image. The principal comes from the active signer marked as principal.",
+    "signaturesCustom": "Arrange the signature blocks myself",
+    "signaturesNone": "No slots yet: the document prints without signature blocks.",
+    "slotLabel": "Position",
+    "slotName": "Name (variables allowed, empty = blank line)",
+    "slotNote": "Line under the name (e.g. staff ID)",
+    "slotPlaceDate": "Print place and date above the position",
+    "slotRemove": "Remove slot",
+    "slotAdd": "Add signature slot"
+  },
   "schoolSuspended": {
     "title": "This school is currently suspended",
     "schoolName": "School: {name}",

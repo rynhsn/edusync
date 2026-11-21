@@ -9,6 +9,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 vi.setConfig({ testTimeout: 60_000 });
 
+import type { GraduationStudent, PrintMeta, SklLabels } from '@/lib/graduation';
 import { ReportPdf } from './attendance/report-pdf';
 import { CalendarPdf } from './calendar/year/calendar-pdf';
 import { ReceiptDocument } from './finance/pdf/receipt-pdf';
@@ -18,6 +19,7 @@ import { LetterDocument } from './letters/pdf/letter-pdf';
 import type { LetterPdfDoc } from './letters/pdf/types';
 import { CertificateDocument } from './pkl/pdf/certificate-pdf';
 import type { CertificateDoc } from './pkl/pdf/types';
+import { SklDocument } from './promotion/graduation/pdf/skl-pdf';
 import { ReportCardDocument } from './report-cards/pdf/report-card-pdf';
 import type { ReportCardDoc } from './report-cards/pdf/types';
 
@@ -231,6 +233,40 @@ describe('PDF sertifikat PKL', () => {
     expect(pageCount(await render('sertifikat-kosong', <CertificateDocument doc={doc} />))).toBe(1);
   });
 
+  it('templat sekolah: teks sendiri, bagian disembunyikan, 3 slot tanda tangan kosong', async () => {
+    const template = {
+      title: 'PIAGAM',
+      subtitle: null,
+      intro: 'Dengan bangga diberikan kepada',
+      body: '{{nama_murid}} telah magang di {{mitra}} ({{periode}}) dengan nilai {{nilai_akhir}} ({{kata_predikat}}).',
+      sections: { aspects: false, className: false },
+      signatures: [
+        { label: 'Wali Kelas', name: '', note: '', placeDate: false },
+        {
+          label: 'Pembimbing Industri',
+          name: '{{pembimbing_industri}}',
+          note: '{{mitra}}',
+          placeDate: false,
+        },
+        {
+          label: 'Kepala Sekolah',
+          name: '{{kepala_sekolah}}',
+          note: 'NIP {{nip_kepala_sekolah}}',
+          placeDate: true,
+        },
+      ],
+    };
+    const doc = { ...base, principalNip: '196501011990031002' };
+    expect(
+      pageCount(await render('sertifikat-templat', <CertificateDocument doc={doc} template={template} />)),
+    ).toBe(1);
+    // Tanpa slot sama sekali tetap sah (dokumen tanpa kolom tanda tangan).
+    await render(
+      'sertifikat-tanpa-ttd',
+      <CertificateDocument doc={base} template={{ ...template, signatures: [] }} />,
+    );
+  });
+
   it('merender sertifikat dengan 25 aspek penilaian', async () => {
     const aspects = Array.from({ length: 25 }, (_, i) => ({
       name: `Aspek penilaian nomor ${i + 1}`,
@@ -238,6 +274,109 @@ describe('PDF sertifikat PKL', () => {
       value: 80 + (i % 10),
     }));
     await render('sertifikat-banyak-aspek', <CertificateDocument doc={{ ...base, aspects }} />);
+  });
+});
+
+describe('PDF SKL', () => {
+  const labels: SklLabels = {
+    title: 'SURAT KETERANGAN LULUS',
+    number: 'Nomor',
+    intro: 'Yang bertanda tangan di bawah ini, Kepala sekolah, menerangkan bahwa:',
+    name: 'Nama',
+    nis: 'NIS',
+    nisn: 'NISN',
+    className: 'Kelas',
+    year: 'Tahun ajaran',
+    statement: 'dinyatakan LULUS berdasarkan hasil penetapan kelulusan oleh satuan pendidikan.',
+    criteria: 'Kriteria kelulusan',
+    principal: 'Kepala sekolah',
+    nip: 'NIP',
+    npsn: 'NPSN',
+    draftNote: 'DRAF',
+    numberMissing: 'belum ada nomor',
+    signPlace: 'Bandung, 2 Mei 2027',
+    placeText: 'Bandung',
+    dateText: '2 Mei 2027',
+    results: { graduated: 'Lulus', not_graduated: 'Tidak lulus', deferred: 'Ditunda' },
+  };
+  const meta: PrintMeta = {
+    school: {
+      name: SCHOOL,
+      npsn: '12345678',
+      address: ADDRESS,
+      city: 'Bandung Barat',
+      principal: { name: 'Drs. H. Ahmad Fauzi, M.Pd.', nip: '196501011990031002' },
+    },
+    yearName: '2026/2027',
+    locale: 'id',
+    graduatedOnText: '2 Mei 2027',
+    printedOnText: 'Dicetak 2 Mei 2027',
+  };
+  const student = {
+    name: LONG_NAME,
+    nis: '2023001',
+    nisn: '0081234567',
+    className: 'IX A',
+    decision: { status: 'final', result: 'graduated', sklNumber: '001/SKL/2027', graduatedOn: '2027-05-02' },
+    transcript: {
+      average: 86.5,
+      policy: { criteriaText: 'Rata-rata minimal 75.\nTidak ada nilai di bawah 60.' },
+    },
+  } as unknown as GraduationStudent;
+  const empty = { title: null, subtitle: null, intro: null, body: null, sections: {}, signatures: null };
+
+  it('bawaan: SKL satu halaman', async () => {
+    expect(
+      pageCount(await render('skl-bawaan', <SklDocument student={student} labels={labels} meta={meta} />)),
+    ).toBe(1);
+    const draft = {
+      ...student,
+      decision: { ...student.decision, status: 'draft', sklNumber: null },
+    } as unknown as GraduationStudent;
+    expect(
+      pageCount(
+        await render(
+          'skl-draf',
+          <SklDocument student={draft} labels={labels} meta={meta} template={empty} />,
+        ),
+      ),
+    ).toBe(1);
+  });
+
+  it('templat sekolah: teks sendiri, bagian disembunyikan, slot kosong', async () => {
+    const template = {
+      ...empty,
+      title: 'SKL KHUSUS',
+      intro: 'Menerangkan {{nama_murid}} (NISN {{nisn}}).',
+      body: 'Dinyatakan {{status_lulus}} dengan rata-rata {{nilai_rata}}.',
+      sections: { letterhead: false, identity: false, criteria: false, number: false },
+      signatures: [
+        { label: 'Wali Kelas', name: '', note: '', placeDate: false },
+        {
+          label: 'Kepala Sekolah',
+          name: '{{kepala_sekolah}}',
+          note: 'NIP {{nip_kepala_sekolah}}',
+          placeDate: true,
+        },
+      ],
+    };
+    expect(
+      pageCount(
+        await render(
+          'skl-templat',
+          <SklDocument student={student} labels={labels} meta={meta} template={template} />,
+        ),
+      ),
+    ).toBe(1);
+    await render(
+      'skl-tanpa-ttd',
+      <SklDocument
+        student={student}
+        labels={labels}
+        meta={meta}
+        template={{ ...template, signatures: [] }}
+      />,
+    );
   });
 });
 

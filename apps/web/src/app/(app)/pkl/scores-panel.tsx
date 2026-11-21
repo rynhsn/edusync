@@ -17,6 +17,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
+import { useDocumentTemplate } from '@/lib/use-document-template';
 import { cn } from '@/lib/utils';
 import { parseScore, todayIso } from './lib';
 import { CERTIFICATE_ORDER, type CertificateField, validateCertificate } from './pkl-validation';
@@ -349,13 +350,14 @@ function CertificateDialog({
   period: Period | null;
   certificateNo: string | null;
   /** Kepala sekolah dari sumber tunggal dokumen; `signer` = dari Surat > Penandatangan (dikunci). */
-  principalSource: { name: string; source: 'signer' | 'report_setting' } | null;
+  principalSource: { name: string; nip?: string | null; source: 'signer' | 'report_setting' } | null;
   final: number;
   predicate: 'A' | 'B' | 'C' | 'D';
   aspects: { name: string; weight: number; value: number | null }[];
 }) {
   const t = useTranslations('pkl');
   const { school } = useSchool();
+  const template = useDocumentTemplate('pkl_certificate');
   const [place, setPlace] = useState('');
   const [principal, setPrincipal] = useState('');
   const [date, setDate] = useState(todayIso());
@@ -402,23 +404,27 @@ function CertificateDialog({
         }
         try {
           const { downloadCertificatePdf } = await import('./pdf/download');
-          await downloadCertificatePdf({
-            schoolName: school.schoolName,
-            studentName: placement.studentName,
-            className: placement.className,
-            partnerName: placement.partnerName,
-            periodName: period.name,
-            startsOn: period.startsOn,
-            endsOn: period.endsOn,
-            finalScore: final,
-            predicate,
-            aspects,
-            place: place.trim(),
-            dateIso: date,
-            principalName: principal.trim(),
-            industrySupervisorName: placement.industrySupervisorName,
-            certificateNo,
-          });
+          await downloadCertificatePdf(
+            {
+              schoolName: school.schoolName,
+              studentName: placement.studentName,
+              className: placement.className,
+              partnerName: placement.partnerName,
+              periodName: period.name,
+              startsOn: period.startsOn,
+              endsOn: period.endsOn,
+              finalScore: final,
+              predicate,
+              aspects,
+              place: place.trim(),
+              dateIso: date,
+              principalName: principal.trim(),
+              principalNip: principalSource?.nip ?? null,
+              industrySupervisorName: placement.industrySupervisorName,
+              certificateNo,
+            },
+            template.data?.config ?? null,
+          );
         } catch (e) {
           setError(t('certificateError'));
           throw e;

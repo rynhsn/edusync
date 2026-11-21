@@ -258,6 +258,65 @@
       "templateInvalid": "Templat harus memuat '{seq}' dan hanya memakai '{seq}', '{seq:3}', dan '{year}'."
     }
   },
+  "documentTemplate": {
+    "title": "Templat dokumen: {kind}",
+    "kind": {
+      "skl": "SKL",
+      "pkl_certificate": "Sertifikat PKL"
+    },
+    "description": {
+      "skl": "Sesuaikan judul, kalimat, bagian yang dicetak, dan kolom tanda tangan pada surat keterangan lulus (SKL). Tanpa perubahan, SKL tercetak seperti bawaan sistem.",
+      "pkl_certificate": "Sesuaikan judul, kalimat, bagian yang dicetak, dan kolom tanda tangan pada sertifikat PKL. Tanpa perubahan, sertifikat tercetak seperti bawaan sistem."
+    },
+    "loadError": "Templat tidak dapat dimuat. Dokumen tetap tercetak dengan templat bawaan.",
+    "statusDefault": "Bawaan",
+    "statusCustom": "Disesuaikan",
+    "preview": "Pratinjau contoh",
+    "previewDraft": "Pratinjau contoh dengan isian ini",
+    "customize": "Sesuaikan templat",
+    "reset": "Kembalikan bawaan",
+    "resetTitle": "Kembalikan templat {kind} ke bawaan?",
+    "resetBody": "Templat yang Anda sesuaikan dihapus dan dokumen kembali tercetak seperti bawaan sistem. Dokumen yang sudah dicetak tidak berubah.",
+    "resetDone": "Templat dikembalikan ke bawaan.",
+    "saved": "Templat disimpan.",
+    "save": "Simpan templat",
+    "editorTitle": "Sesuaikan templat {kind}",
+    "editorDescription": "Kolom yang dikosongkan memakai teks bawaan. Variabel diganti data murid saat dokumen dicetak.",
+    "issue": {
+      "unknown_variable": "Variabel tidak dikenal: {list}.",
+      "unknown_section": "Bagian tidak dikenal: {list}."
+    },
+    "variables": "Variabel",
+    "variablesHint": "Klik variabel untuk menyisipkannya di kolom yang terakhir Anda isi (teks isi atau kolom tanda tangan).",
+    "field": {
+      "title": "Judul",
+      "subtitle": "Subjudul",
+      "intro": "Kalimat pembuka",
+      "body": "Isi (kalimat utama)"
+    },
+    "emptyIsDefault": "Kolom kosong = memakai teks bawaan (ditampilkan sebagai contoh di dalam kolom).",
+    "sectionsTitle": "Bagian yang dicetak",
+    "section": {
+      "letterhead": "Kop sekolah",
+      "number": "Nomor dokumen",
+      "identity": "Tabel identitas murid",
+      "criteria": "Kriteria kelulusan",
+      "schoolName": "Nama sekolah",
+      "className": "Kelas murid",
+      "score": "Nilai akhir dan predikat",
+      "aspects": "Ringkasan nilai per aspek"
+    },
+    "signaturesTitle": "Tanda tangan",
+    "signaturesHint": "Setiap slot menyediakan ruang kosong untuk tanda tangan basah; sistem tidak membubuhkan gambar tanda tangan. Kepala sekolah diambil dari penandatangan aktif yang ditandai kepala sekolah.",
+    "signaturesCustom": "Atur susunan tanda tangan sendiri",
+    "signaturesNone": "Belum ada slot: dokumen dicetak tanpa kolom tanda tangan.",
+    "slotLabel": "Jabatan",
+    "slotName": "Nama (boleh variabel, kosong = garis kosong)",
+    "slotNote": "Baris di bawah nama (mis. NIP)",
+    "slotPlaceDate": "Cetak tempat dan tanggal di atas jabatan",
+    "slotRemove": "Hapus slot",
+    "slotAdd": "Tambah slot tanda tangan"
+  },
   "schoolSuspended": {
     "title": "Sekolah ini sedang ditangguhkan",
     "schoolName": "Sekolah: {name}",

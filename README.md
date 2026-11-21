@@ -2,6 +2,8 @@
 
 Platform manajemen sekolah multi-tenant (yayasan dengan banyak unit sekolah). Rancangan lengkap ada di `Planning/09-rebuild-blueprint.md`.
 
+Mulai dari [Panduan Edusync untuk sekolah dan tim teknis](docs/PANDUAN-EDUSYNC.md) untuk menyiapkan sekolah, mengikuti alur kerja harian, atau menemukan panduan sesuai peran. [Katalog menu dan fitur](docs/FITUR-EDUSYNC.md) menyediakan referensi per modul.
+
 ## Prasyarat
 
 Node 26, pnpm 12, Docker Desktop (harus sudah berjalan).

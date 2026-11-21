@@ -27,3 +27,12 @@ export function placeAndDate(place: string, dateIso: string): string {
   const city = place.trim();
   return city ? `${city}, ${formatIdDate(dateIso)}` : formatIdDate(dateIso);
 }
+
+/** Teks bawaan sertifikat PKL (dipakai bila templat sekolah tidak mengisinya). */
+export const CERTIFICATE_DEFAULT_TEXT = {
+  title: 'SERTIFIKAT',
+  subtitle: 'PRAKTIK KERJA LAPANGAN',
+  intro: 'Diberikan kepada',
+  /** Setara kalimat bawaan di PDF (di PDF nama mitra dicetak tebal); dipakai sebagai contoh isian. */
+  body: 'telah melaksanakan Praktik Kerja Lapangan di {{mitra}} pada {{periode}} ({{nama_periode}}) dengan hasil penilaian sebagai berikut.',
+};

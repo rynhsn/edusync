@@ -1,5 +1,20 @@
+import {
+  DEFAULT_DOCUMENT_TEMPLATE,
+  DEFAULT_SIGNATURE_SLOTS,
+  type DocumentTemplateConfig,
+  renderDocumentText,
+  renderSignatureSlots,
+  sectionShown,
+} from '@edusync/contracts';
 import { Circle, Document, Page, Path, StyleSheet, Svg, Text, View } from '@react-pdf/renderer';
-import { formatGrade, PREDICATE_WORD, periodRangeText, placeAndDate } from './format';
+import {
+  CERTIFICATE_DEFAULT_TEXT,
+  formatGrade,
+  formatIdDate,
+  PREDICATE_WORD,
+  periodRangeText,
+  placeAndDate,
+} from './format';
 import type { CertificateDoc } from './types';
 
 const COPPER = '#b4541a';
@@ -134,8 +149,45 @@ function Medal() {
   );
 }
 
-/** Dokumen PDF sertifikat PKL: A4 lanskap, bingkai ornamen, nilai akhir, ringkasan aspek, dan tanda tangan. */
-export function CertificateDocument({ doc }: { doc: CertificateDoc }) {
+/** Variabel templat sertifikat PKL ({{nama_murid}}, dst.) dari data dokumen. */
+export function certificateVars(doc: CertificateDoc): Record<string, string> {
+  return {
+    nama_murid: doc.studentName,
+    kelas: doc.className ?? '',
+    sekolah: doc.schoolName,
+    mitra: doc.partnerName,
+    periode: periodRangeText(doc.startsOn, doc.endsOn),
+    nama_periode: doc.periodName,
+    nilai_akhir: formatGrade(doc.finalScore),
+    predikat: doc.predicate,
+    kata_predikat: PREDICATE_WORD[doc.predicate],
+    nomor_sertifikat: doc.certificateNo ?? '',
+    pembimbing_industri: doc.industrySupervisorName ?? '',
+    kepala_sekolah: doc.principalName,
+    nip_kepala_sekolah: doc.principalNip ?? '',
+    tempat: doc.place,
+    tanggal: formatIdDate(doc.dateIso),
+  };
+}
+
+/**
+ * Dokumen PDF sertifikat PKL: A4 lanskap, bingkai ornamen, nilai akhir, ringkasan aspek, dan tanda tangan. `template` =
+ * templat dokumen sekolah; tanpa templat hasilnya sama seperti bawaan lama. Tanda tangan hanya ruang kosong (tanda tangan basah).
+ */
+export function CertificateDocument({
+  doc,
+  template = null,
+}: {
+  doc: CertificateDoc;
+  template?: DocumentTemplateConfig | null;
+}) {
+  const c = template ?? DEFAULT_DOCUMENT_TEMPLATE;
+  const vars = certificateVars(doc);
+  const custom = (value: string | null, fallback: string) =>
+    value ? renderDocumentText(value, vars) : fallback;
+  const shown = (name: string) => sectionShown(c, name);
+  const slots = renderSignatureSlots(c.signatures ?? DEFAULT_SIGNATURE_SLOTS.pkl_certificate, vars);
+  const anyPlace = slots.some((x) => x.placeDate);
   return (
     <Document
       title={`Sertifikat PKL ${doc.studentName}`}
@@ -152,39 +204,49 @@ export function CertificateDocument({ doc }: { doc: CertificateDoc }) {
             <Corner bottom={4} right={4} rotate={180} />
             <Corner bottom={4} left={4} rotate={270} />
 
-            {doc.certificateNo ? (
+            {doc.certificateNo && shown('number') ? (
               <Text style={{ position: 'absolute', top: 12, right: 26, fontSize: 9, color: MUTED }}>
                 No. {doc.certificateNo}
               </Text>
             ) : null}
             <Medal />
-            <Text style={[styles.school, { marginTop: 4 }]}>{doc.schoolName}</Text>
-            <Text style={styles.title}>SERTIFIKAT</Text>
-            <Text style={styles.subtitle}>PRAKTIK KERJA LAPANGAN</Text>
+            {shown('schoolName') && <Text style={[styles.school, { marginTop: 4 }]}>{doc.schoolName}</Text>}
+            <Text style={styles.title}>{custom(c.title, CERTIFICATE_DEFAULT_TEXT.title)}</Text>
+            <Text style={styles.subtitle}>{custom(c.subtitle, CERTIFICATE_DEFAULT_TEXT.subtitle)}</Text>
             <View style={styles.rule} />
-            <Text style={styles.lead}>Diberikan kepada</Text>
+            <Text style={styles.lead}>{custom(c.intro, CERTIFICATE_DEFAULT_TEXT.intro)}</Text>
             <Text style={styles.name}>{doc.studentName}</Text>
             <View style={styles.nameLine} />
-            {doc.className ? <Text style={styles.cls}>Kelas {doc.className}</Text> : null}
+            {doc.className && shown('className') ? (
+              <Text style={styles.cls}>Kelas {doc.className}</Text>
+            ) : null}
             <Text style={styles.body}>
-              telah melaksanakan Praktik Kerja Lapangan di{' '}
-              <Text style={styles.strong}>{doc.partnerName}</Text> pada{' '}
-              {periodRangeText(doc.startsOn, doc.endsOn)} ({doc.periodName}) dengan hasil penilaian sebagai
-              berikut.
+              {c.body ? (
+                renderDocumentText(c.body, vars)
+              ) : (
+                <>
+                  telah melaksanakan Praktik Kerja Lapangan di{' '}
+                  <Text style={styles.strong}>{doc.partnerName}</Text> pada{' '}
+                  {periodRangeText(doc.startsOn, doc.endsOn)} ({doc.periodName}) dengan hasil penilaian
+                  sebagai berikut.
+                </>
+              )}
             </Text>
 
-            <View style={styles.scoreRow}>
-              <View style={styles.scoreBox}>
-                <Text style={styles.scoreLabel}>Nilai akhir</Text>
-                <Text style={styles.scoreValue}>{formatGrade(doc.finalScore)}</Text>
+            {shown('score') && (
+              <View style={styles.scoreRow}>
+                <View style={styles.scoreBox}>
+                  <Text style={styles.scoreLabel}>Nilai akhir</Text>
+                  <Text style={styles.scoreValue}>{formatGrade(doc.finalScore)}</Text>
+                </View>
+                <View style={styles.predBox}>
+                  <Text style={styles.predLetter}>{doc.predicate}</Text>
+                  <Text style={styles.predWord}>{PREDICATE_WORD[doc.predicate]}</Text>
+                </View>
               </View>
-              <View style={styles.predBox}>
-                <Text style={styles.predLetter}>{doc.predicate}</Text>
-                <Text style={styles.predWord}>{PREDICATE_WORD[doc.predicate]}</Text>
-              </View>
-            </View>
+            )}
 
-            {doc.aspects.length > 0 && (
+            {shown('aspects') && doc.aspects.length > 0 && (
               <View style={styles.aspects}>
                 {doc.aspects.map((a) => (
                   <View key={a.name} style={styles.aspectCell}>
@@ -197,20 +259,25 @@ export function CertificateDocument({ doc }: { doc: CertificateDoc }) {
             )}
 
             <View style={styles.signRow}>
-              <View style={styles.signCol}>
-                <Text style={styles.signRole}> </Text>
-                <Text style={styles.signRole}>Pembimbing Industri</Text>
-                <View style={styles.signSpace} />
-                <Text style={styles.signName}>{doc.industrySupervisorName ?? ' '}</Text>
-                <Text style={[styles.signRole, { fontSize: 9, color: MUTED }]}>{doc.partnerName}</Text>
-              </View>
-              <View style={styles.signCol}>
-                <Text style={styles.signRole}>{placeAndDate(doc.place, doc.dateIso)}</Text>
-                <Text style={styles.signRole}>Kepala Sekolah</Text>
-                <View style={styles.signSpace} />
-                <Text style={styles.signName}>{doc.principalName || ' '}</Text>
-                <Text style={[styles.signRole, { fontSize: 9, color: MUTED }]}>{doc.schoolName}</Text>
-              </View>
+              {slots.map((x, i) => (
+                <View
+                  // biome-ignore lint/suspicious/noArrayIndexKey: slot tidak punya id; urutan tetap
+                  key={i}
+                  style={slots.length > 2 ? { ...styles.signCol, width: undefined, flex: 1 } : styles.signCol}
+                >
+                  {x.placeDate ? (
+                    <Text style={styles.signRole}>{placeAndDate(doc.place, doc.dateIso)}</Text>
+                  ) : anyPlace ? (
+                    <Text style={styles.signRole}> </Text>
+                  ) : null}
+                  <Text style={styles.signRole}>{x.label || ' '}</Text>
+                  <View style={styles.signSpace} />
+                  <Text style={styles.signName}>{x.name || ' '}</Text>
+                  {x.note ? (
+                    <Text style={[styles.signRole, { fontSize: 9, color: MUTED }]}>{x.note}</Text>
+                  ) : null}
+                </View>
+              ))}
             </View>
           </View>
         </View>
