@@ -3741,6 +3741,13 @@ export const examType = pgTable(
     shortName: text('short_name').notNull(),
     sort: integer('sort').notNull().default(0),
     active: boolean('active').notNull().default(true),
+    /** Format nomor peserta (token {jenis} {yy} {yyyy} {kelas} {urut[:N]}); kosong = bawaan. CHECK di SQL tangan 0125. */
+    participantNoFormat: text('participant_no_format'),
+    /** Lingkup urutan nomor: 'class' (per kelas) atau 'school' (satu urutan se-sekolah). */
+    participantNoSeqScope: text('participant_no_seq_scope', { enum: ['class', 'school'] })
+      .notNull()
+      .default('class'),
+    participantNoSeqStart: integer('participant_no_seq_start').notNull().default(1),
     createdAt: createdAt(),
   },
   (t) => [unique('exam_type_school_name_uq').on(t.schoolId, t.name)],
@@ -3791,6 +3798,39 @@ export const examRoomAssignment = pgTable(
   (t) => [
     unique('exam_room_assignment_student_uq').on(t.semesterId, t.examTypeId, t.studentId),
     index('exam_room_assignment_room_idx').on(t.schoolId, t.roomId),
+  ],
+);
+
+/**
+ * Nomor peserta ujian permanen per murid untuk satu semester + jenis ujian (tidak bergeser walau murid pindah kelas).
+ * `classId` = kelas saat nomor ditetapkan (snapshot, dasar urutan per kelas). FK komposit (ON DELETE CASCADE; kelas
+ * SET NULL) dan CHECK ada di SQL tangan 0125.
+ */
+export const examParticipantNumber = pgTable(
+  'exam_participant_number',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    semesterId: uuid('semester_id')
+      .notNull()
+      .references(() => semester.id),
+    examTypeId: uuid('exam_type_id')
+      .notNull()
+      .references(() => examType.id),
+    studentId: uuid('student_id')
+      .notNull()
+      .references(() => student.id),
+    classId: uuid('class_id').references(() => classRoom.id),
+    seq: integer('seq').notNull(),
+    number: text('number').notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    unique('exam_participant_number_student_uq').on(t.schoolId, t.semesterId, t.examTypeId, t.studentId),
+    unique('exam_participant_number_number_uq').on(t.schoolId, t.semesterId, t.examTypeId, t.number),
+    index('exam_participant_number_class_idx').on(t.schoolId, t.semesterId, t.examTypeId, t.classId),
   ],
 );
 

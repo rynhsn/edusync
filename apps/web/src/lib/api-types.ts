@@ -28536,7 +28536,7 @@ export interface paths {
         };
         /**
          * Data cetak kartu peserta ujian
-         * @description Izin: `exam:read`; modul `exams`. Dua cara: `examId` (semua kelas ujian itu; jenis dan semester ikut ujian) atau `semesterId` + `classId` (opsional `examTypeId` untuk membatasi jenis ujian). **Nomor peserta** = `<singkatan jenis ujian>-<yy>-<urutan 3 digit>`, mis. `ASTS-26-007`: `yy` dua digit tahun mulai tahun ajaran kelas, urutan = posisi murid aktif di kelasnya diurut nama lalu id. Tanpa jenis ujian singkatannya `UJN`. Stabil selama susunan kelas tidak berubah. **Jadwal** = ujian pada semester itu (dan jenis yang sama bila ada) yang mencakup kelas murid, urut tanggal lalu jam (semua status, termasuk draf). `date`/`time` ringkasan untuk kartu; `room` = nama ruang dari penempatan ruang ujian (`/v1/exam/room-assignments`) pada semester dan jenis ujian itu; kosong bila belum ditempatkan atau tanpa jenis ujian. Dibatasi 300 baris (`truncated`). Hanya baca.
+         * @description Izin: `exam:read`; modul `exams`. Dua cara: `examId` (semua kelas ujian itu; jenis dan semester ikut ujian) atau `semesterId` + `classId` (opsional `examTypeId` untuk membatasi jenis ujian). **Nomor peserta** = nomor permanen per murid per semester dan jenis ujian (tabel `exam_participant_number`), ditetapkan otomatis dan idempoten pada pemuatan pertama menurut format jenis ujian (bawaan `{jenis}-{yy}-{urut:3}`, mis. `ASTS-26-007`; lihat `PUT /v1/exams/participant-numbers/format`) dan tidak berubah walau murid pindah kelas. Tanpa jenis ujian terdaftar (ujian lama tanpa `examTypeId`, atau `semesterId`+`classId` tanpa `examTypeId`) nomor dihitung dari posisi murid di kelas (`<singkatan>-<yy>-<urutan>`) dan tidak disimpan. **Jadwal** = ujian pada semester itu (dan jenis yang sama bila ada) yang mencakup kelas murid, urut tanggal lalu jam (semua status, termasuk draf). `date`/`time` ringkasan untuk kartu; `room` = nama ruang dari penempatan ruang ujian (`/v1/exam/room-assignments`) pada semester dan jenis ujian itu; kosong bila belum ditempatkan atau tanpa jenis ujian. Dibatasi 300 baris (`truncated`).
          */
         get: {
             parameters: {
@@ -60712,6 +60712,11 @@ export interface paths {
                             shortName: string;
                             sort: number;
                             active: boolean;
+                            /** @description Format nomor peserta; kosong = bawaan */
+                            participantNoFormat: string | null;
+                            /** @enum {string} */
+                            participantNoSeqScope: "class" | "school";
+                            participantNoSeqStart: number;
                         }[];
                     };
                 };
@@ -60785,6 +60790,11 @@ export interface paths {
                             shortName: string;
                             sort: number;
                             active: boolean;
+                            /** @description Format nomor peserta; kosong = bawaan */
+                            participantNoFormat: string | null;
+                            /** @enum {string} */
+                            participantNoSeqScope: "class" | "school";
+                            participantNoSeqStart: number;
                         };
                     };
                 };
@@ -60876,6 +60886,11 @@ export interface paths {
                             shortName: string;
                             sort: number;
                             active: boolean;
+                            /** @description Format nomor peserta; kosong = bawaan */
+                            participantNoFormat: string | null;
+                            /** @enum {string} */
+                            participantNoSeqScope: "class" | "school";
+                            participantNoSeqStart: number;
                         }[];
                     };
                 };
@@ -60964,6 +60979,11 @@ export interface paths {
                             shortName: string;
                             sort: number;
                             active: boolean;
+                            /** @description Format nomor peserta; kosong = bawaan */
+                            participantNoFormat: string | null;
+                            /** @enum {string} */
+                            participantNoSeqScope: "class" | "school";
+                            participantNoSeqStart: number;
                         };
                     };
                 };
@@ -62594,6 +62614,319 @@ export interface paths {
                 };
                 /** @description Default Response */
                 409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/exams/participant-numbers/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Jumlah nomor peserta yang sudah ditetapkan
+         * @description Izin: `exam:read`; modul `exams`. Jumlah nomor peserta permanen pada semester dan jenis ujian itu (dasar peringatan saat format diubah). Semester atau jenis ujian bukan milik sekolah: 400 `invalid_reference`.
+         */
+        get: {
+            parameters: {
+                query: {
+                    semesterId: string;
+                    examTypeId: string;
+                };
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            count: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/exams/participant-numbers/format": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Atur format nomor peserta satu jenis ujian
+         * @description Izin: `exam:manage`; modul `exams`. Token: `{jenis}` singkatan jenis ujian, `{yy}` / `{yyyy}` tahun mulai tahun ajaran, `{kelas}` nama kelas, `{urut}` / `{urut:N}` nomor urut (N 1 sampai 9 = lebar digit dengan nol di depan). Wajib memuat `{urut}`, maks. 40 karakter, tanpa karakter kontrol; token lain: 400 `invalid_format`. `format` null = bawaan `{jenis}-{yy}-{urut:3}` (urutan se-sekolah). `seqScope` `class` (urutan per kelas) mewajibkan `{kelas}` pada format supaya nomor tetap unik. **Hanya untuk penetapan baru**: nomor yang sudah ada tidak berubah (gunakan `POST /v1/exams/participant-numbers/reset`). Jenis ujian tidak ditemukan: 404 `not_found`.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        examTypeId: string;
+                        format: string | null;
+                        /**
+                         * @default class
+                         * @enum {string}
+                         */
+                        seqScope?: "class" | "school";
+                        /** @default 1 */
+                        seqStart?: number;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            examTypeId: string;
+                            /** @description Kosong = bawaan `{jenis}-{yy}-{urut:3}` */
+                            format: string | null;
+                            /** @enum {string} */
+                            seqScope: "class" | "school";
+                            seqStart: number;
+                            effectiveFormat: string;
+                            /** @enum {string} */
+                            effectiveScope: "class" | "school";
+                            /** @description Contoh nomor dari format efektif */
+                            example: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/exams/participant-numbers/reset": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Atur ulang nomor peserta
+         * @description Izin: `exam:manage`; modul `exams`. Menghapus nomor peserta semester dan jenis ujian itu (opsional hanya satu `classId`: murid yang kini terdaftar di kelas itu atau bernomor atas kelas itu), lalu menetapkan ulang menurut format dan angka mulai sekarang. Dalam satu transaksi dan tercatat di audit. Hasil: `removed` dan `assigned` (jumlah murid bernomor setelahnya dalam cakupan). Rujukan tidak dikenal: 400 `invalid_reference`.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        semesterId: string;
+                        /** Format: uuid */
+                        examTypeId: string;
+                        /** Format: uuid */
+                        classId?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            removed: number;
+                            assigned: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
                     headers: {
                         [name: string]: unknown;
                     };

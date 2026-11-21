@@ -23,6 +23,7 @@ export * from './letters';
 export * from './messaging';
 export * from './objective-achievement';
 export * from './omr';
+export * from './participant-number';
 export * from './permissions';
 export * from './pkl';
 export * from './promotion';

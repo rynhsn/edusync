@@ -1,7 +1,7 @@
 'use client';
 
 import type { CardData, CardKind, CardLayout } from '@edusync/contracts';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { CircleAlert, Download, Printer } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
@@ -26,6 +26,7 @@ import { errorKey } from '@/lib/errors';
 import { CheckField } from './check-field';
 import { NumberField } from './editor/number-field';
 import { CardPreview } from './element-preview';
+import { ParticipantNumbering } from './participant-numbering';
 import { type CardSource, type PrintProgress, renderCardsPdf, saveCardsPdf } from './pdf/download';
 import { useFieldLabel } from './use-field-label';
 
@@ -59,9 +60,10 @@ export function PrintPanel({ kind, templates, selectedId, onSelect }: Props) {
   const t = useTranslations('cards.print');
   const tc = useTranslations('cards');
   const te = useTranslations();
-  const { school } = useSchool();
+  const { school, can } = useSchool();
   const header = { header: schoolHeader(school.schoolId) };
   const fieldLabel = useFieldLabel();
+  const queryClient = useQueryClient();
 
   const [yearId, setYearId] = useState('');
   const [semesterId, setSemesterId] = useState('');
@@ -103,6 +105,7 @@ export function PrintPanel({ kind, templates, selectedId, onSelect }: Props) {
     queryFn: async () => unwrap(await api.GET('/v1/exam/types', { params: header })),
   });
 
+  const numberingType = types.data?.find((x) => x.id === typeId);
   const template = templates.find((x) => x.id === selectedId) ?? templates[0];
   const klass = classes.data?.find((c) => c.id === classId);
 
@@ -113,7 +116,7 @@ export function PrintPanel({ kind, templates, selectedId, onSelect }: Props) {
       if (kind === 'student') {
         return unwrap(await api.GET('/v1/cards/students', { params: { ...header, query: { classId } } }));
       }
-      return unwrap(
+      const res = unwrap(
         await api.GET('/v1/cards/exam-participants', {
           params: {
             ...header,
@@ -121,6 +124,9 @@ export function PrintPanel({ kind, templates, selectedId, onSelect }: Props) {
           },
         }),
       );
+      // Memuat data kartu bisa menetapkan nomor baru: segarkan jumlah nomor di panel format.
+      queryClient.invalidateQueries({ queryKey: ['participant-summary', school.schoolId] });
+      return res;
     },
   });
 
@@ -265,6 +271,22 @@ export function PrintPanel({ kind, templates, selectedId, onSelect }: Props) {
           </Field>
         )}
       </div>
+
+      {kind === 'exam' && can('exam:manage') && (
+        <>
+          {numberingType && semester && year ? (
+            <ParticipantNumbering
+              key={`${numberingType.id}:${semester.id}`}
+              type={numberingType}
+              semesterId={semester.id}
+              yearStart={year.startsOn}
+              klass={klass}
+            />
+          ) : (
+            <p className="text-muted-foreground text-sm">{t('pickTypeForNumbers')}</p>
+          )}
+        </>
+      )}
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <Field label={t('layoutMode')} htmlFor="print-mode">

@@ -46,6 +46,9 @@ const typeSchema = z.object({
   shortName: z.string(),
   sort: z.number().int(),
   active: z.boolean(),
+  participantNoFormat: z.string().nullable().describe('Format nomor peserta; kosong = bawaan'),
+  participantNoSeqScope: z.enum(['class', 'school']),
+  participantNoSeqStart: z.number().int(),
 });
 const typeBody = z.object({
   name: z.string().trim().min(1).max(100),

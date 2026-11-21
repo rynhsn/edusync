@@ -257,6 +257,7 @@ const KNOWN = [
   'rooms_full',
   'no_rooms',
   'room_full',
+  'invalid_format',
 ] as const;
 
 type KnownCode = (typeof KNOWN)[number];

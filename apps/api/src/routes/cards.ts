@@ -45,6 +45,7 @@ import { todayInSchool } from '../attendance-lib';
 import { errorSchema, HttpError } from '../http-error';
 import { requireModule, requirePermission, type TenantContext } from '../identity/guards';
 import { ensureIdentityCodes } from '../identity-code';
+import { ensureParticipantNumbers } from '../participant-number';
 import { loadReportSettings } from '../report-card-lib';
 import { audit, conflictAs409, guarded, idParams, ok, schoolHeader } from './helpers';
 import { composeAddress, readIdentity } from './school-identity';
@@ -875,13 +876,16 @@ export async function cardRoutes(instance: FastifyInstance) {
         description:
           'Izin: `exam:read`; modul `exams`. Dua cara: `examId` (semua kelas ujian itu; jenis dan semester ikut ujian) ' +
           'atau `semesterId` + `classId` (opsional `examTypeId` untuk membatasi jenis ujian). ' +
-          '**Nomor peserta** = `<singkatan jenis ujian>-<yy>-<urutan 3 digit>`, mis. `ASTS-26-007`: `yy` dua digit ' +
-          'tahun mulai tahun ajaran kelas, urutan = posisi murid aktif di kelasnya diurut nama lalu id. Tanpa jenis ' +
-          'ujian singkatannya `UJN`. Stabil selama susunan kelas tidak berubah. **Jadwal** = ujian pada semester itu ' +
+          '**Nomor peserta** = nomor permanen per murid per semester dan jenis ujian (tabel `exam_participant_number`), ' +
+          'ditetapkan otomatis dan idempoten pada pemuatan pertama menurut format jenis ujian (bawaan `{jenis}-{yy}-{urut:3}`, ' +
+          'mis. `ASTS-26-007`; lihat `PUT /v1/exams/participant-numbers/format`) dan tidak berubah walau murid pindah kelas. ' +
+          'Tanpa jenis ujian terdaftar (ujian lama tanpa `examTypeId`, atau `semesterId`+`classId` tanpa `examTypeId`) nomor ' +
+          'dihitung dari posisi murid di kelas (`<singkatan>-<yy>-<urutan>`) dan tidak disimpan. ' +
+          '**Jadwal** = ujian pada semester itu ' +
           '(dan jenis yang sama bila ada) yang mencakup kelas murid, urut tanggal lalu jam (semua status, termasuk ' +
           'draf). `date`/`time` ringkasan untuk kartu; `room` = nama ruang dari penempatan ruang ujian (`/v1/exam/room-assignments`) ' +
           'pada semester dan jenis ujian itu; kosong bila belum ditempatkan atau tanpa jenis ujian. ' +
-          `Dibatasi ${MAX_CARD_ROWS} baris (\`truncated\`). Hanya baca.`,
+          `Dibatasi ${MAX_CARD_ROWS} baris (\`truncated\`).`,
         headers: schoolHeader,
         querystring: z.object({
           examId: z.uuid().optional(),
@@ -925,10 +929,14 @@ export async function cardRoutes(instance: FastifyInstance) {
         let typeName = 'Ujian';
         let typeShort = 'UJN';
         let roomTypeId: string | null = null; // ruang dikunci per jenis ujian
+        let typeRow: typeof examType.$inferSelect | null = null; // jenis terdaftar: nomor peserta permanen
         if (q.examId) {
           const [e] = await tx.select().from(exam).where(eq(exam.id, q.examId));
           if (!e) throw notFound('Ujian');
           roomTypeId = e.examTypeId;
+          if (e.examTypeId) {
+            [typeRow = null] = await tx.select().from(examType).where(eq(examType.id, e.examTypeId));
+          }
           semesterId = e.semesterId;
           classIds = e.classIds;
           typeName = e.typeName;
@@ -944,6 +952,7 @@ export async function cardRoutes(instance: FastifyInstance) {
             typeShort = t.shortName;
             typeFilter = eq(exam.examTypeId, t.id);
             roomTypeId = t.id;
+            typeRow = t;
           }
         }
         const [sem] = await tx
@@ -980,6 +989,15 @@ export async function cardRoutes(instance: FastifyInstance) {
           .where(and(eq(exam.semesterId, semesterId), typeFilter))
           .orderBy(asc(exam.examDate), asc(exam.startTime), asc(subject.name));
 
+        // Nomor peserta permanen per murid (ditetapkan otomatis bila belum ada); tanpa jenis terdaftar dihitung dari posisi di kelas.
+        const numbers = typeRow
+          ? await ensureParticipantNumbers(tx, {
+              schoolId: ctx.schoolId,
+              semesterId,
+              type: typeRow,
+              classIds: classes.map((c) => c.id),
+            })
+          : null;
         const items: z.infer<typeof examCardItem>[] = [];
         let truncated = false;
         for (const cls of classes) {
@@ -1028,7 +1046,7 @@ export async function cardRoutes(instance: FastifyInstance) {
               name: st.name,
               nis: st.nis ?? '',
               className: cls.name,
-              participantNo: formatParticipantNo(typeShort, cls.yearStart, i + 1),
+              participantNo: numbers?.get(st.id) ?? formatParticipantNo(typeShort, cls.yearStart, i + 1),
               examTitle,
               typeName,
               room: '',

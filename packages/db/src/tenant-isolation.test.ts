@@ -12,6 +12,9 @@ import {
   cocurricularProgramTarget,
   cocurricularRubricLevel,
   createDb,
+  enrollment,
+  examParticipantNumber,
+  examType,
   foundation,
   guardian,
   learningObjective,
@@ -1465,6 +1468,130 @@ describe('tabel tenant penilaian proses pembelajaran (tahap 3.6.3, migrasi 0124)
       for (const sid of [schoolA1, schoolB]) {
         await platform.db.delete(learningProcessReview).where(eq(learningProcessReview.schoolId, sid));
         await platform.db.delete(teacher).where(eq(teacher.schoolId, sid));
+        await platform.db.delete(semester).where(eq(semester.schoolId, sid));
+        await platform.db.delete(academicYear).where(eq(academicYear.schoolId, sid));
+      }
+    }
+  });
+});
+
+describe('tabel tenant nomor peserta ujian (migrasi 0125)', () => {
+  it('nomor terisolasi; FK komposit, unik, CHECK, CASCADE murid, SET NULL kelas; kolom format pada jenis ujian', async () => {
+    const seed = async (sid: string, n: number) => {
+      const [year] = await platform.db
+        .insert(academicYear)
+        .values({ schoolId: sid, name: `Nomor ${run}`, startsOn: '2026-07-13', endsOn: '2027-06-30' })
+        .returning();
+      const [sem] = await platform.db
+        .insert(semester)
+        .values({
+          schoolId: sid,
+          academicYearId: year!.id,
+          name: 'Ganjil',
+          startsOn: '2026-07-13',
+          endsOn: '2026-12-20',
+        })
+        .returning();
+      const [type] = await platform.db
+        .insert(examType)
+        .values({ schoolId: sid, name: `Jenis ${n}`, shortName: 'ASTS' })
+        .returning();
+      const [cls] = await platform.db
+        .insert(classRoom)
+        .values({ schoolId: sid, academicYearId: year!.id, name: `7${n}`, level: '7' })
+        .returning();
+      const [stu] = await platform.db
+        .insert(student)
+        .values({ schoolId: sid, name: `Murid ${n}`, gender: 'L' })
+        .returning();
+      const [stu2] = await platform.db
+        .insert(student)
+        .values({ schoolId: sid, name: `Murid dua ${n}`, gender: 'L' })
+        .returning();
+      const row = (extra: Partial<typeof examParticipantNumber.$inferInsert> = {}) => ({
+        schoolId: sid,
+        semesterId: sem!.id,
+        examTypeId: type!.id,
+        studentId: stu!.id,
+        classId: cls!.id,
+        seq: 1,
+        number: 'ASTS-26-001',
+        ...extra,
+      });
+      const [r] = await platform.db.insert(examParticipantNumber).values(row()).returning();
+      return { sem: sem!.id, type: type!, cls: cls!.id, stu: stu!.id, stu2: stu2!.id, r: r!.id, make: row };
+    };
+    const a = await seed(schoolA1, 1);
+    const b = await seed(schoolB, 2);
+    try {
+      expect(a.type).toMatchObject({
+        participantNoFormat: null,
+        participantNoSeqScope: 'class',
+        participantNoSeqStart: 1,
+      });
+      const rows = await withTenant(app.db, [schoolA1], (tx) => tx.select().from(examParticipantNumber));
+      expect(rows.map((r) => r.schoolId)).toEqual([schoolA1]);
+      expect(await app.db.select().from(examParticipantNumber)).toHaveLength(0);
+      await expect(
+        withTenant(app.db, [schoolA1], (tx) => tx.insert(examParticipantNumber).values(b.make())),
+      ).rejects.toThrow();
+      // FK komposit: semester, jenis ujian, murid, dan kelas sekolah B tidak boleh dipakai.
+      for (const extra of [
+        { semesterId: b.sem },
+        { examTypeId: b.type.id },
+        { studentId: b.stu },
+        { classId: b.cls },
+      ]) {
+        await expect(
+          platform.db
+            .insert(examParticipantNumber)
+            .values(a.make({ studentId: a.stu2, number: 'X', ...extra })),
+        ).rejects.toThrow();
+      }
+      // Unik: murid yang sama, nomor yang sama; CHECK: seq nol, nomor kosong.
+      await expect(
+        platform.db.insert(examParticipantNumber).values(a.make({ number: 'LAIN' })),
+      ).rejects.toThrow();
+      await expect(
+        platform.db.insert(examParticipantNumber).values(a.make({ studentId: a.stu2 })),
+      ).rejects.toThrow();
+      for (const extra of [{ seq: 0 }, { number: '' }]) {
+        await expect(
+          platform.db.insert(examParticipantNumber).values(a.make({ studentId: a.stu2, ...extra })),
+        ).rejects.toThrow();
+      }
+      // CHECK pada jenis ujian: lingkup tak dikenal, angka mulai nol, format kepanjangan.
+      for (const set of [
+        { participantNoSeqScope: 'room' as never },
+        { participantNoSeqStart: 0 },
+        { participantNoFormat: 'x'.repeat(41) },
+      ]) {
+        await expect(
+          platform.db.update(examType).set(set).where(eq(examType.id, a.type.id)),
+        ).rejects.toThrow();
+      }
+      // Kelas dihapus: nomor tetap, snapshot kelas dikosongkan.
+      await platform.db.delete(classRoom).where(eq(classRoom.id, a.cls));
+      const [kept] = await platform.db
+        .select()
+        .from(examParticipantNumber)
+        .where(eq(examParticipantNumber.id, a.r));
+      expect(kept).toMatchObject({ schoolId: schoolA1, classId: null, number: 'ASTS-26-001' });
+      // Murid dihapus: nomor ikut terhapus.
+      await platform.db.delete(student).where(eq(student.id, a.stu));
+      expect(
+        await platform.db
+          .select()
+          .from(examParticipantNumber)
+          .where(eq(examParticipantNumber.schoolId, schoolA1)),
+      ).toHaveLength(0);
+    } finally {
+      for (const sid of [schoolA1, schoolB]) {
+        await platform.db.delete(examParticipantNumber).where(eq(examParticipantNumber.schoolId, sid));
+        await platform.db.delete(enrollment).where(eq(enrollment.schoolId, sid));
+        await platform.db.delete(student).where(eq(student.schoolId, sid));
+        await platform.db.delete(examType).where(eq(examType.schoolId, sid));
+        await platform.db.delete(classRoom).where(eq(classRoom.schoolId, sid));
         await platform.db.delete(semester).where(eq(semester.schoolId, sid));
         await platform.db.delete(academicYear).where(eq(academicYear.schoolId, sid));
       }

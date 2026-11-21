@@ -20,6 +20,18 @@ Cara merilis: tulis bagian baru di bawah "Belum dirilis" lalu ganti judulnya men
 
 ### Ditambahkan
 
+- **Nomor peserta ujian permanen dan formatnya dapat diatur sekolah**: nomor kini disimpan per murid per semester dan jenis ujian
+  (tabel `exam_participant_number`, migrasi 0125, aditif) sehingga tidak bergeser saat murid pindah kelas atau murid baru masuk;
+  murid baru mendapat urutan terbesar + 1. Ditetapkan otomatis dan idempoten saat `GET /v1/cards/exam-participants`
+  (konkurensi dijaga kunci unik dan coba ulang). Format per jenis ujian lewat `PUT /v1/exams/participant-numbers/format` (izin
+  `exam:manage`): token `{jenis}`, `{yy}`, `{yyyy}`, `{kelas}`, `{urut}`, `{urut:N}`; wajib memuat `{urut}`, maks. 40 karakter
+  (galat 400 `invalid_format`), lingkup urutan per kelas atau se-sekolah, dan angka mulai. Bawaan `{jenis}-{yy}-{urut:3}` (mis.
+  ASTS-26-007). `POST /v1/exams/participant-numbers/reset` mengatur ulang (hapus lalu tetapkan ulang, opsional per kelas, tercatat
+  di audit), `GET /v1/exams/participant-numbers/summary` memberi jumlah nomor. Panel Nomor peserta di Kartu > Cetak (kartu ujian) memuat
+  editor format dengan contoh, keterangan token, peringatan bahwa nomor lama tidak berubah, dan tombol Atur ulang nomor. Mengubah
+  format tidak mengubah nomor yang sudah ada. Tanpa jenis ujian terdaftar nomor tetap dihitung dari posisi di kelas dan tidak disimpan.
+  Tanpa format tersimpan dipakai urutan se-sekolah (bukan per kelas) agar nomor unik per semester dan jenis ujian.
+
 - **Penilaian proses pembelajaran (opsional, tahap 3.6.3, C12)**: tab Penilaian proses di Perangkat ajar saya untuk mencatat tinjauan
   proses pembelajaran per guru per semester dari empat sudut: refleksi guru (`self`), sejawat, kepala sekolah, dan murid (agregat
   anonim: jumlah responden dan rata-rata butir, tanpa identitas murid, diinput staf). Rubrik tetap (perencanaan, pelaksanaan,
