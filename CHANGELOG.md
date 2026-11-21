@@ -7,9 +7,11 @@ memutus kompatibilitas. Produksi hanya berubah saat tag `vX.Y.Z` dikirim; tulis 
 Cara merilis: tulis bagian baru di bawah "Belum dirilis" lalu ganti judulnya menjadi `## [x.y.z] - tanggal`, kemudian
 `pnpm release x.y.z` dan `git push edusync HEAD:main vx.y.z`.
 
-## Belum dirilis
+## [0.7.0] - 2026-11-21
 
 ### Diubah
+
+- Next.js dinaikkan dari 16.4.3 ke 16.4.6 (rilis perbaikan).
 
 - **Kartu peserta ujian hanya lewat templat dinamis**: tombol "Tanda peserta A4 bawaan" dan templat A4 bawaannya dihapus
   (tidak sesuai kaidah templat dinamis; ukuran kartu bebas, mis. A7 tegak). Ruang ujian (kolom data `room`) dan Tabel jadwal
