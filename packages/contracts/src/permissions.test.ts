@@ -199,3 +199,17 @@ describe('izin UKK', () => {
     }
   });
 });
+
+describe('izin penilaian proses pembelajaran', () => {
+  const has = (role: keyof typeof SYSTEM_ROLES, p: string) =>
+    (SYSTEM_ROLES[role].permissions as readonly string[]).includes(p);
+  it('dipegang admin, kepala sekolah, dan kurikulum saja', () => {
+    expect(isPermission('teaching_review:manage')).toBe(true);
+    for (const role of ['school_admin', 'principal', 'curriculum'] as const) {
+      expect(has(role, 'teaching_review:manage')).toBe(true);
+    }
+    for (const role of ['treasurer', 'operator', 'teacher', 'guardian', 'student'] as const) {
+      expect(has(role, 'teaching_review:manage')).toBe(false);
+    }
+  });
+});

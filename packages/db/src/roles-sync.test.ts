@@ -234,3 +234,32 @@ describe('sinkron izin UKK', () => {
     expect(await has(await roleId('treasurer'), 'ukk:read')).toBe(false);
   });
 });
+
+describe('sinkron izin teaching_review:manage', () => {
+  it('menyebar ke kepala sekolah dan kurikulum sekolah lama, tidak ke guru', async () => {
+    const roleId = async (key: string) =>
+      (
+        await platform.db
+          .select({ id: role.id })
+          .from(role)
+          .where(and(eq(role.schoolId, schoolId), eq(role.key, key)))
+      )[0]!.id;
+    const has = async (id: string) =>
+      (await platform.db.select().from(rolePermission).where(eq(rolePermission.roleId, id))).some(
+        (r) => r.permission === 'teaching_review:manage',
+      );
+    const principal = await roleId('principal');
+    const cur = await roleId('curriculum');
+    const teacher = await roleId('teacher');
+    for (const id of [principal, cur]) {
+      await platform.db
+        .delete(rolePermission)
+        .where(and(eq(rolePermission.roleId, id), eq(rolePermission.permission, 'teaching_review:manage')));
+      expect(await has(id)).toBe(false);
+    }
+    await syncSystemRolePermissions(platform.db);
+    expect(await has(principal)).toBe(true);
+    expect(await has(cur)).toBe(true);
+    expect(await has(teacher)).toBe(false);
+  });
+});

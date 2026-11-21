@@ -4933,3 +4933,38 @@ export const lessonJournalObjective = pgTable(
   },
   (t) => [primaryKey({ columns: [t.journalId, t.objectiveId], name: 'lesson_journal_objective_pk' })],
 );
+
+/**
+ * Penilaian proses pembelajaran (tahap 3.6.3, C12): refleksi guru (`self`), sejawat, kepala sekolah, dan murid (agregat anonim
+ * yang diinput staf). Opsional per sekolah (`learning_plan_setting.review_enabled`); hanya melaporkan, tidak memengaruhi nilai
+ * atau rapor. `ratings` = {kunci butir: 1..4}, kunci dari kontrak. FK komposit (semester, guru, guru penilai), CHECK jenis/jumlah
+ * responden/catatan ada di SQL tangan 0124.
+ */
+export const learningProcessReview = pgTable(
+  'learning_process_review',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    semesterId: uuid('semester_id')
+      .notNull()
+      .references(() => semester.id),
+    /** Guru yang ditinjau. */
+    teacherId: uuid('teacher_id')
+      .notNull()
+      .references(() => teacher.id),
+    reviewerKind: text('reviewer_kind', { enum: ['self', 'peer', 'principal', 'student'] }).notNull(),
+    /** Hanya untuk `peer` (guru penilai). */
+    reviewerTeacherId: uuid('reviewer_teacher_id').references(() => teacher.id),
+    reviewedOn: date('reviewed_on').notNull(),
+    ratings: jsonb('ratings').$type<Record<string, number>>(),
+    /** Hanya untuk `student` (agregat anonim). */
+    respondentCount: integer('respondent_count'),
+    note: text('note'),
+    sharedWithTeacher: boolean('shared_with_teacher').notNull().default(false),
+    recordedBy: text('recorded_by').notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [index('learning_process_review_teacher_idx').on(t.schoolId, t.semesterId, t.teacherId)],
+);

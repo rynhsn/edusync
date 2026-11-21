@@ -869,6 +869,13 @@
       "when": 1798939800000,
       "tag": "0123_lesson_journal",
       "breakpoints": true
+    },
+    {
+      "idx": 124,
+      "version": "7",
+      "when": 1799026200000,
+      "tag": "0124_learning_review",
+      "breakpoints": true
     }
   ]
 }

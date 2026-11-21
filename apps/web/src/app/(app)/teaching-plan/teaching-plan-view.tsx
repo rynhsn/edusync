@@ -1,7 +1,15 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { BookOpen, ClipboardList, GitBranch, NotebookPen, ShieldCheck, Target } from 'lucide-react';
+import {
+  BookOpen,
+  ClipboardCheck,
+  ClipboardList,
+  GitBranch,
+  NotebookPen,
+  ShieldCheck,
+  Target,
+} from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { useSchool } from '@/components/app-shell';
@@ -19,10 +27,21 @@ import { FlowsPanel } from './flows-panel';
 import { OutcomesPanel } from './outcomes-panel';
 import { usePlanSettings } from './plan-settings';
 import { PlansPanel } from './plans-panel';
+import { ReviewsPanel } from './reviews-panel';
 
-type Tab = 'outcomes' | 'flows' | 'plans';
-const TAB_ICONS = { outcomes: Target, flows: GitBranch, plans: ClipboardList } as const;
-const TAB_LABEL = { outcomes: 'tabOutcomes', flows: 'tabFlows', plans: 'tabPlans' } as const;
+type Tab = 'outcomes' | 'flows' | 'plans' | 'reviews';
+const TAB_ICONS = {
+  outcomes: Target,
+  flows: GitBranch,
+  plans: ClipboardList,
+  reviews: ClipboardCheck,
+} as const;
+const TAB_LABEL = {
+  outcomes: 'tabOutcomes',
+  flows: 'tabFlows',
+  plans: 'tabPlans',
+  reviews: 'tabReviews',
+} as const;
 
 /**
  * Perangkat ajar saya: capaian dan tujuan pembelajaran (CP/TP) serta alur tujuan pembelajaran (ATP) per mapel.
@@ -39,8 +58,20 @@ export function TeachingPlanView() {
 
   const planSettings = usePlanSettings();
   // Tab perencanaan hanya muncul bila sekolah menyalakannya; pengelola kurikulum melihatnya untuk menyalakan sakelar.
-  const TABS: Tab[] =
-    planSettings.data?.planEnabled || manager ? ['outcomes', 'flows', 'plans'] : ['outcomes', 'flows'];
+  const reviewer = can('teaching_review:manage');
+  const TABS: Tab[] = [
+    'outcomes',
+    'flows',
+    ...(planSettings.data?.planEnabled || manager ? (['plans'] as const) : []),
+    // Penilaian proses: pengelola penilaian dan guru bila sakelar hidup; pengelola kurikulum melihatnya untuk menyalakan sakelar.
+    ...(planSettings.data?.reviewEnabled
+      ? reviewer || canWrite
+        ? (['reviews'] as const)
+        : []
+      : manager
+        ? (['reviews'] as const)
+        : []),
+  ];
   const [tabChoice, setTab] = useState<Tab>('outcomes');
   const tab = TABS.includes(tabChoice) ? tabChoice : 'outcomes';
   const [subjectChoice, setSubjectChoice] = useState('');
@@ -171,6 +202,7 @@ export function TeachingPlanView() {
                 canWrite={canWrite}
               />
             )}
+            {tab === 'reviews' && <ReviewsPanel />}
             {tab === 'flows' && (
               <FlowsPanel
                 key={subjectId}

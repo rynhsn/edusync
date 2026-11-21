@@ -82,3 +82,26 @@ export function isValidPlanLink(value: string): boolean {
 export const MAX_JOURNAL_TOPIC = 200;
 export const MAX_JOURNAL_NOTE = 2000;
 export const MAX_JOURNAL_OBJECTIVES = 10;
+
+/** Penilaian proses pembelajaran (tahap 3.6.3, C12): jenis penilai, butir rubrik tetap (skala 1-4), dan batas isian. */
+export const REVIEWER_KINDS = ['self', 'peer', 'principal', 'student'] as const;
+export type ReviewerKind = (typeof REVIEWER_KINDS)[number];
+/** Perencanaan, pelaksanaan, penilaian, tindak lanjut. Tidak dapat dikustom per sekolah (kunci terjemahan `teachingPlan.reviewItems.<kunci>`). */
+export const LEARNING_REVIEW_ITEMS = ['planning', 'implementation', 'assessment', 'follow_up'] as const;
+export type LearningReviewItem = (typeof LEARNING_REVIEW_ITEMS)[number];
+export const MAX_REVIEW_NOTE = 2000;
+export const MAX_REVIEW_RESPONDENTS = 100000;
+
+/**
+ * Rating sah: kunci hanya butir rubrik, nilai 1..4. Bilangan bulat, kecuali `student` (rata-rata agregat survei, maks 2 desimal).
+ * Mengembalikan kunci/nilai pertama yang tidak sah, atau null bila semua sah.
+ */
+export function invalidReviewRating(ratings: Record<string, number>, kind: ReviewerKind): string | null {
+  for (const [key, value] of Object.entries(ratings)) {
+    if (!(LEARNING_REVIEW_ITEMS as readonly string[]).includes(key)) return key;
+    const aggregate = kind === 'student' && Math.abs(value * 100 - Math.round(value * 100)) < 1e-9;
+    if (!Number.isFinite(value) || value < 1 || value > 4 || !(Number.isInteger(value) || aggregate))
+      return key;
+  }
+  return null;
+}

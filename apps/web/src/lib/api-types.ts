@@ -9877,7 +9877,7 @@ export interface paths {
                 content: {
                     "application/json": {
                         name: string;
-                        permissions: ("member:read" | "member:manage" | "role:manage" | "academic_year:read" | "academic_year:manage" | "promotion:manage" | "graduation:read" | "graduation:manage" | "curriculum:manage" | "class:read" | "class:manage" | "student:read" | "student:manage" | "teacher:read" | "teacher:manage" | "subject:read" | "subject:manage" | "subject_choice:manage" | "teaching_plan:write" | "schedule:read" | "schedule:manage" | "attendance:read" | "attendance:manage" | "attendance:configure" | "extracurricular:read" | "extracurricular:manage" | "cocurricular:read" | "cocurricular:manage" | "grade:read" | "grade:input" | "grade:configure" | "grade:read_all" | "report_card:read" | "report_card:manage" | "report_card:read_all" | "finance:read" | "finance:pay" | "finance:manage" | "message:read" | "message:manage" | "message:send" | "message:broadcast" | "tahfidz:read" | "tahfidz:manage" | "letter:read" | "letter:manage" | "letter:sign" | "pkl:read" | "pkl:manage" | "ukk:read" | "ukk:manage" | "exam:read" | "exam:author" | "exam:manage" | "admission:read" | "admission:manage" | "school:manage" | "portal:read" | "portal:respond" | "announcement:read" | "announcement:manage" | "audit:read" | "account:reset" | "data_export:run")[];
+                        permissions: ("member:read" | "member:manage" | "role:manage" | "academic_year:read" | "academic_year:manage" | "promotion:manage" | "graduation:read" | "graduation:manage" | "curriculum:manage" | "class:read" | "class:manage" | "student:read" | "student:manage" | "teacher:read" | "teacher:manage" | "subject:read" | "subject:manage" | "subject_choice:manage" | "teaching_plan:write" | "teaching_review:manage" | "schedule:read" | "schedule:manage" | "attendance:read" | "attendance:manage" | "attendance:configure" | "extracurricular:read" | "extracurricular:manage" | "cocurricular:read" | "cocurricular:manage" | "grade:read" | "grade:input" | "grade:configure" | "grade:read_all" | "report_card:read" | "report_card:manage" | "report_card:read_all" | "finance:read" | "finance:pay" | "finance:manage" | "message:read" | "message:manage" | "message:send" | "message:broadcast" | "tahfidz:read" | "tahfidz:manage" | "letter:read" | "letter:manage" | "letter:sign" | "pkl:read" | "pkl:manage" | "ukk:read" | "ukk:manage" | "exam:read" | "exam:author" | "exam:manage" | "admission:read" | "admission:manage" | "school:manage" | "portal:read" | "portal:respond" | "announcement:read" | "announcement:manage" | "audit:read" | "account:reset" | "data_export:run")[];
                     };
                 };
             };
@@ -10413,7 +10413,7 @@ export interface paths {
                 content: {
                     "application/json": {
                         name: string;
-                        permissions: ("member:read" | "member:manage" | "role:manage" | "academic_year:read" | "academic_year:manage" | "promotion:manage" | "graduation:read" | "graduation:manage" | "curriculum:manage" | "class:read" | "class:manage" | "student:read" | "student:manage" | "teacher:read" | "teacher:manage" | "subject:read" | "subject:manage" | "subject_choice:manage" | "teaching_plan:write" | "schedule:read" | "schedule:manage" | "attendance:read" | "attendance:manage" | "attendance:configure" | "extracurricular:read" | "extracurricular:manage" | "cocurricular:read" | "cocurricular:manage" | "grade:read" | "grade:input" | "grade:configure" | "grade:read_all" | "report_card:read" | "report_card:manage" | "report_card:read_all" | "finance:read" | "finance:pay" | "finance:manage" | "message:read" | "message:manage" | "message:send" | "message:broadcast" | "tahfidz:read" | "tahfidz:manage" | "letter:read" | "letter:manage" | "letter:sign" | "pkl:read" | "pkl:manage" | "ukk:read" | "ukk:manage" | "exam:read" | "exam:author" | "exam:manage" | "admission:read" | "admission:manage" | "school:manage" | "portal:read" | "portal:respond" | "announcement:read" | "announcement:manage" | "audit:read" | "account:reset" | "data_export:run")[];
+                        permissions: ("member:read" | "member:manage" | "role:manage" | "academic_year:read" | "academic_year:manage" | "promotion:manage" | "graduation:read" | "graduation:manage" | "curriculum:manage" | "class:read" | "class:manage" | "student:read" | "student:manage" | "teacher:read" | "teacher:manage" | "subject:read" | "subject:manage" | "subject_choice:manage" | "teaching_plan:write" | "teaching_review:manage" | "schedule:read" | "schedule:manage" | "attendance:read" | "attendance:manage" | "attendance:configure" | "extracurricular:read" | "extracurricular:manage" | "cocurricular:read" | "cocurricular:manage" | "grade:read" | "grade:input" | "grade:configure" | "grade:read_all" | "report_card:read" | "report_card:manage" | "report_card:read_all" | "finance:read" | "finance:pay" | "finance:manage" | "message:read" | "message:manage" | "message:send" | "message:broadcast" | "tahfidz:read" | "tahfidz:manage" | "letter:read" | "letter:manage" | "letter:sign" | "pkl:read" | "pkl:manage" | "ukk:read" | "ukk:manage" | "exam:read" | "exam:author" | "exam:manage" | "admission:read" | "admission:manage" | "school:manage" | "portal:read" | "portal:respond" | "announcement:read" | "announcement:manage" | "audit:read" | "account:reset" | "data_export:run")[];
                     };
                 };
             };
@@ -69974,7 +69974,7 @@ export interface paths {
         };
         /**
          * Ubah sakelar fitur perencanaan, jurnal, dan penilaian proses
-         * @description Izin: `curriculum:manage`. Field yang dihilangkan tidak berubah (bawaan: semua mati, `reviewMinPerSemester` 1). `journalEnabled` dan `reviewEnabled` dipakai tahap berikutnya. Dicatat di audit (`learning_plan.settings_update`).
+         * @description Izin: `curriculum:manage`. Field yang dihilangkan tidak berubah (bawaan: semua mati, `reviewMinPerSemester` 1). `journalEnabled` menyalakan jurnal mengajar dan `reviewEnabled` penilaian proses pembelajaran; `reviewMinPerSemester` = minimal tinjauan per guru per semester untuk kecakupan. Dicatat di audit (`learning_plan.settings_update`).
          */
         put: {
             parameters: {
@@ -70670,6 +70670,532 @@ export interface paths {
         };
         post?: never;
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/learning-reviews": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Daftar tinjauan proses pembelajaran
+         * @description Izin: `subject:read`. Sakelar penilaian proses sekolah harus hidup (403 `feature_disabled`); modul `grades`. Hanya melaporkan: tidak memengaruhi nilai, rapor, atau alur lain. Pemegang `teaching_review:manage` (admin sekolah, kepala sekolah, kurikulum) mengelola semua jenis tinjauan; guru (`teaching_plan:write`) hanya tinjauan `self` miliknya. Peran lain 403 `forbidden`. Pengelola melihat semua tinjauan; guru hanya tinjauan tentang dirinya yang `self` atau yang dibagikan (`sharedWithTeacher`). Filter opsional `semesterId`, `teacherId`. Tidak ada skor gabungan atau peringkat.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    semesterId?: string;
+                    teacherId?: string;
+                };
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            reviews: {
+                                /** Format: uuid */
+                                id: string;
+                                /** Format: uuid */
+                                semesterId: string;
+                                semesterName: string;
+                                /** Format: uuid */
+                                teacherId: string;
+                                teacherName: string;
+                                /** @enum {string} */
+                                reviewerKind: "self" | "peer" | "principal" | "student";
+                                /** Format: uuid */
+                                reviewerTeacherId: string | null;
+                                reviewerTeacherName: string | null;
+                                reviewedOn: string;
+                                /** @description Kunci butir rubrik tetap -> nilai 1..4 */
+                                ratings: {
+                                    [key: string]: number;
+                                } | null;
+                                respondentCount: number | null;
+                                note: string | null;
+                                sharedWithTeacher: boolean;
+                                createdAt: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Catat tinjauan proses pembelajaran
+         * @description Izin: `subject:read`. Sakelar penilaian proses sekolah harus hidup (403 `feature_disabled`); modul `grades`. Hanya melaporkan: tidak memengaruhi nilai, rapor, atau alur lain. Pemegang `teaching_review:manage` (admin sekolah, kepala sekolah, kurikulum) mengelola semua jenis tinjauan; guru (`teaching_plan:write`) hanya tinjauan `self` miliknya. Peran lain 403 `forbidden`. Jenis `self`, `peer`, `principal`, `student`. Guru: hanya `self` untuk dirinya (`teacherId` dihilangkan = dirinya; selain itu 403 `forbidden`). Pengelola wajib mengisi `teacherId`. `peer` wajib `reviewerTeacherId` (guru lain, bukan yang ditinjau; 400 `invalid_reviewer`), jenis lain terlarang mengisinya. `reviewedOn` bawaan hari ini. `sharedWithTeacher` bawaan `false` dan hanya berlaku untuk jenis selain `self` yang dicatat pengelola. Semester/guru tidak ditemukan: 400 `invalid_reference`. `ratings`: kunci hanya planning, implementation, assessment, follow_up; nilai bulat 1..4 (murid: rata-rata agregat, maks 2 desimal) (400 `invalid_rating`). Minimal satu butir atau catatan (400 `empty_review`). `respondentCount` wajib untuk `student` dan terlarang untuk jenis lain (400 `invalid_respondents`); murid hanya agregat anonim yang diinput staf.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        semesterId: string;
+                        /** Format: uuid */
+                        teacherId?: string;
+                        /** @enum {string} */
+                        reviewerKind: "self" | "peer" | "principal" | "student";
+                        /** Format: uuid */
+                        reviewerTeacherId?: string | null;
+                        /** Format: date */
+                        reviewedOn?: string;
+                        /** @description Kunci butir rubrik tetap -> nilai 1..4 */
+                        ratings?: {
+                            [key: string]: number;
+                        } | null;
+                        respondentCount?: number | null;
+                        note?: string | null;
+                        sharedWithTeacher?: boolean;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            semesterId: string;
+                            semesterName: string;
+                            /** Format: uuid */
+                            teacherId: string;
+                            teacherName: string;
+                            /** @enum {string} */
+                            reviewerKind: "self" | "peer" | "principal" | "student";
+                            /** Format: uuid */
+                            reviewerTeacherId: string | null;
+                            reviewerTeacherName: string | null;
+                            reviewedOn: string;
+                            /** @description Kunci butir rubrik tetap -> nilai 1..4 */
+                            ratings: {
+                                [key: string]: number;
+                            } | null;
+                            respondentCount: number | null;
+                            note: string | null;
+                            sharedWithTeacher: boolean;
+                            createdAt: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/learning-reviews/coverage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Kecakupan penilaian proses per guru
+         * @description Izin: `teaching_review:manage`. Sakelar penilaian proses sekolah harus hidup (403 `feature_disabled`); modul `grades`. Hanya melaporkan: tidak memengaruhi nilai, rapor, atau alur lain. Per guru aktif: hitungan tinjauan per jenis penilai dan `met` bila total >= `minPerSemester` (bawaan 1, atur lewat sakelar; bukan per sudut pandang). Hanya melaporkan, tidak memblokir apa pun dan tidak ada notifikasi.
+         */
+        get: {
+            parameters: {
+                query: {
+                    semesterId: string;
+                };
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            semesterId: string;
+                            minPerSemester: number;
+                            teachers: {
+                                /** Format: uuid */
+                                teacherId: string;
+                                teacherName: string;
+                                counts: {
+                                    self: number;
+                                    peer: number;
+                                    principal: number;
+                                    student: number;
+                                };
+                                total: number;
+                                met: boolean;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/learning-reviews/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Ubah tinjauan proses pembelajaran
+         * @description Izin: `subject:read`. Sakelar penilaian proses sekolah harus hidup (403 `feature_disabled`); modul `grades`. Hanya melaporkan: tidak memengaruhi nilai, rapor, atau alur lain. Pemegang `teaching_review:manage` (admin sekolah, kepala sekolah, kurikulum) mengelola semua jenis tinjauan; guru (`teaching_plan:write`) hanya tinjauan `self` miliknya. Peran lain 403 `forbidden`. Semester, guru yang ditinjau, dan jenis penilai tidak dapat diubah (hapus lalu catat ulang). Field yang dihilangkan tidak berubah; `ratings` mengganti seluruh isian. Guru hanya untuk `self` miliknya (selain itu 403 `forbidden`); `sharedWithTeacher` hanya diubah pengelola. `ratings`: kunci hanya planning, implementation, assessment, follow_up; nilai bulat 1..4 (murid: rata-rata agregat, maks 2 desimal) (400 `invalid_rating`). Minimal satu butir atau catatan (400 `empty_review`). `respondentCount` wajib untuk `student` dan terlarang untuk jenis lain (400 `invalid_respondents`); murid hanya agregat anonim yang diinput staf.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: date */
+                        reviewedOn?: string;
+                        /** @description Kunci butir rubrik tetap -> nilai 1..4 */
+                        ratings?: {
+                            [key: string]: number;
+                        } | null;
+                        respondentCount?: number | null;
+                        note?: string | null;
+                        sharedWithTeacher?: boolean;
+                        /** Format: uuid */
+                        reviewerTeacherId?: string | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            semesterId: string;
+                            semesterName: string;
+                            /** Format: uuid */
+                            teacherId: string;
+                            teacherName: string;
+                            /** @enum {string} */
+                            reviewerKind: "self" | "peer" | "principal" | "student";
+                            /** Format: uuid */
+                            reviewerTeacherId: string | null;
+                            reviewerTeacherName: string | null;
+                            reviewedOn: string;
+                            /** @description Kunci butir rubrik tetap -> nilai 1..4 */
+                            ratings: {
+                                [key: string]: number;
+                            } | null;
+                            respondentCount: number | null;
+                            note: string | null;
+                            sharedWithTeacher: boolean;
+                            createdAt: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        /**
+         * Hapus tinjauan proses pembelajaran
+         * @description Izin: `subject:read`. Sakelar penilaian proses sekolah harus hidup (403 `feature_disabled`); modul `grades`. Hanya melaporkan: tidak memengaruhi nilai, rapor, atau alur lain. Pemegang `teaching_review:manage` (admin sekolah, kepala sekolah, kurikulum) mengelola semua jenis tinjauan; guru (`teaching_plan:write`) hanya tinjauan `self` miliknya. Peran lain 403 `forbidden`. Guru hanya untuk `self` miliknya (selain itu 403 `forbidden`).
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: true;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
         options?: never;
         head?: never;
         patch?: never;

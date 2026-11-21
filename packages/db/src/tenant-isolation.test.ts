@@ -19,6 +19,7 @@ import {
   learningPlan,
   learningPlanObjective,
   learningPlanSetting,
+  learningProcessReview,
   lessonJournal,
   lessonJournalObjective,
   lessonPeriod,
@@ -1377,6 +1378,94 @@ describe('tabel tenant jurnal mengajar (tahap 3.6.2, migrasi 0123)', () => {
         await platform.db.delete(classRoom).where(eq(classRoom.schoolId, sid));
         await platform.db.delete(teacher).where(eq(teacher.schoolId, sid));
         await platform.db.delete(subject).where(eq(subject.schoolId, sid));
+        await platform.db.delete(academicYear).where(eq(academicYear.schoolId, sid));
+      }
+    }
+  });
+});
+
+describe('tabel tenant penilaian proses pembelajaran (tahap 3.6.3, migrasi 0124)', () => {
+  it('tinjauan terisolasi; FK komposit, CHECK, CASCADE guru yang ditinjau, SET NULL guru penilai', async () => {
+    const seed = async (sid: string, n: number) => {
+      const [year] = await platform.db
+        .insert(academicYear)
+        .values({ schoolId: sid, name: `Tinjau ${run}`, startsOn: '2026-07-13', endsOn: '2027-06-30' })
+        .returning();
+      const [sem] = await platform.db
+        .insert(semester)
+        .values({
+          schoolId: sid,
+          academicYearId: year!.id,
+          name: 'Ganjil',
+          startsOn: '2026-07-13',
+          endsOn: '2026-12-20',
+        })
+        .returning();
+      const [tch] = await platform.db
+        .insert(teacher)
+        .values({ schoolId: sid, name: `Guru ${n}` })
+        .returning();
+      const [peer] = await platform.db
+        .insert(teacher)
+        .values({ schoolId: sid, name: `Sejawat ${n}` })
+        .returning();
+      const review = (extra: Partial<typeof learningProcessReview.$inferInsert> = {}) => ({
+        schoolId: sid,
+        semesterId: sem!.id,
+        teacherId: tch!.id,
+        reviewerKind: 'peer' as const,
+        reviewerTeacherId: peer!.id,
+        reviewedOn: '2026-10-12',
+        ratings: { planning: 3 },
+        recordedBy: 'uji',
+        ...extra,
+      });
+      const [r] = await platform.db.insert(learningProcessReview).values(review()).returning();
+      return { sem: sem!.id, tch: tch!.id, peer: peer!.id, r: r!.id, make: review };
+    };
+    const a = await seed(schoolA1, 1);
+    const b = await seed(schoolB, 2);
+    try {
+      const rows = await withTenant(app.db, [schoolA1], (tx) => tx.select().from(learningProcessReview));
+      expect(rows.map((r) => r.schoolId)).toEqual([schoolA1]);
+      expect(rows[0]?.sharedWithTeacher).toBe(false);
+      expect(await app.db.select().from(learningProcessReview)).toHaveLength(0);
+      // Tulis lintas sekolah ditolak RLS.
+      await expect(
+        withTenant(app.db, [schoolA1], (tx) => tx.insert(learningProcessReview).values(b.make())),
+      ).rejects.toThrow();
+      // FK komposit: semester, guru, dan guru penilai sekolah B tidak boleh dipakai walau id valid.
+      for (const extra of [{ semesterId: b.sem }, { teacherId: b.tch }, { reviewerTeacherId: b.peer }]) {
+        await expect(platform.db.insert(learningProcessReview).values(a.make(extra))).rejects.toThrow();
+      }
+      // CHECK: jenis penilai tidak dikenal, jumlah responden nol, catatan terlalu panjang.
+      for (const extra of [
+        { reviewerKind: 'parent' as never },
+        { respondentCount: 0 },
+        { note: 'x'.repeat(2001) },
+      ]) {
+        await expect(platform.db.insert(learningProcessReview).values(a.make(extra))).rejects.toThrow();
+      }
+      // Guru penilai dihapus: tinjauan tetap, penilai dikosongkan.
+      await platform.db.delete(teacher).where(eq(teacher.id, a.peer));
+      const [kept] = await platform.db
+        .select()
+        .from(learningProcessReview)
+        .where(eq(learningProcessReview.id, a.r));
+      expect(kept).toMatchObject({ schoolId: schoolA1, reviewerTeacherId: null });
+      // Guru yang ditinjau dihapus: tinjauan ikut terhapus.
+      await platform.db.delete(teacher).where(eq(teacher.id, a.tch));
+      expect(
+        await platform.db
+          .select()
+          .from(learningProcessReview)
+          .where(eq(learningProcessReview.schoolId, schoolA1)),
+      ).toHaveLength(0);
+    } finally {
+      for (const sid of [schoolA1, schoolB]) {
+        await platform.db.delete(learningProcessReview).where(eq(learningProcessReview.schoolId, sid));
+        await platform.db.delete(teacher).where(eq(teacher.schoolId, sid));
+        await platform.db.delete(semester).where(eq(semester.schoolId, sid));
         await platform.db.delete(academicYear).where(eq(academicYear.schoolId, sid));
       }
     }

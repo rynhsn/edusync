@@ -365,8 +365,8 @@ describe('kebijakan peran bawaan', () => {
   const perms = (r: SystemRoleKey) => new Set<string>(SYSTEM_ROLES[r].permissions);
   const writeLike = (p: string) => /:(manage|pay|input|configure)$/.test(p);
 
-  it('kepala sekolah hanya membaca (satu-satunya tulis: menandatangani surat)', () => {
-    expect([...perms('principal')].filter(writeLike)).toEqual([]);
+  it('kepala sekolah hanya membaca (tulis: menandatangani surat dan menilai proses pembelajaran guru)', () => {
+    expect([...perms('principal')].filter(writeLike)).toEqual(['teaching_review:manage']);
     expect(perms('principal').has('letter:sign')).toBe(true);
   });
 
@@ -820,6 +820,30 @@ describe('kebijakan peran bawaan', () => {
     expect(e?.description).toContain('BUKAN format impor');
     for (const r of roleKeys) {
       expect(allows(r, e!), r).toBe(['school_admin', 'curriculum', 'operator'].includes(r));
+    }
+  });
+
+  it('rute penilaian proses (tahap 3.6.3) memasang izin dan modul sesuai rancangan', () => {
+    const find = (method: string, url: string) => eps.find((e) => e.method === method && e.url === url);
+    // Gerbang subject:read; pengelola atau guru pemilik refleksi diperiksa di handler.
+    for (const [m, u] of [
+      ['GET', '/v1/learning-reviews'],
+      ['POST', '/v1/learning-reviews'],
+      ['PUT', '/v1/learning-reviews/:id'],
+      ['DELETE', '/v1/learning-reviews/:id'],
+    ] as const) {
+      const e = find(m, u);
+      expect([e?.perms, e?.modules], `${m} ${u}`).toEqual([['subject:read'], ['grades']]);
+      expect(e?.description).toContain('Izin: `subject:read`');
+      expect(e?.description).toContain('`teaching_review:manage`');
+    }
+    const coverage = find('GET', '/v1/learning-reviews/coverage');
+    expect([coverage?.perms, coverage?.modules]).toEqual([['teaching_review:manage'], ['grades']]);
+    expect(coverage?.description).toContain('Izin: `teaching_review:manage`');
+    for (const r of roleKeys) {
+      expect(allows(r, coverage!), `${r} coverage`).toBe(
+        ['school_admin', 'principal', 'curriculum'].includes(r),
+      );
     }
   });
 

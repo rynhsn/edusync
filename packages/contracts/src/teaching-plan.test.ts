@@ -2,9 +2,11 @@ import { describe, expect, it } from 'vitest';
 import {
   checkFlowItems,
   gradeFromLevelCode,
+  invalidReviewRating,
   isPhase,
   isValidFlowQuantity,
   isValidPlanLink,
+  LEARNING_REVIEW_ITEMS,
   MAX_FLOW_ITEMS,
   MAX_JOURNAL_NOTE,
   MAX_JOURNAL_OBJECTIVES,
@@ -12,6 +14,7 @@ import {
   PHASES,
   phaseForGrade,
   phaseForLevelCode,
+  REVIEWER_KINDS,
 } from './teaching-plan';
 
 describe('fase', () => {
@@ -90,5 +93,19 @@ describe('tautan perencanaan', () => {
 describe('batas jurnal mengajar', () => {
   it('topik 200, catatan 2000, TP 10 (sama dengan CHECK migrasi 0123 dan skema API)', () => {
     expect([MAX_JOURNAL_TOPIC, MAX_JOURNAL_NOTE, MAX_JOURNAL_OBJECTIVES]).toEqual([200, 2000, 10]);
+  });
+});
+
+describe('rating penilaian proses', () => {
+  it('kunci hanya butir rubrik, nilai 1..4; murid (agregat) boleh dua desimal', () => {
+    expect(invalidReviewRating({ planning: 1, implementation: 4 }, 'self')).toBeNull();
+    expect(invalidReviewRating({ unknown: 2 }, 'self')).toBe('unknown');
+    for (const v of [0, 5, 2.5, Number.NaN])
+      expect(invalidReviewRating({ planning: v }, 'peer')).toBe('planning');
+    expect(invalidReviewRating({ assessment: 3.25 }, 'student')).toBeNull();
+    expect(invalidReviewRating({ assessment: 3.255 }, 'student')).toBe('assessment');
+    expect(invalidReviewRating({ assessment: 4.5 }, 'student')).toBe('assessment');
+    expect(REVIEWER_KINDS).toEqual(['self', 'peer', 'principal', 'student']);
+    expect(LEARNING_REVIEW_ITEMS).toHaveLength(4);
   });
 });

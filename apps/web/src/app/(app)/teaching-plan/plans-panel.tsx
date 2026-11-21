@@ -40,13 +40,19 @@ interface PlanRow {
   objectives: { id: string; code: string | null; description: string; active: boolean }[];
 }
 
-/** Satu sakelar fitur sekolah (`curriculum:manage`): perencanaan atau jurnal mengajar; sakelar penilaian proses dipakai tahap berikutnya. */
-function FeatureSwitch({ field, enabled }: { field: 'planEnabled' | 'journalEnabled'; enabled: boolean }) {
+/** Satu sakelar fitur sekolah (`curriculum:manage`): perencanaan, jurnal mengajar, atau penilaian proses. */
+function FeatureSwitch({
+  field,
+  enabled,
+}: {
+  field: 'planEnabled' | 'journalEnabled' | 'reviewEnabled';
+  enabled: boolean;
+}) {
   const t = useTranslations('teachingPlan');
   const te = useTranslations();
   const { school } = useSchool();
   const queryClient = useQueryClient();
-  const key = field === 'planEnabled' ? 'plan' : 'journal';
+  const key = field === 'planEnabled' ? 'plan' : field === 'journalEnabled' ? 'journal' : 'review';
   const save = useMutation({
     mutationFn: async (value: boolean) =>
       unwrap(
@@ -172,6 +178,7 @@ export function PlansPanel({
         <div className="grid gap-3">
           <FeatureSwitch field="planEnabled" enabled={enabled} />
           <FeatureSwitch field="journalEnabled" enabled={settings.data.journalEnabled} />
+          <FeatureSwitch field="reviewEnabled" enabled={settings.data.reviewEnabled} />
         </div>
       )}
       {settings.isPending && <ListSkeleton rows={1} stats={0} />}

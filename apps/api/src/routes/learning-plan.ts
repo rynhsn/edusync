@@ -248,7 +248,8 @@ export async function learningPlanRoutes(instance: FastifyInstance) {
         summary: 'Ubah sakelar fitur perencanaan, jurnal, dan penilaian proses',
         description:
           'Izin: `curriculum:manage`. Field yang dihilangkan tidak berubah (bawaan: semua mati, `reviewMinPerSemester` 1). ' +
-          '`journalEnabled` dan `reviewEnabled` dipakai tahap berikutnya. Dicatat di audit (`learning_plan.settings_update`).',
+          '`journalEnabled` menyalakan jurnal mengajar dan `reviewEnabled` penilaian proses pembelajaran; `reviewMinPerSemester` = ' +
+          'minimal tinjauan per guru per semester untuk kecakupan. Dicatat di audit (`learning_plan.settings_update`).',
         headers: schoolHeader,
         body: z.object({
           planEnabled: z.boolean().optional(),

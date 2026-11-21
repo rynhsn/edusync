@@ -22679,7 +22679,7 @@
                   },
                   "permissions": {
                     "minItems": 1,
-                    "maxItems": 64,
+                    "maxItems": 65,
                     "type": "array",
                     "items": {
                       "type": "string",
@@ -22703,6 +22703,7 @@
                         "subject:manage",
                         "subject_choice:manage",
                         "teaching_plan:write",
+                        "teaching_review:manage",
                         "schedule:read",
                         "schedule:manage",
                         "attendance:read",
@@ -23834,7 +23835,7 @@
                   },
                   "permissions": {
                     "minItems": 1,
-                    "maxItems": 64,
+                    "maxItems": 65,
                     "type": "array",
                     "items": {
                       "type": "string",
@@ -23858,6 +23859,7 @@
                         "subject:manage",
                         "subject_choice:manage",
                         "teaching_plan:write",
+                        "teaching_review:manage",
                         "schedule:read",
                         "schedule:manage",
                         "attendance:read",
@@ -161368,7 +161370,7 @@
         "tags": [
           "Curriculum"
         ],
-        "description": "Izin: `curriculum:manage`. Field yang dihilangkan tidak berubah (bawaan: semua mati, `reviewMinPerSemester` 1). `journalEnabled` dan `reviewEnabled` dipakai tahap berikutnya. Dicatat di audit (`learning_plan.settings_update`).",
+        "description": "Izin: `curriculum:manage`. Field yang dihilangkan tidak berubah (bawaan: semua mati, `reviewMinPerSemester` 1). `journalEnabled` menyalakan jurnal mengajar dan `reviewEnabled` penilaian proses pembelajaran; `reviewMinPerSemester` = minimal tinjauan per guru per semester untuk kecakupan. Dicatat di audit (`learning_plan.settings_update`).",
         "requestBody": {
           "required": true,
           "content": {
@@ -162864,6 +162866,1179 @@
                   },
                   "required": [
                     "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/learning-reviews": {
+      "get": {
+        "summary": "Daftar tinjauan proses pembelajaran",
+        "tags": [
+          "Curriculum"
+        ],
+        "description": "Izin: `subject:read`. Sakelar penilaian proses sekolah harus hidup (403 `feature_disabled`); modul `grades`. Hanya melaporkan: tidak memengaruhi nilai, rapor, atau alur lain. Pemegang `teaching_review:manage` (admin sekolah, kepala sekolah, kurikulum) mengelola semua jenis tinjauan; guru (`teaching_plan:write`) hanya tinjauan `self` miliknya. Peran lain 403 `forbidden`. Pengelola melihat semua tinjauan; guru hanya tinjauan tentang dirinya yang `self` atau yang dibagikan (`sharedWithTeacher`). Filter opsional `semesterId`, `teacherId`. Tidak ada skor gabungan atau peringkat.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "query",
+            "name": "semesterId",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "query",
+            "name": "teacherId",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "header",
+            "name": "x-school-id",
+            "required": true,
+            "description": "Sekolah yang sedang dipakai"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "reviews": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "semesterId": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "semesterName": {
+                            "type": "string"
+                          },
+                          "teacherId": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "teacherName": {
+                            "type": "string"
+                          },
+                          "reviewerKind": {
+                            "type": "string",
+                            "enum": [
+                              "self",
+                              "peer",
+                              "principal",
+                              "student"
+                            ]
+                          },
+                          "reviewerTeacherId": {
+                            "nullable": true,
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "reviewerTeacherName": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "reviewedOn": {
+                            "type": "string"
+                          },
+                          "ratings": {
+                            "nullable": true,
+                            "type": "object",
+                            "additionalProperties": {
+                              "type": "number"
+                            },
+                            "description": "Kunci butir rubrik tetap -> nilai 1..4"
+                          },
+                          "respondentCount": {
+                            "nullable": true,
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991
+                          },
+                          "note": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "sharedWithTeacher": {
+                            "type": "boolean"
+                          },
+                          "createdAt": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "semesterId",
+                          "semesterName",
+                          "teacherId",
+                          "teacherName",
+                          "reviewerKind",
+                          "reviewerTeacherId",
+                          "reviewerTeacherName",
+                          "reviewedOn",
+                          "ratings",
+                          "respondentCount",
+                          "note",
+                          "sharedWithTeacher",
+                          "createdAt"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "reviews"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Catat tinjauan proses pembelajaran",
+        "tags": [
+          "Curriculum"
+        ],
+        "description": "Izin: `subject:read`. Sakelar penilaian proses sekolah harus hidup (403 `feature_disabled`); modul `grades`. Hanya melaporkan: tidak memengaruhi nilai, rapor, atau alur lain. Pemegang `teaching_review:manage` (admin sekolah, kepala sekolah, kurikulum) mengelola semua jenis tinjauan; guru (`teaching_plan:write`) hanya tinjauan `self` miliknya. Peran lain 403 `forbidden`. Jenis `self`, `peer`, `principal`, `student`. Guru: hanya `self` untuk dirinya (`teacherId` dihilangkan = dirinya; selain itu 403 `forbidden`). Pengelola wajib mengisi `teacherId`. `peer` wajib `reviewerTeacherId` (guru lain, bukan yang ditinjau; 400 `invalid_reviewer`), jenis lain terlarang mengisinya. `reviewedOn` bawaan hari ini. `sharedWithTeacher` bawaan `false` dan hanya berlaku untuk jenis selain `self` yang dicatat pengelola. Semester/guru tidak ditemukan: 400 `invalid_reference`. `ratings`: kunci hanya planning, implementation, assessment, follow_up; nilai bulat 1..4 (murid: rata-rata agregat, maks 2 desimal) (400 `invalid_rating`). Minimal satu butir atau catatan (400 `empty_review`). `respondentCount` wajib untuk `student` dan terlarang untuk jenis lain (400 `invalid_respondents`); murid hanya agregat anonim yang diinput staf.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "semesterId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "teacherId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "reviewerKind": {
+                    "type": "string",
+                    "enum": [
+                      "self",
+                      "peer",
+                      "principal",
+                      "student"
+                    ]
+                  },
+                  "reviewerTeacherId": {
+                    "nullable": true,
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "reviewedOn": {
+                    "type": "string",
+                    "format": "date",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                  },
+                  "ratings": {
+                    "nullable": true,
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "number"
+                    },
+                    "description": "Kunci butir rubrik tetap -> nilai 1..4"
+                  },
+                  "respondentCount": {
+                    "nullable": true,
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 100000
+                  },
+                  "note": {
+                    "nullable": true,
+                    "type": "string",
+                    "maxLength": 2000
+                  },
+                  "sharedWithTeacher": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "semesterId",
+                  "reviewerKind"
+                ]
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "header",
+            "name": "x-school-id",
+            "required": true,
+            "description": "Sekolah yang sedang dipakai"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "semesterId": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "semesterName": {
+                      "type": "string"
+                    },
+                    "teacherId": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "teacherName": {
+                      "type": "string"
+                    },
+                    "reviewerKind": {
+                      "type": "string",
+                      "enum": [
+                        "self",
+                        "peer",
+                        "principal",
+                        "student"
+                      ]
+                    },
+                    "reviewerTeacherId": {
+                      "nullable": true,
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "reviewerTeacherName": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "reviewedOn": {
+                      "type": "string"
+                    },
+                    "ratings": {
+                      "nullable": true,
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "number"
+                      },
+                      "description": "Kunci butir rubrik tetap -> nilai 1..4"
+                    },
+                    "respondentCount": {
+                      "nullable": true,
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "note": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "sharedWithTeacher": {
+                      "type": "boolean"
+                    },
+                    "createdAt": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "semesterId",
+                    "semesterName",
+                    "teacherId",
+                    "teacherName",
+                    "reviewerKind",
+                    "reviewerTeacherId",
+                    "reviewerTeacherName",
+                    "reviewedOn",
+                    "ratings",
+                    "respondentCount",
+                    "note",
+                    "sharedWithTeacher",
+                    "createdAt"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/learning-reviews/coverage": {
+      "get": {
+        "summary": "Kecakupan penilaian proses per guru",
+        "tags": [
+          "Curriculum"
+        ],
+        "description": "Izin: `teaching_review:manage`. Sakelar penilaian proses sekolah harus hidup (403 `feature_disabled`); modul `grades`. Hanya melaporkan: tidak memengaruhi nilai, rapor, atau alur lain. Per guru aktif: hitungan tinjauan per jenis penilai dan `met` bila total >= `minPerSemester` (bawaan 1, atur lewat sakelar; bukan per sudut pandang). Hanya melaporkan, tidak memblokir apa pun dan tidak ada notifikasi.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "query",
+            "name": "semesterId",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "header",
+            "name": "x-school-id",
+            "required": true,
+            "description": "Sekolah yang sedang dipakai"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "semesterId": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "minPerSemester": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "teachers": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "teacherId": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "teacherName": {
+                            "type": "string"
+                          },
+                          "counts": {
+                            "type": "object",
+                            "properties": {
+                              "self": {
+                                "type": "integer",
+                                "minimum": -9007199254740991,
+                                "maximum": 9007199254740991
+                              },
+                              "peer": {
+                                "type": "integer",
+                                "minimum": -9007199254740991,
+                                "maximum": 9007199254740991
+                              },
+                              "principal": {
+                                "type": "integer",
+                                "minimum": -9007199254740991,
+                                "maximum": 9007199254740991
+                              },
+                              "student": {
+                                "type": "integer",
+                                "minimum": -9007199254740991,
+                                "maximum": 9007199254740991
+                              }
+                            },
+                            "required": [
+                              "self",
+                              "peer",
+                              "principal",
+                              "student"
+                            ],
+                            "additionalProperties": false
+                          },
+                          "total": {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991
+                          },
+                          "met": {
+                            "type": "boolean"
+                          }
+                        },
+                        "required": [
+                          "teacherId",
+                          "teacherName",
+                          "counts",
+                          "total",
+                          "met"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "semesterId",
+                    "minPerSemester",
+                    "teachers"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/learning-reviews/{id}": {
+      "put": {
+        "summary": "Ubah tinjauan proses pembelajaran",
+        "tags": [
+          "Curriculum"
+        ],
+        "description": "Izin: `subject:read`. Sakelar penilaian proses sekolah harus hidup (403 `feature_disabled`); modul `grades`. Hanya melaporkan: tidak memengaruhi nilai, rapor, atau alur lain. Pemegang `teaching_review:manage` (admin sekolah, kepala sekolah, kurikulum) mengelola semua jenis tinjauan; guru (`teaching_plan:write`) hanya tinjauan `self` miliknya. Peran lain 403 `forbidden`. Semester, guru yang ditinjau, dan jenis penilai tidak dapat diubah (hapus lalu catat ulang). Field yang dihilangkan tidak berubah; `ratings` mengganti seluruh isian. Guru hanya untuk `self` miliknya (selain itu 403 `forbidden`); `sharedWithTeacher` hanya diubah pengelola. `ratings`: kunci hanya planning, implementation, assessment, follow_up; nilai bulat 1..4 (murid: rata-rata agregat, maks 2 desimal) (400 `invalid_rating`). Minimal satu butir atau catatan (400 `empty_review`). `respondentCount` wajib untuk `student` dan terlarang untuk jenis lain (400 `invalid_respondents`); murid hanya agregat anonim yang diinput staf.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "reviewedOn": {
+                    "type": "string",
+                    "format": "date",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                  },
+                  "ratings": {
+                    "nullable": true,
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "number"
+                    },
+                    "description": "Kunci butir rubrik tetap -> nilai 1..4"
+                  },
+                  "respondentCount": {
+                    "nullable": true,
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 100000
+                  },
+                  "note": {
+                    "nullable": true,
+                    "type": "string",
+                    "maxLength": 2000
+                  },
+                  "sharedWithTeacher": {
+                    "type": "boolean"
+                  },
+                  "reviewerTeacherId": {
+                    "nullable": true,
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "header",
+            "name": "x-school-id",
+            "required": true,
+            "description": "Sekolah yang sedang dipakai"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "semesterId": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "semesterName": {
+                      "type": "string"
+                    },
+                    "teacherId": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "teacherName": {
+                      "type": "string"
+                    },
+                    "reviewerKind": {
+                      "type": "string",
+                      "enum": [
+                        "self",
+                        "peer",
+                        "principal",
+                        "student"
+                      ]
+                    },
+                    "reviewerTeacherId": {
+                      "nullable": true,
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "reviewerTeacherName": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "reviewedOn": {
+                      "type": "string"
+                    },
+                    "ratings": {
+                      "nullable": true,
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "number"
+                      },
+                      "description": "Kunci butir rubrik tetap -> nilai 1..4"
+                    },
+                    "respondentCount": {
+                      "nullable": true,
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "note": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "sharedWithTeacher": {
+                      "type": "boolean"
+                    },
+                    "createdAt": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "semesterId",
+                    "semesterName",
+                    "teacherId",
+                    "teacherName",
+                    "reviewerKind",
+                    "reviewerTeacherId",
+                    "reviewerTeacherName",
+                    "reviewedOn",
+                    "ratings",
+                    "respondentCount",
+                    "note",
+                    "sharedWithTeacher",
+                    "createdAt"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Hapus tinjauan proses pembelajaran",
+        "tags": [
+          "Curriculum"
+        ],
+        "description": "Izin: `subject:read`. Sakelar penilaian proses sekolah harus hidup (403 `feature_disabled`); modul `grades`. Hanya melaporkan: tidak memengaruhi nilai, rapor, atau alur lain. Pemegang `teaching_review:manage` (admin sekolah, kepala sekolah, kurikulum) mengelola semua jenis tinjauan; guru (`teaching_plan:write`) hanya tinjauan `self` miliknya. Peran lain 403 `forbidden`. Guru hanya untuk `self` miliknya (selain itu 403 `forbidden`).",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "header",
+            "name": "x-school-id",
+            "required": true,
+            "description": "Sekolah yang sedang dipakai"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    }
+                  },
+                  "required": [
+                    "ok"
                   ],
                   "additionalProperties": false
                 }

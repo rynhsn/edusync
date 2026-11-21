@@ -1967,6 +1967,20 @@ export const ACADEMIC_DOCS: DocArticle[] = [
               'Guru hanya bisa membuat dan mengubah perencanaan untuk mata pelajaran yang ia ampu pada tahun ajaran itu; admin sekolah dan kurikulum bisa untuk semua. Mematikan sakelar hanya menyembunyikan fitur, data tetap tersimpan.',
           },
           {
+            heading: 'Penilaian proses pembelajaran (opsional)',
+            body: 'Penilaian proses mencatat pandangan atas proses pembelajaran seorang guru pada satu semester dari empat sudut: refleksi guru sendiri, sejawat, kepala sekolah, dan murid. Rubriknya tetap (perencanaan, pelaksanaan, penilaian, tindak lanjut) dengan skala 1 sampai 4 dan catatan, tidak dapat diubah per sekolah. Penilaian murid berupa agregat anonim: staf memasukkan jumlah responden dan rata-rata tiap butir dari survei kertas atau formulir sekolah, tanpa identitas murid. Fitur ini mati bawaan dan dinyalakan per sekolah oleh admin atau kurikulum lewat tab Perencanaan; selama belum dinyalakan tidak ada yang berubah. Ukuran kecakupannya adalah total tinjauan per guru per semester (bawaan minimal 1, dapat diatur 1 sampai 4), dari sudut pandang mana pun. Fitur ini hanya melaporkan: tidak memengaruhi nilai, rapor, atau kenaikan kelas, tidak memblokir apa pun, tidak ada skor gabungan atau peringkat guru, dan tidak ada notifikasi.',
+            steps: [
+              'Admin sekolah atau kurikulum: buka Perangkat ajar saya, tab Perencanaan, lalu centang Nyalakan penilaian proses pembelajaran.',
+              'Buka tab Penilaian proses dan pilih semester. Tiap guru aktif tampil dengan lencana Terpenuhi atau Belum terpenuhi.',
+              'Pengelola (admin, kepala sekolah, kurikulum): klik Tambah tinjauan pada seorang guru, pilih jenis penilai, isi butir 1 sampai 4 dan catatan, lalu klik Buat. Untuk sejawat pilih guru penilainya; untuk murid isi jumlah responden dan rata-rata butir.',
+              'Guru: buka tab Penilaian proses lalu klik Tulis refleksi untuk mencatat refleksi dirinya.',
+            ],
+            href: '/teaching-plan',
+            tip: 'Tinjauan dari kepala sekolah, sejawat, atau murid tidak dibagikan ke guru yang bersangkutan sampai pengelola mencentang Bagikan ke guru yang bersangkutan.',
+            warning:
+              'Guru hanya bisa menulis, mengubah, dan menghapus refleksi dirinya sendiri; jenis penilai lain hanya untuk pemegang izin Mengelola penilaian proses (admin sekolah, kepala sekolah, kurikulum). Mematikan sakelar hanya menyembunyikan fitur, data tetap tersimpan.',
+          },
+          {
             heading: 'Menerbitkan dan membuat versi baru',
             body: 'Bila ATP sudah siap, klik Terbitkan lalu konfirmasi. ATP yang terbit terkunci dan hanya bisa dilihat. Untuk merevisinya, klik Buat versi baru: isinya disalin menjadi draf versi berikutnya, sedangkan versi yang terbit tetap utuh. Draf yang belum terbit bisa dihapus.',
             tip: 'Saat pergantian tahun ajaran, pilih Salin perangkat ajar di langkah menyalin data pada menu Kenaikan kelas. ATP yang terbit disalin sebagai draf ke tahun baru untuk Anda periksa dan terbitkan lagi.',
@@ -2071,6 +2085,20 @@ export const ACADEMIC_DOCS: DocArticle[] = [
               'A teacher can only create and edit plans for subjects they teach in that academic year; school admins and curriculum leads can do so for all. Turning the switch off only hides the feature; the data is kept.',
           },
           {
+            heading: 'Learning-process reviews (optional)',
+            body: 'A learning-process review records views on how a teacher runs learning in one semester from four angles: the teacher’s own reflection, a peer, the principal, and students. The rubric is fixed (planning, implementation, assessment, follow-up) with a scale of 1 to 4 and a note, and cannot be changed per school. A student review is an anonymous aggregate: staff enter the number of respondents and the average of each item from a paper or school survey, with no student identity. It is off by default and the school admin or curriculum lead turns it on per school in the Planning tab; until then nothing changes. Coverage is the total number of reviews per teacher per semester (at least 1 by default, adjustable from 1 to 4), from any angle. It only reports: it does not affect grades, report cards, or promotion, blocks nothing, has no combined score or teacher ranking, and sends no notifications.',
+            steps: [
+              'School admin or curriculum lead: open My teaching materials, the Planning tab, then tick Turn on learning-process reviews.',
+              'Open the Process reviews tab and pick a semester. Each active teacher appears with a Met or Not met badge.',
+              'Managers (admin, principal, curriculum): click Add review on a teacher, pick the reviewer kind, fill in items 1 to 4 and a note, then click Create. For a peer pick the reviewing teacher; for students enter the number of respondents and the item averages.',
+              'Teacher: open the Process reviews tab and click Write reflection to record your own reflection.',
+            ],
+            href: '/teaching-plan',
+            tip: 'Reviews from the principal, a peer, or students are not shared with the teacher concerned until a manager ticks Share with the teacher concerned.',
+            warning:
+              'A teacher can only write, edit, and delete their own reflection; other reviewer kinds are for holders of the Manage learning-process reviews permission (school admin, principal, curriculum). Turning the switch off only hides the feature; the data is kept.',
+          },
+          {
             heading: 'Publishing and creating a new version',
             body: 'When the ATP is ready, click Publish and confirm. A published ATP is locked and read-only. To revise it, click Create new version: its contents are copied into a draft of the next version while the published version stays intact. A draft that has not been published can be deleted.',
             tip: 'At the change of school year, tick Copy teaching materials in the copy step of the Promotion menu. Published ATP are copied to the new year as drafts for you to review and publish again.',
@@ -2173,6 +2201,20 @@ export const ACADEMIC_DOCS: DocArticle[] = [
             tip: 'Berkas teu diunggah ka sistem. Cukup témpélkeun tautan https, upamana folder babagi sakola.',
             warning:
               'Guru ngan bisa nyieun jeung ngarobah rencana pikeun mata pelajaran nu diajarna dina taun ajaran éta; admin sakola jeung kurikulum bisa pikeun sadayana. Mareuman sakelar ngan nyumputkeun fitur, datana tetep disimpen.',
+          },
+          {
+            heading: 'Pangajen proses pangajaran (opsional)',
+            body: 'Pangajen proses nyatet pamadegan ngeunaan proses pangajaran hiji guru dina hiji semester tina opat sudut: refleksi guru sorangan, sajawat, kepala sakola, jeung murid. Rubrikna tetep (perencanaan, palaksanaan, pangajen, tindak lanjut) kalawan skala 1 nepi ka 4 jeung catetan, teu bisa dirobah per sakola. Pangajen murid mangrupa agregat anonim: staf ngasupkeun jumlah responden jeung rata-rata unggal butir tina survey kertas atawa formulir sakola, tanpa idéntitas murid. Fitur ieu pareum sacara baku jeung diaktipkeun per sakola ku admin atawa kurikulum lewat tab Perencanaan; salami can diaktipkeun teu aya nu robah. Ukuran kacukupanna nyaéta total tinjauan per guru per semester (baku sahenteuna 1, bisa diatur 1 nepi ka 4), tina sudut pandang naon waé. Fitur ieu ngan ngalaporkeun: teu mangaruhan nilai, rapor, atawa kenaikan kelas, teu meungpeuk nanaon, euweuh skor gabungan atawa pangkat guru, jeung euweuh émbaran.',
+            steps: [
+              'Admin sakola atawa kurikulum: buka Parabot ngajar kuring, tab Perencanaan, tuluy centang Aktipkeun pangajen proses pangajaran.',
+              'Buka tab Pangajen proses tuluy pilih semester. Unggal guru aktip mucunghul kalawan lencana Kacumponan atawa Can kacumponan.',
+              'Pangrupa (admin, kepala sakola, kurikulum): klik Tambah tinjauan dina hiji guru, pilih jenis panilai, eusian butir 1 nepi ka 4 jeung catetan, tuluy klik Jieun. Pikeun sajawat pilih guru panilaina; pikeun murid eusian jumlah responden jeung rata-rata butir.',
+              'Guru: buka tab Pangajen proses tuluy klik Tulis refleksi pikeun nyatet refleksi dirina.',
+            ],
+            href: '/teaching-plan',
+            tip: 'Tinjauan ti kepala sakola, sajawat, atawa murid teu dibagikeun ka guru anu pakait nepi ka pangrupa nyentang Bagikeun ka guru anu pakait.',
+            warning:
+              'Guru ngan bisa nulis, ngarobah, jeung mupus refleksi dirina sorangan; jenis panilai séjén ngan pikeun nu boga idin Ngatur pangajen proses (admin sakola, kepala sakola, kurikulum). Mareuman sakelar ngan nyumputkeun fitur, datana tetep disimpen.',
           },
           {
             heading: 'Nerbitkeun jeung nyieun vérsi anyar',

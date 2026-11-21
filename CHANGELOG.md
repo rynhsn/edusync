@@ -18,6 +18,18 @@ Cara merilis: tulis bagian baru di bawah "Belum dirilis" lalu ganti judulnya men
 
 ### Ditambahkan
 
+- **Penilaian proses pembelajaran (opsional, tahap 3.6.3, C12)**: tab Penilaian proses di Perangkat ajar saya untuk mencatat tinjauan
+  proses pembelajaran per guru per semester dari empat sudut: refleksi guru (`self`), sejawat, kepala sekolah, dan murid (agregat
+  anonim: jumlah responden dan rata-rata butir, tanpa identitas murid, diinput staf). Rubrik tetap (perencanaan, pelaksanaan,
+  penilaian, tindak lanjut; skala 1 sampai 4 dan catatan), tidak dapat dikustom. Kecakupan = total tinjauan per guru per semester
+  minimal `reviewMinPerSemester` (bawaan 1, atur 1-4); hanya melaporkan, tanpa skor gabungan atau peringkat, tanpa notifikasi, tidak
+  memengaruhi nilai, rapor, atau alur lain. Mati bawaan: sakelar penilaian proses di `learning_plan_setting` (kotak ketiga di tab
+  Perencanaan, izin `curriculum:manage`); selama mati semua endpoint baru menjawab 403 `feature_disabled`. Izin baru
+  `teaching_review:manage` (admin sekolah, kepala sekolah, kurikulum; disinkronkan ke sekolah lama saat migrasi): mengelola semua
+  jenis tinjauan. Guru hanya mengelola refleksi dirinya dan melihat tinjauan lain tentang dirinya bila `sharedWithTeacher` (bawaan
+  `false`). Endpoint baru `GET/POST /v1/learning-reviews`, `PUT/DELETE /v1/learning-reviews/{id}`, `GET /v1/learning-reviews/coverage`
+  (modul `grades`). Tabel `learning_process_review` (RLS, FK komposit); migrasi 0124 (aditif). Sekolah tanpa sakelar tidak berubah.
+
 - **Jurnal mengajar (opsional, tahap 3.6.2)**: lembar Absensi per jam (satu jam dan pertemuan gabungan) memiliki bagian lipat Jurnal untuk
   mencatat materi (wajib untuk menyimpan), catatan atau kendala, perencanaan terkait, dan maksimal 10 TP. Mati bawaan: dinyalakan
   per sekolah lewat sakelar jurnal yang sudah ada di `learning_plan_setting` (kotak baru di tab Perencanaan, izin `curriculum:manage`).
